@@ -1,0 +1,21 @@
+{
+    "name": "Ability Auditor Helper",
+    "description": "Base Level Extension",
+    "version": "1.0",
+    "manifest_version": 3,
+    "permissions": [
+        "activeTab",
+        "tabs",
+        "storage"
+    ],
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content-script.js"]
+        }
+    ],
+    "action": {
+        "default_popup": "index.html",
+        "default_icon": "hello_extensions.png"
+    }
+}
