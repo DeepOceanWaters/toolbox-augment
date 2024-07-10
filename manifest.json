@@ -3,6 +3,7 @@
     "description": "Base Level Extension",
     "version": "1.0",
     "manifest_version": 3,
+    "devtools_page": "devtools/loader.html",
     "permissions": [
         "activeTab",
         "tabs",
@@ -10,12 +11,26 @@
     ],
     "content_scripts": [
         {
-            "matches": ["<all_urls>"],
-            "js": ["content-script.js"]
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content-script.js"
+            ]
         }
     ],
     "action": {
         "default_popup": "index.html",
-        "default_icon": "hello_extensions.png"
-    }
+        "default_icon": "extension_icon.png"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "modules/*"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
 }

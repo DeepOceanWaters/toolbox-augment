@@ -1,24 +1,47 @@
-(() => {
+(async () => {
     main();
 
-    function main() {
+    async function main() {
+        
         // const response = await chrome.runtime.sendMessage({ greeting: "hello" });
         // // do something with response here, not outside the function
         // console.log(response);
         console.log('hello');
-        chrome.runtime.onMessage.addListener(
-            function (request, sender, sendResponse) {
-                console.log(sender.tab ?
-                    "from a content script:" + sender.tab.url :
-                    "from the extension");
-                if (request.greeting === "hello") {
-                    let auditData = getAuditData();
-                    console.log(auditData);
-                    sendResponse(auditData);
-                }
-            }
-        );
+        chrome.runtime.onMessage.addListener(messageRouter);
+    }
 
+    async function messageRouter(request, sender, sendResponse) {
+        console.log(sender.tab ?
+            "from a content script:" + sender.tab.url :
+            "from the extension");
+        // stuff
+        switch (request.name) {
+            case 'pageSearch':
+                console.log('request: pageSearch');
+                const psSrc = chrome.runtime.getURL('modules/pageSearch.js');
+                const pageSearch = await import(psSrc);
+                pageSearch.main();
+                break;
+            case 'exposeAltText':
+                console.log('request: exposeAltText');
+                const eatSrc = chrome.runtime.getURL('modules/exposeAltText.js');
+                const exposeAltText = await import(eatSrc);
+                exposeAltText.main();
+                break;
+            case 'getElementStyle':
+                console.log('request: getElementStyle');
+                const gesSrc = chrome.runtime.getURL('modules/getElementStyle.js');
+                const getElementStyle = await import(gesSrc);
+                let element = document.querySelector('[data-get-element-style]');
+                let style = getElementStyle.main(element);
+                delete element.dataset.getElementStyle;
+                sendResponse(style);
+                break;
+            default:
+                console.log(`unknown request: ${request.name}`);
+                break;
+        }
+        return;
     }
 
     function stuff() {
@@ -42,17 +65,10 @@
         let audit = {
             id: -1,
             columnHeaders: [],
-            rows: []
+            rows: {}
         };
-        /* 
-            {
-                id: number,
-                columnHeaders: Array<string>,
-                rows: Array<Array<string>>
-            }
-        */
-       audit.columnHeaders = getColumnHeaders();
-       audit.rows = getAllRowValues();
+        audit.columnHeaders = getColumnHeaders();
+        audit.rows = getAllRowValues();
 
         return audit;
     }
@@ -72,9 +88,10 @@
         let tbody = table.querySelector('tbody');
 
         let rows = tbody.querySelectorAll('tr');
-        let rowsOfValues = [];
-        for(const row of rows) {
-            rowsOfValues.push(getRowValues(row));
+        let rowsOfValues = {};
+        for (const row of rows) {
+            let rowValues = getRowValues(row);
+            rowsOfValues[rowValues.id] = rowValues;
         }
         return rowsOfValues;
     }
@@ -84,11 +101,11 @@
     }
 
     function getRowInfo(row, callback) {
-        let outputRow = new Array(row.children.length);
+        let outputRow = {};
         for (let i = 0; i < row.children.length; i++) {
             let cell = row.children.item(i);
             let value = callback(cell);
-            outputRow[i] = htmlUnescape(value);// name
+            outputRow[cell.dataset.key] = htmlUnescape(value);
         }
         return outputRow;
     }

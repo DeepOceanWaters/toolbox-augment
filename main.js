@@ -8,35 +8,19 @@
     const log = document.getElementById('log');
     let testbtn = document.getElementById('test');
     testbtn.addEventListener('click', async (e) => {
-        logIt('testbtn clicked, sending message');
         const [tab] = await chrome.tabs.query({
             active: true,
             lastFocusedWindow: true,
         });
-        logIt(tab.id);
-        try {
-            const response = await chrome.tabs.sendMessage(tab.id, {
-                greeting: "hello",
-            });
-            logIt(response.farewell + '-response!');
-        } catch (e) {
-            logIt(e.message);
+        const response = await chrome.tabs.sendMessage(tab.id, {
+            greeting: "hello",
+        });
+        for(const key of Object.keys(response.rows)){
+            logIt(Object.entries(response.rows[key]).join(','));
         }
     });
 
     let auditId = await getAuditId();
-    logIt(auditId);
-
-    chrome.runtime.onMessage.addListener(
-        function (request, sender, sendResponse) {
-            console.log(sender.tab ?
-                "from a content script:" + sender.tab.url :
-                "from the extension");
-            logIt(request.farewell);
-        }
-    );
-
-
 
     function logIt(text) {
         let li = document.createElement('li');
