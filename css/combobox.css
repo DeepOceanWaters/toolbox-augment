@@ -45,27 +45,28 @@
     background: white;
     overflow-y: scroll;
     border: 1px solid black;
+    list-style: none;
 }
 
-[role="listbox"][role="option"] {
+[role="listbox"] [role="option"] {
     border-bottom: 1px solid black;
     padding: 0.3rem;
     cursor: pointer;
 }
 
-[role="listbox"][role="option"]:hover {
+[role="listbox"] [role="option"]:hover {
     background-color: #E1E1E1;
 }
 
-[role="listbox"][role="option"].selected {
+[role="listbox"] [role="option"].selected {
     font-weight: bold;
 }
 
-[role="listbox"][role="option"]:nth-child(even):not(:focus :hover) {
+[role="listbox"] [role="option"]:nth-child(even):not(:focus, :hover) {
     background-color: #EFEFEF;
 }
 
-[role="listbox"][role="option"]:focus {
+[role="listbox"] [role="option"]:focus {
     outline: none;
     color: #EFEFEF;
     background-color: #333;
