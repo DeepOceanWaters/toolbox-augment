@@ -19,8 +19,8 @@ export function getClosestNonStaticPositionedAncestor(element) {
 export function getListOfNonStaticPositionedAncestors(element) {
     let [ancestor, position] = [element, 'static'];
     let ancestors = [];
-    while (([ancestor, position] = getClosestNonStaticPositionedAncestor(element))[0] 
-            !== document.documentElement) {
+    while (([ancestor, position] = getClosestNonStaticPositionedAncestor(element))[0]
+        !== document.documentElement) {
         ancestors.push([ancestor, position]);
     }
     return ancestors;
@@ -64,13 +64,13 @@ export function isFocusable(element) {
     return isTabbable && !isInInert && !closestClosedAncestorDetails;
 }
 
-export function findShadowRoots (element = document.documentElement) {
+export function findShadowRoots(element = document.documentElement) {
     let shadowRootElements = [element];
     this._findShadowRoots(element, shadowRootElements);
     return shadowRootElements;
 }
 
-export function _findShadowRoots (element, outputArray) {
+export function _findShadowRoots(element, outputArray) {
     for (const child of element.children) {
         if (child.shadowRoot) {
             outputArray.push(child.shadowRoot);
@@ -111,7 +111,7 @@ export function getSelector(element) {
 }
 
 export function getElementStyle(element) {
-    if (!element) throw new Error('no element found. Please focus an element to get its bizniz');
+    if (!element) throw new Error('no element found. Please focus an element to get its styles');
     let elementStyle = window.getComputedStyle(element);
     // convert from px to pt, getPropertyValue should get the used value which should always be in px
     const fontSize = Number(elementStyle.getPropertyValue('font-size').replace('px', '')) * 0.75;
@@ -121,7 +121,10 @@ export function getElementStyle(element) {
     // given the WCAG definition of "large-scale"
     const isLargeScale = !!(fontSize >= 18 || (fontSize >= 14 && fontWeight >= 700));
     let color = elementStyle.getPropertyValue('color');
-    let text = `color: ${color}\nfont-size: ${fontSize}pt\nfont-weight: ${fontWeight}\nis large-scale: ${isLargeScale}`;
+    let text = `color: ${color}\n`
+             + `font-size: ${fontSize}pt\n`
+             + `font-weight: ${fontWeight}\n`
+             + `is large-scale: ${isLargeScale}`;
     console.log(text);
     return {
         color: color,
@@ -129,4 +132,25 @@ export function getElementStyle(element) {
         fontWeight: fontWeight,
         isLargeScale: isLargeScale
     }
+}
+
+export function htmlEscape(text) {
+    return HTMLEscapeUnescape(text, true);
+}
+
+export function htmlUnescape(text) {
+    return HTMLEscapeUnescape(text, false);
+}
+
+function HTMLEscapeUnescape(text, escape) {
+    let unescaped2escaped = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;'
+    };
+    for (let [unescaped, escaped] of Object.entries(unescaped2escaped)) {
+        if (escape) text = text.replaceAll(unescaped, escaped);
+        else        text = text.replaceAll(escaped, unescaped);
+    }
+    return text;
 }

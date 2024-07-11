@@ -1,20 +1,13 @@
 (async () => {
+    let issueCustomeStyle;
     main();
 
     async function main() {
-        
-        // const response = await chrome.runtime.sendMessage({ greeting: "hello" });
-        // // do something with response here, not outside the function
-        // console.log(response);
-        console.log('hello');
         chrome.runtime.onMessage.addListener(messageRouter);
+        issueCustomeStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
     }
 
     async function messageRouter(request, sender, sendResponse) {
-        console.log(sender.tab ?
-            "from a content script:" + sender.tab.url :
-            "from the extension");
-        // stuff
         switch (request.name) {
             case 'pageSearch':
                 console.log('request: pageSearch');
@@ -37,6 +30,28 @@
                 delete element.dataset.getElementStyle;
                 sendResponse(style);
                 break;
+            case 'scrollTo':
+                console.log('request: getSelectedRow');
+                const stSrc = chrome.runtime.getURL('modules/scrollTo.js');
+                const scrollTo = await import(stSrc);
+                scrollTo.scrollTo(request.index, request.id);
+                break;
+            case 'getSelectedRow':
+                console.log('request: getSelectedRow');
+                const gsrSrc = chrome.runtime.getURL('modules/scrollTo.js');
+                const getSelectedRow = await import(gsrSrc);
+                getSelectedRow.getSelectedRow();
+                break;
+            case 'toggleIssueDialogStylesheet':
+                console.log('request: toggleIssueDialogStylesheet');
+                issueCustomeStyle.disabled = !issueCustomeStyle.disabled;
+                break;
+            case 'replaceTokens':
+                console.log('request: replaceTokens');
+                const rtSrc = chrome.runtime.getURL('modules/replaceTokens.js');
+                const replaceTokens = await import(rtSrc);
+                replaceTokens.main();
+                break;
             default:
                 console.log(`unknown request: ${request.name}`);
                 break;
@@ -44,23 +59,14 @@
         return;
     }
 
-    function stuff() {
-        // does stuff
+    function injectStyles(url) {
+        let element = document.createElement('link');
+        element.rel = 'stylesheet';
+        element.setAttribute('href', url);
+        document.head.appendChild(element);
+        return element;
     }
 
-    // copy and paste this into the chrome dev tools while on
-    // the audit's table of issues. After pasting hit enter and
-    // the csv content will be output in text, you should be
-    // able to copy that text output. There should be a button in
-    // the devtools called "copy" that shows after the text length,
-    // of the text output to the console.
-    // I recommend copying the text, then create a 
-    // csv or txt file and paste into that file,
-    // then import the file into google sheets (file -> import,
-    // choose the 'upload' tab in the top right of the dialog)
-    // I had no trouble uploading a plain txt file
-    // I tried with my own audit, and all the information seems to be there
-    // 
     function getAuditData() {
         let audit = {
             id: -1,
@@ -110,15 +116,5 @@
         return outputRow;
     }
 
-    function htmlUnescape(text) {
-        let htmlConversion = [
-            ['&', '&amp;'],
-            ['<', '&lt;'],
-            ['>', '&gt;']
-        ];
-        for (let converter of htmlConversion) {
-            text = text.replaceAll(converter[1], converter[0]);
-        }
-        return text;
-    }
+
 })();
