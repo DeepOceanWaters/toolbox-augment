@@ -17,7 +17,7 @@ function descontructTokenString(tokenString) {
     return [possibleTokens, args]
 }
 
-function getRecommendation(token) {
+export function getRecommendation(token) {
     let [possibleTokens, args] = descontructTokenString(token);
     let tokenObj = tokens;
     let outputValue = "";
@@ -48,14 +48,14 @@ function getRecommendation(token) {
             }
         }
         else if (!(aToken in tokenObj)) {
-            console.log(`token not found (${token})`);
+            alert(`token not found (${token})`);
             return;
         }
         else {
             tokenObj = tokenObj[aToken];
         }
     }
-    outputValue ||= tokenObj.value;
+    outputValue ||= typeof tokenObj === 'string' ? tokenObj : tokenObj.value;
     return replaceVariables(outputValue, args);
 }
 
@@ -144,10 +144,6 @@ function listTokens(withValue = false) {
     return tokenList;
 }
 
-function getToken(token) {
-
-}
-
 export function getPossibleTokens() {
     let possibleTokens = [];
     _getTokens(tokens, [], possibleTokens);
@@ -158,10 +154,14 @@ function _getTokens(tokenObject, curTokenString, listOfTokens) {
     for(let [key, value] of Object.entries(tokenObject)) {
         // related sc
         if (Array.isArray(value)) continue;
+        if (['issues', 'recommendation', 'requirement'].includes(key)) continue;
         let nextTokenString = structuredClone(curTokenString);
         nextTokenString.push(key);
         if (typeof value === 'string' || value.hasOwnProperty('value')) {
             listOfTokens.push(nextTokenString.join('.'));
+        }
+        if (typeof value === 'object' && value.hasOwnProperty('issues')) {
+            listOfTokens.push([...nextTokenString, 'all'].join('.'))
         }
         if (typeof value === 'object') {
             _getTokens(value, nextTokenString, listOfTokens);

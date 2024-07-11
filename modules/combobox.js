@@ -50,9 +50,14 @@ export default class Combobox {
     }
 
     addEventListeners() {
-        this.comboboxElement.addEventListener('input', (e) => this.searchOptions(e));
+        this.comboboxElement.addEventListener('input', (e) => {
+            this.toggleListbox(true);
+            this.searchOptions(e);
+        });
         this.comboboxElement.addEventListener('keydown', (e) => this.keyRouter(e));
         this.listboxElement.addEventListener('keydown', (e) => this.optionKeyRouter(e));
+        this.comboboxElement.addEventListener('focusin', (e) => this.toggleListbox(true));
+        this.listboxElement.addEventListener('click', (e) => this.activateOption(e.target));
     }
 
     searchOptions() {
@@ -80,6 +85,7 @@ export default class Combobox {
             case 'ArrowDown':
             case 'Enter':
                 if (this.listboxElement.hidden) this.toggleListbox();
+                e.preventDefault();
                 this.listboxElement.querySelector('[role="option"]:not([hidden])').focus();
                 return;
             case 'Control':
@@ -132,8 +138,14 @@ export default class Combobox {
             document.documentElement.clientHeight || 0, 
             window.innerHeight || 0
         );
+        this.listboxElement.style.left = '0px';
+        let containerRect = this.comboboxElement.parentElement.getBoundingClientRect();
         let comboboxRect = this.comboboxElement.getBoundingClientRect();
-        this.listboxElement.style.height = (viewportHeight - comboboxRect.bottom) + 'px';
+        this.listboxElement.style.maxHeight = (viewportHeight - comboboxRect.bottom) + 'px';
+        let listboxRect = this.listboxElement.getBoundingClientRect();
+        this.listboxElement.style.left = (comboboxRect.x - listboxRect.x) + 'px';
+        this.listboxElement.style.top = (comboboxRect.bottom - comboboxRect.top) + 'px';
+
     }
 
 
@@ -149,7 +161,11 @@ export default class Combobox {
     }
 
     activateOption(option) {
-        // do stuff
+        let value = option.textContent;
+        this.comboboxElement.value = value;
+        this.comboboxElement.focus();
+        this.toggleListbox(false);
+        if (this.activateOptionCallback) this.activateOptionCallback(value);
     }
 
     getComboboxLabel() {
@@ -162,5 +178,9 @@ export default class Combobox {
 
     getListboxElement() {
         return this.listboxElement;
+    }
+
+    setActivateOptionCallback(callback) {
+        this.activateOptionCallback = callback;
     }
 }

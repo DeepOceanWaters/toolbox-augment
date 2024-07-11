@@ -1,5 +1,5 @@
 import { tokens } from "../data/tokens.js";
-import { main as replaceTokens, getPossibleTokens } from "../modules/replaceTokens.js";
+import { main as replaceTokens, getRecommendation, getPossibleTokens } from "../modules/replaceTokens.js";
 import Combobox from "../modules/combobox.js";
 
 (async () => {
@@ -101,9 +101,13 @@ import Combobox from "../modules/combobox.js";
     /***************************************************/
 
     function initRecommendationWiget() {
+        let tokensOutput = document.getElementById('tokens-output');
         let widgetElement = document.getElementById('tokens-combobox-widget');
         let possibleTokens = getPossibleTokens();
         let combobox = new Combobox('Tokens Search', 'Tokens', possibleTokens);
+        combobox.setActivateOptionCallback(() => {
+            tokensOutput.value = getRecommendation(combobox.getComboboxElement().value);
+        });
         widgetElement.append(
             combobox.getComboboxLabel(), 
             combobox.getComboboxElement(), 
