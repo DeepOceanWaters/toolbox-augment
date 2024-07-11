@@ -34,9 +34,11 @@ export default class Combobox {
             let optionElement = document.createElement('li');
             optionElement.setAttribute('role', 'option');
             optionElement.textContent = option;
+            optionElement.tabIndex = -1;
             listbox.appendChild(optionElement);
         }
 
+        listbox.hidden = true;
         return listbox;
     }
 
@@ -48,9 +50,9 @@ export default class Combobox {
     }
 
     addEventListeners() {
-        this.comboboxElement.addEventListener('input', this.searchOptions);
-        this.comboboxElement.addEventListener('keydown', this.keyRouter);
-        this.listboxElement.addEventListener('keydown', this.optionKeyRouter);
+        this.comboboxElement.addEventListener('input', (e) => this.searchOptions(e));
+        this.comboboxElement.addEventListener('keydown', (e) => this.keyRouter(e));
+        this.listboxElement.addEventListener('keydown', (e) => this.optionKeyRouter(e));
     }
 
     searchOptions() {
@@ -67,8 +69,10 @@ export default class Combobox {
     }
 
     filerOptions(callback) {
-        [...this.listboxElement.children]
-            .forEach(e => e.hidden = callback(e));
+        let options = [...this.listboxElement.children];
+        for(let option of options) {
+            option.hidden = !callback(option);
+        }
     }
 
     keyRouter(e) {
@@ -78,6 +82,7 @@ export default class Combobox {
                 if (this.listboxElement.hidden) this.toggleListbox();
                 this.listboxElement.querySelector('[role="option"]:not([hidden])').focus();
                 return;
+            case 'Control':
             case 'Escape':
                 if (!this.listboxElement.hidden) this.toggleListbox();
                 break;
@@ -122,6 +127,15 @@ export default class Combobox {
         nextFocus.focus();
     }
 
+    positionListbox() {
+        let viewportHeight = Math.max(
+            document.documentElement.clientHeight || 0, 
+            window.innerHeight || 0
+        );
+        let comboboxRect = this.comboboxElement.getBoundingClientRect();
+        this.listboxElement.style.height = (viewportHeight - comboboxRect.bottom) + 'px';
+    }
+
 
     toggleListbox(visibility) {
         let expanded = this.comboboxElement.getAttribute('aria-expanded') === 'true';
@@ -130,6 +144,7 @@ export default class Combobox {
         }
         this.listboxElement.hidden = expanded;
         this.comboboxElement.setAttribute('aria-expanded', !expanded);
+        this.positionListbox();
         return !expanded;
     }
 

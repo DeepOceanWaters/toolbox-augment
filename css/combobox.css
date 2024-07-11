@@ -41,7 +41,6 @@
     position: absolute;
     bottom: 0;
     transform: translate(0 100%);
-    max-height: calc(100vh - 5rem);
     z-index: 100;
     background: white;
     overflow-y: scroll;
