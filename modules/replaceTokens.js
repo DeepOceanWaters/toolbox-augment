@@ -25,18 +25,11 @@ export function getRecommendation(token) {
         if (aToken in tokens.aliases) {
             aToken = tokens.aliases[aToken];
         }
-        if (aToken === 'value') {
-            throw new Error('"value" is not an allowed token value.');
+        if (!(aToken in tokenObj)) {
+            alert(`token not found (${token})`);
+            return;
         }
-        else if (aToken === 'all') {
-            outputValue = tokenObj["issues"];
-            outputValue += '\n\n';
-            outputValue += tokenObj["requirement"];
-            outputValue += '\n\n';
-            outputValue += tokenObj["recommendation"];
-            break;
-        }
-        else if (aToken === 'resources') {
+        if (aToken === 'resources') {
             let listOfResources = tokenObj["resources"];
             if (!listOfResources) {
                 outputValue = `no resources found for ${token}`;
@@ -47,16 +40,40 @@ export function getRecommendation(token) {
                 }
             }
         }
-        else if (!(aToken in tokenObj)) {
-            alert(`token not found (${token})`);
-            return;
-        }
         else {
             tokenObj = tokenObj[aToken];
         }
     }
+    if (tokenObj["issues"]) {
+        outputValue = tokenObj["issues"];
+        outputValue += '\n\n';
+    }
+    if (tokenObj["requirement"]) {
+        outputValue += tokenObj["requirement"];
+        outputValue += '\n\n';
+    }
+    if (tokenObj["recommendation"]) {
+        outputValue += tokenObj["recommendation"];
+    }
+    if (tokenObj['resources']) {
+        let listOfResources = tokenObj["resources"];
+        if (listOfResources) outputValue += '\n\nResources\n';
+        for (const resource of listOfResources) {
+            outputValue += "\n" + resource;
+        }
+    }
     outputValue ||= typeof tokenObj === 'string' ? tokenObj : tokenObj.value;
-    return replaceVariables(outputValue, args);
+    return {
+        text: replaceVariables(outputValue, args),
+        template: {
+            issue: replaceVariables(tokenObj["issues"], args),
+            requirement: replaceVariables(tokenObj["requirement"], args),
+            recommendation: replaceVariables(tokenObj["recommendation"], args),
+            relatedsc: tokenObj["relatedsc"],
+            resources: tokenObj["resources"],
+            arguments: args
+        }
+    };
 }
 
 function replaceVariables(recommendation, args) {
@@ -151,20 +168,27 @@ export function getPossibleTokens() {
 }
 
 function _getTokens(tokenObject, curTokenString, listOfTokens) {
-    for(let [key, value] of Object.entries(tokenObject)) {
+    for (let [key, value] of Object.entries(tokenObject)) {
         // related sc
         if (Array.isArray(value)) continue;
         if (['issues', 'recommendation', 'requirement'].includes(key)) continue;
         let nextTokenString = structuredClone(curTokenString);
         nextTokenString.push(key);
-        if (typeof value === 'string' || value.hasOwnProperty('value')) {
+        let currentToken = nextTokenString.join('.');
+        if (!listOfTokens.includes(currentToken)
+            &&
+            (typeof value === 'object' && hasTemplateProperty(value))
+        ) {
             listOfTokens.push(nextTokenString.join('.'));
-        }
-        if (typeof value === 'object' && value.hasOwnProperty('issues')) {
-            listOfTokens.push([...nextTokenString, 'all'].join('.'))
         }
         if (typeof value === 'object') {
             _getTokens(value, nextTokenString, listOfTokens);
         }
     }
+}
+
+function hasTemplateProperty(object) {
+    return object.hasOwnProperty('issues')
+        || object.hasOwnProperty('requirement')
+        || object.hasOwnProperty('recommendation');
 }

@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../css/panel.css">
     <link rel="stylesheet" href="../css/combobox.css">
+    <link rel="stylesheet" href="../css/sr-only.css">
     <script src="panel_main.js" type="module" defer></script>
     <script src="../modules/replaceTokens.js" type="module" defer></script>
 </head>
+
 <body>
     <h2>Settings</h2>
     <ul>
@@ -16,6 +19,7 @@
     <h2>Actions</h2>
     <h3>General Webpage</h3>
     <ul>
+        <li><button id="screen-capture">Screen Capture</button></li>
         <li><button id="expose-alt-text" aria-pressed="false">Alt Text</button></li>
         <li>
             <button id="get-element-style">is Large Scale?</button>
@@ -41,9 +45,26 @@
         <li>
             <button id="add-recommendation">Replace Tokens/Add Recommendation</button>
             <div id="tokens-combobox-widget" style="position: relative;"></div>
-            <label for="tokens-output">Token(s) Output</label>
+            <div class="template" style="display: none;">
+                <div class="vertical-pair">
+                    <button id="copy-issue">Copy Issues</button>
+                    <label for="issue">Issue</label>
+                    <textarea name="issue" id="issue"></textarea>
+                </div>
+                <div class="vertical-pair">
+                    <button id="copy-recommendation">Copy Recommendation</button>
+                    <label for="recommendation">Recommendation</label>
+                    <textarea name="recommendation" id="recommendation"></textarea>
+                </div>
+                <div id="resources-section">
+                    <h2>Resources</h2>
+                    <ul id="resources"></ul>
+                </div>
+            </div>
+            <label for="tokens-output">Full Text Output</label>
             <textarea name="" id="tokens-output" cols="30" rows="10"></textarea>
         </li>
     </ul>
 </body>
+
 </html>

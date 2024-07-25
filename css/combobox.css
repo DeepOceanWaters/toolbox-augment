@@ -3,25 +3,16 @@
     outline-width: 0.25rem;
 }
 
-.combobox-container {
-    position: absolute;
-    width: 100vw;
-    z-index: 100;
-    background: white;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    box-shadow: 0px 3px 8px -3px black;
-    border-bottom: 1px solid black;
-    top: 0;
-}
-
 .combobox-widget {
     position: relative;
     width: fit-content;
+    display: flex;
+    align-items: center;
+    margin: 0.25rem 0;
+}
+
+.combobox-widget * {
+    box-sizing: border-box;
 }
 
 .combobox-container button {
@@ -40,7 +31,6 @@
 [role="listbox"] {
     position: absolute;
     transform: translate(0 100%);
-
     z-index: 100;
     background: white;
     overflow-y: scroll;
@@ -74,8 +64,39 @@
     background-color: #333;
 }
 
-[role="combobox"]{
+[role="combobox"],
+.combobox-click-helper,
+.combobox-clear {
     border: 1px solid black;
     min-height: 2rem;
     margin-left: 0.5rem;
+}
+
+.combobox-click-helper,
+.combobox-clear {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    width: 2rem;
+    border-left: none;
+    left: -2rem;
+}
+
+.combobox-click-helper::before {
+    content: ">";
+}
+
+.combobox-widget:has([role="listbox"]:not([hidden])) .combobox-click-helper::before {
+    content: "v";
+}
+
+.combobox-clear {
+   
+    background-color: transparent;
+
+    border-left: none;
+}
+
+.combobox-clear[data-empty-value="true"] {
+    visibility: hidden;
 }

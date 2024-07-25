@@ -1,9 +1,13 @@
 (async () => {
     let issueCustomeStyle;
+    let issueToCopy;
+    let recommendationToCopy;
+
     main();
 
     async function main() {
         chrome.runtime.onMessage.addListener(messageRouter);
+        initCopyEventListeners();
         issueCustomeStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
     }
 
@@ -52,11 +56,75 @@
                 const replaceTokens = await import(rtSrc);
                 replaceTokens.main();
                 break;
+            case 'showHeadings':
+                console.log('request: showHeadings');
+                const shSrc = chrome.runtime.getURL('modules/showHeadings.js');
+                const showHeadings = await import(shSrc);
+                showHeadings.main();
+                break;
+            case 'copyToClipboard':
+                console.log('request: copyToClipboard');
+                copyTextToClipboard(request.text);
+                break;
+            case 'setTemplateDataToCopy':
+                console.log('request: setTemplateDataToCopy');
+                issueToCopy = request.issue;
+                recommendationToCopy = request.recommendation;
+                break;
+            case 'screenCaptureTest':
+                console.log('request: screenCaptureTest');
+                let img = document.getElementById('page-img');
+                if (img) {
+                    img.remove();
+                    document.documentElement.style.overflow = '';
+                }
+                else {
+                    img = document.createElement('img');
+                    img.id = 'page-img';
+                    img.setAttribute('src', request.imageDataUrl);
+                    document.documentElement.appendChild(img);
+                    img.style.position = 'absolute';
+                    img.style.top = '0';
+                    img.style.left = '0';
+                    img.style.width = img.style.height = '100%';
+                    img.style.zIndex = '10000';
+                    document.documentElement.style.overflow = 'hidden';
+                }
+                break;
             default:
                 console.log(`unknown request: ${request.name}`);
                 break;
         }
         return;
+    }
+
+    function initCopyEventListeners() {
+        let issueDescriptionLabel = document.querySelector('[for="issue_description"]');
+        if (!issueDescriptionLabel) {
+            setTimeout(initCopyEventListeners, 20);
+            return;
+        }
+        let issueDescription = issueDescriptionLabel.parentElement.querySelector('textarea');
+        let recommendation = document.getElementById('issue_recommendations');
+        issueDescription.addEventListener('click', (e) => {
+            if (!issueToCopy) return;
+            navigator.clipboard.writeText(issueToCopy);
+            issueToCopy = undefined;
+        });
+        recommendation.addEventListener('click', (e) => {
+            if (!recommendationToCopy) return;
+            navigator.clipboard.writeText(recommendationToCopy);
+            recommendationToCopy = undefined;
+        });
+    }
+
+    function copyTextToClipboard(text) {
+        let fakeInput = document.createElement('textarea');
+        fakeInput.value = text;
+        document.documentElement.appendChild(fakeInput);
+        fakeInput.select();
+        document.execCommand('copy');
+        fakeInput.remove();
     }
 
     function injectStyles(url) {

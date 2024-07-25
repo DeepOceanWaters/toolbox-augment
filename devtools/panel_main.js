@@ -12,6 +12,7 @@ import Combobox from "../modules/combobox.js";
         let scrollToForm = document.getElementById('scroll-to-form');
         let stylesheetState = document.getElementById('stylesheet-state');
         let replaceTokens = document.getElementById('add-recommendation');
+        let screenCapture = document.getElementById('screen-capture');
 
         pageSearch.addEventListener('click', executePageSearch);
         exposeAltText.addEventListener('click', executeExposeAltText);
@@ -19,8 +20,21 @@ import Combobox from "../modules/combobox.js";
         scrollToForm.addEventListener('submit', executeScrollTo);
         stylesheetState.addEventListener('click', executeToggleIssueDialogStyles);
         replaceTokens.addEventListener('click', executeReplaceTokens);
+        screenCapture.addEventListener('click', executeScreenCaptureTest);
 
         initRecommendationWiget();
+    }
+
+    async function executeScreenCaptureTest() {
+        const [tab] = await chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true,
+        });
+        const imageDataUrl = await chrome.tabs.captureVisibleTab(null, { format: "png" });
+        const response = await chrome.tabs.sendMessage(tab.id, {
+            name: 'screenCaptureTest',
+            imageDataUrl: imageDataUrl
+        });
     }
 
     async function executePageSearch() {
@@ -68,7 +82,7 @@ import Combobox from "../modules/combobox.js";
             active: true,
             lastFocusedWindow: true,
         });
-        
+
         const response = await chrome.tabs.sendMessage(tab.id, {
             name: 'scrollTo',
             index: index,
@@ -81,7 +95,7 @@ import Combobox from "../modules/combobox.js";
             active: true,
             lastFocusedWindow: true,
         });
-        
+
         const response = await chrome.tabs.sendMessage(tab.id, {
             name: 'toggleIssueDialogStylesheet'
         });
@@ -92,27 +106,92 @@ import Combobox from "../modules/combobox.js";
             active: true,
             lastFocusedWindow: true,
         });
-        
+
         const response = await chrome.tabs.sendMessage(tab.id, {
             name: 'replaceTokens'
         });
     }
 
+    async function executeCopyToClipboard(text) {
+        const [tab] = await chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true,
+        });
+
+        const response = await chrome.tabs.sendMessage(tab.id, {
+            name: 'copyToClipboard',
+            text: text
+        });
+    }
+
+    async function executeSetTemplateDataToCopy(issue, recommendation) {
+        const [tab] = await chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true,
+        });
+
+        const response = await chrome.tabs.sendMessage(tab.id, {
+            name: 'setTemplateDataToCopy',
+            issue: issue,
+            recommendation: recommendation
+        });
+    }
+
     /***************************************************/
 
-    function initRecommendationWiget() {
+    async function initRecommendationWiget() {
         let tokensOutput = document.getElementById('tokens-output');
+        let recommendation = document.getElementById('recommendation');
+        let copyRecommendation = document.getElementById('copy-recommendation');
+        let issue = document.getElementById('issue');
+        let copyIssue = document.getElementById('copy-issue');
+        let recourcesList = document.getElementById('resources');
+
+        copyRecommendation.addEventListener('click', async (e) => {
+            let response = await executeCopyToClipboard(recommendation.value);
+        });
+        copyIssue.addEventListener('click', async (e) => {
+            let response = await executeCopyToClipboard(issue.value);
+        });
+
+
         let widgetElement = document.getElementById('tokens-combobox-widget');
         let possibleTokens = getPossibleTokens();
         let combobox = new Combobox('Tokens Search', 'Tokens', possibleTokens);
-        combobox.setActivateOptionCallback(() => {
-            tokensOutput.value = getRecommendation(combobox.getComboboxElement().value);
+        combobox.setActivateOptionCallback(async () => {
+            let recommendationObj = getRecommendation(combobox.getComboboxElement().value);
+
+            issue.value = 
+                recommendationObj.template.issue || "";
+            
+            recommendation.value = recommendationObj.template.requirement || "";
+            if (recommendationObj.template.requirement) {
+                recommendation.value += '\n\n';
+            }   
+            recommendation.value += (recommendationObj.template.recommendation || "");
+            
+            recourcesList.innerHTML = '';
+            for(const resource of recommendationObj.template.resources || []) {
+                let li = document.createElement('li');
+                li.textContent = resource;
+                recourcesList.appendChild(li);
+            }
+
+            tokensOutput.value = recommendationObj.text;
+
+            await executeSetTemplateDataToCopy(
+                issue.value,
+                recommendation.value
+            );
         });
         widgetElement.append(
-            combobox.getComboboxLabel(), 
-            combobox.getComboboxElement(), 
+            combobox.getComboboxLabel(),
+            combobox.getComboboxElement(),
+            combobox.getComboboxClearButton(),
+            combobox.getComboboxArrowButton(),
             combobox.getListboxElement()
         );
+        widgetElement.classList.add('combobox-widget');
     }
 
 

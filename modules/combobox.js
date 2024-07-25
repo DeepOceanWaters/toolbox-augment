@@ -3,12 +3,28 @@ export default class Combobox {
         comboboxName, 
         listboxName, 
         options, 
-        { autocomplete, comboboxId } = 
-        { autocomplete: 'listbox', comboboxId: 'comboxbox-a1'}
+        { 
+            autocomplete, 
+            comboboxId, 
+            labelId 
+        } = 
+        { 
+            autocomplete: 'listbox', 
+            comboboxId: 'comboxbox-a1', 
+            labelId: 'label-a1'
+        }
     ) {
-        this.listboxElement = this.createListboxElement(listboxName, options, comboboxId);
-        this.comboboxElement = this.createComboboxElement(this.listboxElement, autocomplete);
-        this.comboboxLabel = this.createComboboxLabel(comboboxName, this.comboboxElement.id);
+        this.listboxElement = this.createListboxElement(
+            listboxName, options, comboboxId
+        );
+        this.comboboxElement = this.createComboboxElement(
+            this.listboxElement, autocomplete
+        );
+        this.comboboxLabel = this.createComboboxLabel(
+            comboboxName, this.comboboxElement.id, this.labelId
+        );
+        this.comboboxArrowButton = this.createComboboxArrow(this.labelId);
+        this.comboboxClearButton = this.createClearButton();
 
         this.addEventListeners();
     }
@@ -42,22 +58,72 @@ export default class Combobox {
         return listbox;
     }
 
-    createComboboxLabel(name, comboboxId) {
+    createComboboxLabel(name, comboboxId, labelId) {
         let label = document.createElement('label');
+        label.id = labelId;
         label.htmlFor = comboboxId;
         label.textContent = name;
         return label;
     }
 
+    createComboboxArrow(comboboxLabelId) {
+        let arrowButton = document.createElement('button');
+        arrowButton.setAttribute('aria-labelledby', comboboxLabelId);
+        arrowButton.classList.add('combobox-click-helper');
+        arrowButton.tabIndex = -1;
+        return arrowButton;
+    }
+
+    createClearButton() {
+        let clearButton = document.createElement('button');
+        let visibleText = document.createElement('span');
+        let srOnlyText = document.createElement('span');
+
+        visibleText.textContent = 'X';
+        srOnlyText.textContent = 'clear';
+        srOnlyText.classList.add('sr-only');
+        clearButton.append(visibleText, srOnlyText);
+
+        clearButton.classList.add('combobox-clear');
+
+        return clearButton;
+    }
+
     addEventListeners() {
         this.comboboxElement.addEventListener('input', (e) => {
             this.toggleListbox(true);
+            this.comboboxClearButton.dataset.emptyValue = this.comboboxElement.value === '';
+            this.searchOptions(e);
+            
+        });
+        this.comboboxElement.addEventListener('click', (e) => {
+            this.toggleListbox(true);
             this.searchOptions(e);
         });
-        this.comboboxElement.addEventListener('keydown', (e) => this.keyRouter(e));
-        this.listboxElement.addEventListener('keydown', (e) => this.optionKeyRouter(e));
-        this.comboboxElement.addEventListener('focusin', (e) => this.toggleListbox(true));
-        this.listboxElement.addEventListener('click', (e) => this.activateOption(e.target));
+        this.comboboxArrowButton.addEventListener(
+            'click', (e) => this.toggleListbox()
+        );
+        this.comboboxElement.addEventListener(
+            'keydown', (e) => this.keyRouter(e)
+        );
+        this.listboxElement.addEventListener(
+            'keydown', (e) => this.optionKeyRouter(e)
+        );
+        this.comboboxElement.addEventListener(
+            'focusin', (e) => this.toggleListbox(true)
+        );
+        this.listboxElement.addEventListener(
+            'click', (e) => this.activateOption(e.target)
+        );
+        this.comboboxClearButton.addEventListener(
+            'click', (e) => this.clearCombobox()
+        );
+    }
+
+    clearCombobox() {
+        this.comboboxClearButton.dataset.emptyValue = true;
+        this.comboboxElement.value = '';
+        this.comboboxElement.focus();
     }
 
     searchOptions() {
@@ -82,15 +148,24 @@ export default class Combobox {
 
     keyRouter(e) {
         switch (e.key) {
-            case 'ArrowDown':
             case 'Enter':
-                if (this.listboxElement.hidden) this.toggleListbox();
+                if (this.comboboxElement.value === '') {
+                    this.toggleListbox(true);
+                }
+                else if (this.activateOptionCallback) {
+                    this.activateOptionCallback(this.comboboxElement.value);
+                }
+                e.preventDefault();
+                break;
+            case 'ArrowDown':
+                this.toggleListbox(true);
                 e.preventDefault();
                 this.listboxElement.querySelector('[role="option"]:not([hidden])').focus();
                 return;
             case 'Control':
             case 'Escape':
                 if (!this.listboxElement.hidden) this.toggleListbox();
+                else this.comboboxElement.value = '';
                 break;
             default:
                 return;
@@ -164,6 +239,7 @@ export default class Combobox {
         let value = option.textContent;
         this.comboboxElement.value = value;
         this.comboboxElement.focus();
+        this.comboboxClearButton.dataset.emptyValue = this.comboboxElement.value === '';
         this.toggleListbox(false);
         if (this.activateOptionCallback) this.activateOptionCallback(value);
     }
@@ -178,6 +254,14 @@ export default class Combobox {
 
     getListboxElement() {
         return this.listboxElement;
+    }
+
+    getComboboxArrowButton() {
+        return this.comboboxArrowButton;
+    }
+
+    getComboboxClearButton() {
+        return this.comboboxClearButton;
     }
 
     setActivateOptionCallback(callback) {
