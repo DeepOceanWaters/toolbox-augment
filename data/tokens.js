@@ -124,14 +124,24 @@ export const tokens = {
     },
 
     name: {
-        requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
         issues: "This component does not have an accessible name.",
+        requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
+        recommendation: "We recommend either:\n- Adding a visually hidden SPAN element with text content that describes the purpose of this component\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute",
         graphic: {
             issues: "This non-context content labels an interactive component, but it does not have a text alternative that describes the purpose/function of this component.",
             requirement: "Ensure that when non-text content labels an interactive component, it has a text alternative that describes the function/purpose of that component.",
             recommendation: "We recommend either:\n- updating the ALT attribute to describe the components purpose\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute on the interactive component"
         },
-        recommendation: "We recommend either:\n- Adding a visually hidden SPAN element with text content that describes the purpose of this component\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute",
+        htmlLabelAllowed: {
+            issues: "This component does not have an accessible name.",
+            requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
+            recommendation: "We recommend adding a native HTML LABEL element and associating it with this component using the FOR attribute.\n\nAlternatively, an accessible name can be given by adding either the ARIA-LABEL or ARIA-LABELLEDBY attribute on the component.",
+            improperAssociation: {
+                issues: "This component does not have an accessible name. Currently the component has an associated LABEL element, but the association is broken.",
+                requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
+                recommendation: "To ensure that LABEL elements are properly associated with a form field:\n- if the LABEL element is hidden, ensure that it is only visually hidden.\n- LABEL elements are associated with the first element found with the ID value in the FOR attribute.",
+            }
+        },
         badlabel: {
             issues: "This component does not have a label that describes its purpose/function.",
             requirement: "Ensure that interactive components have a label/accessible name that describes their purpose/function.",
@@ -155,7 +165,7 @@ export const tokens = {
     timing: {
         issues: "This content disappears after a time limit is hit, but there is now way to turn off, adjust, or extend this time limit.",
         requirement: "Ensure that there is a way to turn off, adjust, or extend time limits.",
-        recommendation: "We recommend removing the time limit or allow users to extend the time limit."
+        recommendation: "We recommend removing the time limit or allow users to extend the time limit (must be simple, such as pressing a button or key)."
     },
 
     label: {
