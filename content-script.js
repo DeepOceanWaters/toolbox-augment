@@ -90,6 +90,9 @@
                     img.style.zIndex = '10000';
                     document.documentElement.style.overflow = 'hidden';
                 }
+                sendResponse({ imgSize: img.width * img.height * 4 });
+                break;
+            case "colorContrast":
                 break;
             default:
                 console.log(`unknown request: ${request.name}`);

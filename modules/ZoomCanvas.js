@@ -16,8 +16,22 @@ export default class ZoomCanvas {
 
     }
 
+    static fromImage(imageElement, rootElement = document.documentElement) {
+        let zoomCanvas = new ZoomCanvas();
+        zoomCanvas.ogCanvas = document.createElement('canvas');
+        let ogCtx = zoomCanvas.ogCanvas.getContext('2d');
+        ogCtx.putImageData(imageElement, 0, 0);
+        zoomCanvas.ogCanvas.style.top = '0';
+        zoomCanvas.ogCanvas.style.left = '0';
+        zoomCanvas.ogCanvas.style.zIndex = '100';
+        rootElement.appendChild(zoomCanvas.ogCanvas);
+        zoomCanvas.initZoomCanvas(zoomCanvas.ogCanvas);
+        rootElement.appendChild(zoomCanvas.zoomCanvas);
+        return zoomCanvas;
+    }
+
     /**
-     * Updates cavasltt's pos property with the mouses position in the watched canvas.
+     * Updates zoomCanvas's pos property with the mouses position in the watched canvas.
      * Also pauses/unpauses zoom canvas when pressing control + click on a pixel.
      * @param {HTMLCanvasElement} canvas canvas to watch mouse position in.
      */
@@ -44,7 +58,7 @@ export default class ZoomCanvas {
      * @param {Number} zoomLvl the level of zoom
      */
     zoom(ogCanv, zoomCanv, zoomLvl = 10) {
-        this.initZoomCanvas(ogCanv, this.zoomCanv, zoomLvl);
+        this.initZoomCanvas(ogCanv, zoomCanv, zoomLvl);
         // set smaller width, so we can use CSS pixelated image rendering to do the zooming for ussss
         this.zoomCanvas.width = Math.floor(this.actualDim.w / this.zoomLvl);
         this.zoomCanvas.height = Math.floor(this.actualDim.h / this.zoomLvl);
@@ -57,9 +71,42 @@ export default class ZoomCanvas {
         requestAnimationFrame((t) => this.zoomAnimateComplex(t));
     }
 
-    initZoomCanvas(ogCanv, zoomCanv, zoomLvl = 10) {
+    zoomCanvasKeyboardRouter(e) {
+        if (!movingZoom) return;
+        let step = e.getModifierState('Shift') ? 7 : 1;
+        switch(e.key) {
+            case "ArrowDown":
+                this.moveDown(step);
+                e.preventDefault();
+                break;
+            case "ArrowUp":
+                this.moveUp(step);
+                e.preventDefault();
+                break;
+            case "ArrowLeft":
+                this.moveLeft(step);
+                e.preventDefault();
+                break;
+            case "ArrowRight":
+                this.moveRight(step);
+                e.preventDefault();
+                break;
+            case "Enter":
+            case " ":
+                colorHtml.value = rgb2hex(this.getCurrentColor());
+                colorHtml.dispatchEvent(new Event('input'));
+                e.preventDefault();
+                break;
+            default:
+                break;
+        }
+        this.zoomCanvas.style.top = `calc(${this.pos.y}px - ${this.zoomCanvas.style.height} / 2)`;
+        this.zoomCanvas.style.left = `calc(${this.pos.x}px - ${this.zoomCanvas.style.width} / 2)`;
+    }
+
+    initZoomCanvas(ogCanv, zoomCanv = this.makeCanvas(), zoomLvl = 10) {
         this.zoomLvl = zoomLvl;
-        this.zoomCanvas = zoomCanv ??= this.makeCanvas();
+        this.zoomCanvas = zoomCanv;
         // set zoom image dimensions, should be the same size of the zoomCanvas given, if one is given
         this.actualDim = { w: this.zoomCanvas.width, h: this.zoomCanvas.height };
         // set canvas width/height style to blow it up.
@@ -155,7 +202,7 @@ export default class ZoomCanvas {
     }
 
     getZoomedImageSlice() {
-        const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+        //const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
         // get size (width/height) of image slice to take from canvas
         let imgSliceSize = {
                 w: Math.floor(this.actualDim.w / this.zoomLvl), 

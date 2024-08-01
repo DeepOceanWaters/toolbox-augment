@@ -6,12 +6,14 @@ export default class Combobox {
         { 
             autocomplete, 
             comboboxId, 
-            labelId 
+            labelId,
+            selectOnly
         } = 
         { 
             autocomplete: 'listbox', 
             comboboxId: 'comboxbox-a1', 
-            labelId: 'label-a1'
+            labelId: 'label-a1',
+            selectOnly: false
         }
     ) {
         this.listboxElement = this.createListboxElement(
@@ -25,6 +27,7 @@ export default class Combobox {
         );
         this.comboboxArrowButton = this.createComboboxArrow(this.labelId);
         this.comboboxClearButton = this.createClearButton();
+        this.selectOnly = selectOnly;
 
         this.addEventListeners();
     }
@@ -35,8 +38,11 @@ export default class Combobox {
         comboboxElement.setAttribute('role', 'combobox');
         comboboxElement.setAttribute('aria-controls', listbox.id);
         comboboxElement.setAttribute('aria-expanded', 'false');
-        comboboxElement.setAttribute('aria-autocomplete', autocomplete);
+        if (!this.selectOnly) {
+            comboboxElement.setAttribute('aria-autocomplete', autocomplete);
+        }
         if (id) comboboxElement.id = id;
+        if (this.selectOnly) comboboxElement.setAttribute('readonly', 'true');
         return comboboxElement;
     }
 

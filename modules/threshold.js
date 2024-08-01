@@ -45,8 +45,21 @@ let canvases = [
 
 let canvasltt = new ZoomCanvas();
 
+/*
 (() => {
-    let captureBtn = document.getElementById('capture-screen');
+    let captureBtn = document.getElementById('screen-capture');
+    captureBtn.addEventListener('click', async () => {
+        const imageDataUrl = await chrome.tabs.captureVisibleTab(null, { format: "png" });
+        const response = await chrome.tabs.sendMessage({
+            name: 'screenCaptureTest',
+            imageDataUrl: imageDataUrl
+        });
+    });
+})();*/
+
+/*
+(() => {
+    let captureBtn = document.getElementById('screen-capture');
     captureBtn.addEventListener('click', () => {
         
         chrome.tabs.captureVisibleTab(null, {}, (imageDataUrl) => {
@@ -54,7 +67,7 @@ let canvasltt = new ZoomCanvas();
         });
     });
 })();
-
+*/
 
 const submitBtn = document.getElementById('submit');
 

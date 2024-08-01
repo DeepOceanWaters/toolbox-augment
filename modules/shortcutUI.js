@@ -1,6 +1,7 @@
 import makeButton from "./components/button.js";
+import ShortcutManager from "./ShortcutManager.js";
 
-// let manager = shorcut manager;
+let manager = new ShortcutManager();
 
 let appDiv = document.getElementById('app');
 let dialog = createShortcutDialog();
