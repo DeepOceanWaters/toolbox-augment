@@ -116,11 +116,21 @@ export const tokens = {
                 requirement: "Ensure that interactive components are not nested, and that each component only takes one tab stop.",
                 recommendation: "We recommend removing one of the interactive elements."
             }
+        },
+        noninteractive: {
+            issues: "This content is not interactive but is in focus order.",
+            recommendation: "We recommend removing non-interactive content from focus order unless there is a good reason for it to be focusable.\n\nNon-interactive content can be removed from focus order by removing TABINDEX attribute."
+        },
+        emptyElement: {
+            relatedsc: ["2.4.3", "2.4.7"],
+            issues: "This element is empty but is in focus order. As a result, it does not have an accessible name and it does not have a visible focus indicator while in focus.",
+            requirement: "Ensure that empty elements are either constructed properly, or removed.",
         }
     },
 
     oninput: {
-        requirement: "Ensure that changing the setting of an interactive component does not cause an automatic change in context"
+        requirement: "Ensure that changing the setting of an interactive component does not cause an automatic change in context",
+        recommendation: "We recommend either:\n- add a submit button and only update the content on submission\n- OR add text before these controls that notes that they will automatically update the associated content when their value is set",
     },
 
     name: {
@@ -201,11 +211,19 @@ export const tokens = {
     },
 
     keyboard: {
-        requirement: "Ensure that all functionality of content can be operated using a keyboard."
+        requirement: "Ensure that all functionality of content can be operated using a keyboard.",
+        unfocusable: {
+            issues: "This content is not keyboard operable as it is not focusable.",
+            requirement: "Ensure that all functionality of content can be operated using a keyboard.",
+            recommendation: "We recommend adding TABINDEX=0 to this component."
+        }
     },
 
     bestpractice: {
-        requirement: "Note that this is a best practice, and not necessary for conformance."
+        requirement: "Note that this is a best practice, and not necessary for conformance.",
+        futureIssue: {
+            requirement: "Note that this is a best practice, and not necessary for conformance. However, we strongly recommend remediating this best practice issue as it has a heightened chance of becoming a full WCAG failure."
+        }
     },
 
     usability: {
@@ -329,10 +347,6 @@ export const tokens = {
 
     focusrestrict: {
         recommendation: "Typically, modal content restricts focus using JavaScript, where: \n- when moving focus forward while on the last element in the modal content, focus moves to the first focusable element in the modal content\n- when moving focus backwards while on the first element in the modal content, focus moves to the last focusable element in the modal content"
-    },
-
-    oninputre: {
-        recommendation: "We recommend either:\n- add a submit button and only update the content on submission\n- OR add text before these controls that notes that they will automatically update the associated content when their value is set"
     },
 
     status: {

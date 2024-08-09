@@ -1,7 +1,7 @@
 let numWorkers = navigator.hardwareConcurrency - 1;
 let numWorkersFinished = 0;
 let colorCount = {};
-let outputSAB;
+let outputSAB, outputUint;
 
 chrome.runtime.onMessage.addListener(handleMessages);
 
@@ -23,7 +23,9 @@ async function handleMessages(request, sender, sendResponse) {
     switch (request.name) {
         case 'processImageThresholdOffscreen':
             // imgData = ImageData.data (UIntClampedArray)
-            handleImageThreshold(request.imgSize, request.color);
+            let img = document.createElement('img');
+            img.onload = () => handleImageThreshold(img, request.color);
+            img.src = request.imageDataUrl;
             break;
         default:
             console.warn(`Unexpected message type received: '${message.type}'.`);
@@ -31,7 +33,12 @@ async function handleMessages(request, sender, sendResponse) {
     }
 }
 
-function handleImageThreshold(imgSize, color) {
+async function handleImageThreshold(img, color) {
+    let canvas = document.createElement('canvas');
+    let ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    let imageData = ctx.getImageData(0, 0, img.width, img.height);
+
     numWorkers = navigator.hardwareConcurrency - 1;
     const workers = (function () {
         let arr = [];
@@ -40,14 +47,23 @@ function handleImageThreshold(imgSize, color) {
         }
         return arr;
     })();
-    outputSAB = new SharedArrayBuffer(imgSize);
+    outputSAB = new SharedArrayBuffer(imageData.data.byteLength);
+    for(let i = 0; i < imageData.data.byteLength; i++) {
+        outputSAB[i] = imageData.data[i];
+    }
+    outputUint = new Uint8Array(outputSAB);
+    let numPixels = (imageData.data.byteLength / 4);
+    let sliceSize = Math.floor(numPixels / numWorkers);
+    let leftoverSlice = numPixels - (sliceSize * numWorkers);
     for(let i = 0; i < workers.length; i++) {
+        let workersSliceSize = sliceSize;
+        if (!(i + 1 < workers.length)) workersSliceSize += leftoverSlice;
         workers[i].postMessage({
-            totalNumSlices: numWorkers,
-            slice: i,
+            start: i * sliceSize,
+            sliceSize: workersSliceSize,
             isCounting: true,
             color: color,
-            outputSAB: outputSAB
+            outputSAB: outputUint
         });
         workers[i].onmessage = handleWorkerReturn;
     }

@@ -14,26 +14,33 @@ async function executeScreenCaptureTest() {
         lastFocusedWindow: true,
     });
     const imageDataUrl = await chrome.tabs.captureVisibleTab(null, { format: "png" });
+    /*
     const response = await chrome.tabs.sendMessage(tab.id, {
         target: 'content-script',
         name: 'screenCaptureTest',
         imageDataUrl: imageDataUrl
-    });
+    });*/
     const responseThreshold = await chrome.runtime.sendMessage({
         target: 'background',
         name: 'processImageThreshold',
         color: [255, 255, 255],
-        imgSize: response.imgSize
+        imageDataUrl: imageDataUrl
     });
 }
 
-function handleMessages(request, sender, sendResponse) {
+async function handleMessages(request, sender, sendResponse) {
     if (request.target !== 'threshold_panel') return;
-    switch(request.name) {
+    switch (request.name) {
         case 'imageProcessed':
-            console.log('stuff');
+            await chrome.runtime.sendMessage({
+                target: 'content-script',
+                name: 'threshold',
+                outputSAB: request.outputSAB
+            });
             break;
         default:
             break;
     }
 }
+
+

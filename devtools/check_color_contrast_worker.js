@@ -13,12 +13,10 @@ onmessage = function(msg) {
     let colorCount = {};
     let obj = msg.data;
     let colorToCheckAgainst = obj.color;
-    let slice = obj.slice;
-    let totalNumberOfSlices = obj.totalNumSlices;
+    let start = obj.start;
+    let sliceSize = obj.sliceSize;
     let outputSAB = obj.outputSAB
 
-    let sliceSize = (outputSAB.byteLength / 4) * (1 / totalNumberOfSlices);
-    let start = (outputSAB.byteLength / 4) * (slice / totalNumberOfSlices);
     let end = start + sliceSize;
     // slice, image, length
 

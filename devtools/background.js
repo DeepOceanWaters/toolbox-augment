@@ -3,14 +3,14 @@ chrome.runtime.onMessage.addListener(handleMessages);
 function handleMessages(request, sender, sendResponse) {
     switch (request.name) {
         case 'processImageThreshold':
-            processImageThreshold(request.imgSize, request.color);
+            processImageThreshold(request.imageDataUrl, request.color);
             break;
         default:
             break;
     }
 }
 
-async function processImageThreshold(imgSize, color) {
+async function processImageThreshold(imageDataUrl, color) {
     const offscreenUrl = 'devtools/offscreen_threshold_color_worker_spawner.html';
 
     if (!await hasDocument(offscreenUrl)) {
@@ -26,7 +26,7 @@ async function processImageThreshold(imgSize, color) {
     chrome.runtime.sendMessage({
         target: 'offscreen',
         name: 'processImageThresholdOffscreen',
-        imgSize: imgSize,
+        imageDataUrl: imageDataUrl,
         color: color
     });
 }

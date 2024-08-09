@@ -92,6 +92,26 @@
                 }
                 sendResponse({ imgSize: img.width * img.height * 4 });
                 break;
+            case 'threshold':
+                console.log('request: screenCaptureTest');
+                let img2 = document.getElementById('page-img');
+                if (img2) {
+                    img2.remove();
+                    document.documentElement.style.overflow = '';
+                }
+                else {
+                    img2 = document.createElement('img');
+                    img2.id = 'page-img';
+                    img2.setAttribute('src', request.imageDataUrl);
+                    document.documentElement.appendChild(img);
+                    img2.style.position = 'absolute';
+                    img2.style.top = '0';
+                    img2.style.left = '0';
+                    img2.style.width = img.style.height = '100%';
+                    img2.style.zIndex = '10000';
+                    document.documentElement.style.overflow = 'hidden';
+                }
+                break;
             case "colorContrast":
                 break;
             default:
