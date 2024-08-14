@@ -77,7 +77,10 @@ export function getRecommendation(token) {
 }
 
 function replaceVariables(recommendation, args) {
-    if (args.length === 1) {
+    if (!recommendation) {
+        recommendation = "";
+    }
+    else if (args.length === 1) {
         recommendation = recommendation.replaceAll('$var$', args[0]);
     }
     else {

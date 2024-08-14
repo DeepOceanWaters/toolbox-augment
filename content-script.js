@@ -70,6 +70,12 @@
                 console.log('request: setTemplateDataToCopy');
                 issueToCopy = request.issue;
                 recommendationToCopy = request.recommendation;
+                let pageSelect = document.getElementById('pages');
+                let options = [...pageSelect.querySelectorAll('option')];
+                let targetOption = options.find((o) => o.textContent.includes(request.pageURL));
+                targetOption.scrollIntoView({ block: 'nearest' });
+                targetOption.style.fontWeight = '800';
+                setTimeout(() => targetOption.style.fontWeight = '', 5000);
                 break;
             case 'screenCaptureTest':
                 console.log('request: screenCaptureTest');

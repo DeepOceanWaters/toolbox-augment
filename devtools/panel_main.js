@@ -1,6 +1,7 @@
 import { tokens } from "../data/tokens.js";
 import { main as replaceTokens, getRecommendation, getPossibleTokens } from "../modules/replaceTokens.js";
 import Combobox from "../modules/combobox.js";
+import { text2sitemap } from "../modules/sitemap.js";
 
 (async () => {
     main();
@@ -23,6 +24,7 @@ import Combobox from "../modules/combobox.js";
         screenCapture.addEventListener('click', executeScreenCaptureTest);
 
         initRecommendationWiget();
+        initSitemapEventListeners();
     }
 
     async function executeScreenCaptureTest() {
@@ -133,7 +135,8 @@ import Combobox from "../modules/combobox.js";
         const response = await chrome.tabs.sendMessage(tab.id, {
             name: 'setTemplateDataToCopy',
             issue: issue,
-            recommendation: recommendation
+            recommendation: recommendation,
+            pageURL: document.getElementById('current-page').value
         });
     }
 
@@ -192,6 +195,51 @@ import Combobox from "../modules/combobox.js";
             combobox.getListboxElement()
         );
         widgetElement.classList.add('combobox-widget');
+    }
+
+    function initSitemapEventListeners() {
+        let nextPageBtn = document.getElementById('sitemap-next-page');
+        let sitemapForm = document.getElementById('sitemap-init-form');
+        let openCurrentPageBtn = document.getElementById('open-page');
+
+        nextPageBtn.addEventListener('click', moveToNextPage);
+        sitemapForm.addEventListener('submit', initSitemap);
+        openCurrentPageBtn.addEventListener('click', openCurrentPage);
+    }
+
+    function openCurrentPage(e) {
+        throw new Error('not implemented yet sorry');
+    }
+
+    function moveToNextPage(e) {
+        let currentPageSelect = document.getElementById('current-page');
+        let options = [...currentPageSelect.querySelectorAll('option')];
+        let curIndex = options.findIndex((o) => o.selected);
+        let nextIndex = (curIndex + options.length + 1) % options.length;
+        options[curIndex].selected = false;
+        options[nextIndex].selected = true;
+        currentPageSelect.value = options[nextIndex].value;
+    }
+
+    function initSitemap(e) {
+        let currentPageSelect = document.getElementById('current-page');
+        let sitemapNames = document.getElementById('sitemap-names');
+        let sitemapURLs = document.getElementById('sitemap-urls');
+        currentPageSelect.innerHTML = '';
+        // text2sitemap returns {name, url}[]
+        let sitemap = text2sitemap(sitemapNames.value, sitemapURLs.value);
+        for(let page of sitemap) {
+            let option = createPageOption(page);
+            currentPageSelect.appendChild(option);
+        }
+        e.preventDefault();
+    }
+
+    function createPageOption(page) {
+        let option = document.createElement('option');
+        option.textContent = `${page.name} ${page.url}`;
+        option.value = page.url;
+        return option;
     }
 
 

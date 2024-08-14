@@ -19,6 +19,22 @@
     <h2>Actions</h2>
     <h3>General Webpage</h3>
     <ul>
+        <li>
+            <label for="current-page">Current Page</label>
+            <select name="current-page" id="current-page"></select>
+            <button id="sitemap-next-page">Next Page</button>
+            <button id="open-page">Open Current Page</button>
+            <details aria-labelledby="sitemap-content">
+                <summary id="sitemap-content">Initiate Sitemap</summary>
+                <form id="sitemap-init-form">
+                    <label for="sitemap-names">List of Page Names</label>
+                    <textarea name="sitemap-init-names" id="sitemap-names" aria-describedby="sitemap-init-instruction"></textarea>
+                    <label for="sitemap-urls">List of Page URLs</label>
+                    <textarea name="sitemap-init-urls" id="sitemap-urls" aria-describedby="sitemap-init-instruction"></textarea>
+                    <input id="sitemap-init-submit" type="submit" value="Initialize Sitemap">
+                </form>
+            </details>
+        </li>
         <li><button id="screen-capture">Screen Capture</button></li>
         <li><button id="expose-alt-text" aria-pressed="false">Alt Text</button></li>
         <li>

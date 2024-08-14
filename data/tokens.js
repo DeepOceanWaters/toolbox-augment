@@ -437,6 +437,14 @@ export const tokens = {
         resources: [
             "https://webaim.org/techniques/skipnav/"
         ]
+    },
+
+    mobile: {
+        role: {
+            issues: "This component is interactive, but it is not identified as such.",
+            requirement: "Ensure that interactive components are exposed by AT as such to users. When components have the appropriate role, the role may be exposed to users, but it should always provide the hint 'double-tap to activate'.",
+            recommendation: "We recommend using a native elements that have an appropriate/interactive role where possible."
+        }
     }
 }
 
