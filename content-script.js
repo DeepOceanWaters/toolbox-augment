@@ -71,11 +71,13 @@
                 issueToCopy = request.issue;
                 recommendationToCopy = request.recommendation;
                 let pageSelect = document.getElementById('pages');
-                let options = [...pageSelect.querySelectorAll('option')];
-                let targetOption = options.find((o) => o.textContent.includes(request.pageURL));
-                targetOption.scrollIntoView({ block: 'nearest' });
-                targetOption.style.fontWeight = '800';
-                setTimeout(() => targetOption.style.fontWeight = '', 5000);
+                let successCriterionSelect = document.getElementById('success_criteria');
+                scrollSelectOptionIntoView(pageSelect, request.pageURL);
+                if (request.relatedsc) {
+                    let sc = request.relatedsc[0];
+                    scrollSelectOptionIntoView(successCriterionSelect, sc);
+                }
+                // set 
                 break;
             case 'screenCaptureTest':
                 console.log('request: screenCaptureTest');
@@ -125,6 +127,20 @@
                 break;
         }
         return;
+    }
+
+    /**
+     * 
+     * @param {HTMLSelectElement} select 
+     * @param {String} text 
+     */
+    function scrollSelectOptionIntoView(select, text, timeout = 5000) {
+        if (!text) return;
+        let options = [...select.querySelectorAll('option')];
+        let targetOption = options.find((o) => o.textContent.includes(text));
+        targetOption.scrollIntoView({ block: 'nearest' });
+        targetOption.style.fontWeight = '800';
+        setTimeout(() => targetOption.style.fontWeight = '', 5000);
     }
 
     function initCopyEventListeners() {

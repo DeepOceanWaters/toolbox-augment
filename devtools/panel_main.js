@@ -25,8 +25,10 @@ import { text2sitemap } from "../modules/sitemap.js";
 
         initRecommendationWiget();
         initSitemapEventListeners();
+        //loadSitemapFromSyncStorage();
     }
 
+    /* #region Executes */
     async function executeScreenCaptureTest() {
         const [tab] = await chrome.tabs.query({
             active: true,
@@ -126,7 +128,7 @@ import { text2sitemap } from "../modules/sitemap.js";
         });
     }
 
-    async function executeSetTemplateDataToCopy(issue, recommendation) {
+    async function executeSetTemplateDataToCopy(issue, recommendation, relatedsc) {
         const [tab] = await chrome.tabs.query({
             active: true,
             lastFocusedWindow: true,
@@ -136,11 +138,12 @@ import { text2sitemap } from "../modules/sitemap.js";
             name: 'setTemplateDataToCopy',
             issue: issue,
             recommendation: recommendation,
+            relatedsc: relatedsc,
             pageURL: document.getElementById('current-page').value
         });
     }
 
-    /***************************************************/
+    /* #endregion */
 
     async function initRecommendationWiget() {
         let tokensOutput = document.getElementById('tokens-output');
@@ -184,7 +187,8 @@ import { text2sitemap } from "../modules/sitemap.js";
 
             await executeSetTemplateDataToCopy(
                 issue.value,
-                recommendation.value
+                recommendation.value,
+                recommendationObj.template.relatedsc
             );
         });
         widgetElement.append(
@@ -197,13 +201,14 @@ import { text2sitemap } from "../modules/sitemap.js";
         widgetElement.classList.add('combobox-widget');
     }
 
+    /* #region sitemap */
     function initSitemapEventListeners() {
         let nextPageBtn = document.getElementById('sitemap-next-page');
         let sitemapForm = document.getElementById('sitemap-init-form');
         let openCurrentPageBtn = document.getElementById('open-page');
 
         nextPageBtn.addEventListener('click', moveToNextPage);
-        sitemapForm.addEventListener('submit', initSitemap);
+        sitemapForm.addEventListener('submit', initSitemapFromForm);
         openCurrentPageBtn.addEventListener('click', openCurrentPage);
     }
 
@@ -221,18 +226,23 @@ import { text2sitemap } from "../modules/sitemap.js";
         currentPageSelect.value = options[nextIndex].value;
     }
 
-    function initSitemap(e) {
-        let currentPageSelect = document.getElementById('current-page');
+    function initSitemapFromForm(e) {
         let sitemapNames = document.getElementById('sitemap-names');
         let sitemapURLs = document.getElementById('sitemap-urls');
-        currentPageSelect.innerHTML = '';
         // text2sitemap returns {name, url}[]
         let sitemap = text2sitemap(sitemapNames.value, sitemapURLs.value);
+        initSitemap(sitemap);
+        e.preventDefault();
+    }
+
+    function initSitemap(/* {name, url}[] */sitemap) {
+        let currentPageSelect = document.getElementById('current-page');
+        currentPageSelect.innerHTML = '';
         for(let page of sitemap) {
             let option = createPageOption(page);
             currentPageSelect.appendChild(option);
         }
-        e.preventDefault();
+        return;
     }
 
     function createPageOption(page) {
@@ -241,6 +251,8 @@ import { text2sitemap } from "../modules/sitemap.js";
         option.value = page.url;
         return option;
     }
+
+    /* #endregion */
 
 
     // normal element.toggleAttribute() doesn't work as needed
