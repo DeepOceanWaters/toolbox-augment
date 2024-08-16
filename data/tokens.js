@@ -206,6 +206,12 @@ export const tokens = {
             issues: "This component is labeled by its placeholder text, but this text disappears when the form field has a non-empty value.",
             requirement: "Ensure that form fields' label is always visible while the form field is visible.",
             recommendation: "We recommend adding a LABEL element, and associating it with the component using its FOR attribute."
+        },
+        nonPersistent: {
+            relatedsc: ["3.3.2"],
+            issues: "This component does not have a persistent label.",
+            requirement: "Ensure that form fields have a persistent label. Persistent labels should remain visible even when the user has entered information into the form field.",
+            recommendation: ""
         }
     },
 
