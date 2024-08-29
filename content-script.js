@@ -1,5 +1,5 @@
 (async () => {
-    let issueCustomeStyle;
+    let issueCustomStyle;
     let issueToCopy;
     let recommendationToCopy;
 
@@ -8,7 +8,8 @@
     async function main() {
         chrome.runtime.onMessage.addListener(messageRouter);
         initCopyEventListeners();
-        issueCustomeStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
+        issueCustomStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
+        comboboxStyle = injectStyles(chrome.runtime.getURL('css/combobox.css'));
     }
 
     async function messageRouter(request, sender, sendResponse) {
@@ -48,7 +49,7 @@
                 break;
             case 'toggleIssueDialogStylesheet':
                 console.log('request: toggleIssueDialogStylesheet');
-                issueCustomeStyle.disabled = !issueCustomeStyle.disabled;
+                issueCustomStyle.disabled = !issueCustomStyle.disabled;
                 break;
             case 'replaceTokens':
                 console.log('request: replaceTokens');
@@ -175,14 +176,19 @@
         let pagesFilterWrapper = pages.parentElement.children[0].cloneNode();
         const src = chrome.runtime.getURL("modules/combobox.js");
         const { default: Combobox } = await import(src);
-        let pagesCombobox = new Combobox('Pages', '', [], { listboxElement: pages });
+        let pagesCombobox = new Combobox('Search Pages', '', [...pages.options].map(op => op.textContent));
         pagesFilterWrapper.append(
             pagesCombobox.getComboboxLabel(),
             pagesCombobox.getComboboxElement(),
             pagesCombobox.getComboboxClearButton(),
-            pagesCombobox.getComboboxArrowButton()
+            pagesCombobox.getComboboxArrowButton(),
+            pagesCombobox.getListboxElement()
         );
         pages.parentElement.insertBefore(pagesFilterWrapper, pages);
+        pagesCombobox.setActivateOptionCallback(async (value) => {
+            let option = [...pages.options].find(op => op.textContent === value);
+            option.selected = true;
+        });
     }
 
     function copyTextToClipboard(text) {
