@@ -1,22 +1,24 @@
 export default class Combobox {
     constructor(
-        comboboxName, 
-        listboxName, 
-        options, 
-        { 
-            autocomplete, 
-            comboboxId, 
+        comboboxName,
+        listboxName,
+        options,
+        {
+            autocomplete,
+            comboboxId,
             labelId,
-            selectOnly
-        } = 
-        { 
-            autocomplete: 'listbox', 
-            comboboxId: 'comboxbox-a1', 
-            labelId: 'label-a1',
-            selectOnly: false
-        }
+            selectOnly,
+            listboxElement
+        } =
+            {
+                autocomplete: 'listbox',
+                comboboxId: 'comboxbox-a1',
+                labelId: 'label-a1',
+                selectOnly: false
+            }
     ) {
-        this.listboxElement = this.createListboxElement(
+        this.alwaysVisibile = !!listboxElement;
+        this.listboxElement = listboxElement || this.createListboxElement(
             listboxName, options, comboboxId
         );
         this.comboboxElement = this.createComboboxElement(
@@ -97,32 +99,47 @@ export default class Combobox {
 
     addEventListeners() {
         this.comboboxElement.addEventListener('input', (e) => {
+
             this.toggleListbox(true);
             this.comboboxClearButton.dataset.emptyValue = this.comboboxElement.value === '';
             this.searchOptions(e);
-            
+
         });
         this.comboboxElement.addEventListener('click', (e) => {
             this.toggleListbox(true);
             this.searchOptions(e);
         });
         this.comboboxArrowButton.addEventListener(
-            'click', (e) => this.toggleListbox()
+            'click', (e) => {
+                this.toggleListbox();
+            }
         );
         this.comboboxElement.addEventListener(
-            'keydown', (e) => this.keyRouter(e)
+            'keydown', (e) => {
+                this.keyRouter(e);
+            }
         );
         this.listboxElement.addEventListener(
-            'keydown', (e) => this.optionKeyRouter(e)
+            'keydown', (e) => {
+                this.optionKeyRouter(e);
+            }
         );
         this.comboboxElement.addEventListener(
-            'focusin', (e) => this.toggleListbox(true)
+            'focusin', (e) => {
+                this.toggleListbox(true);
+            }
         );
         this.listboxElement.addEventListener(
-            'click', (e) => this.activateOption(e.target)
+            'click', (e) => {
+                this.activateOption(e.target);
+            }
         );
         this.comboboxClearButton.addEventListener(
-            'click', (e) => this.clearCombobox()
+            'click', (e) => {
+                this.clearCombobox();
+                e.preventDefault();
+                e.stopPropagation();
+            }
         );
     }
 
@@ -147,7 +164,7 @@ export default class Combobox {
 
     filerOptions(callback) {
         let options = [...this.listboxElement.children];
-        for(let option of options) {
+        for (let option of options) {
             option.hidden = !callback(option);
         }
     }
@@ -166,7 +183,7 @@ export default class Combobox {
             case 'ArrowDown':
                 this.toggleListbox(true);
                 e.preventDefault();
-                this.listboxElement.querySelector('[role="option"]:not([hidden])').focus();
+                this.listboxElement.querySelector(':is([role="option"], option):not([hidden])').focus();
                 return;
             case 'Control':
             case 'Escape':
@@ -216,7 +233,7 @@ export default class Combobox {
 
     positionListbox() {
         let viewportHeight = Math.max(
-            document.documentElement.clientHeight || 0, 
+            document.documentElement.clientHeight || 0,
             window.innerHeight || 0
         );
         this.listboxElement.style.left = '0px';
@@ -231,6 +248,7 @@ export default class Combobox {
 
 
     toggleListbox(visibility) {
+        if (this.alwaysVisibile) return;
         let expanded = this.comboboxElement.getAttribute('aria-expanded') === 'true';
         if (visibility !== undefined) {
             expanded = !visibility;

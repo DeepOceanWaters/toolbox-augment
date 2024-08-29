@@ -77,6 +77,15 @@
                     let sc = request.relatedsc[0];
                     scrollSelectOptionIntoView(successCriterionSelect, sc);
                 }
+                let resetDescription = ((select) => {
+                    let form = select.closest('form');
+                    let buttons = form.querySelectorAll('button');
+                    return [...buttons].find(b => b.textContent.includes("Reset Descriptions"));
+                })(pageSelect);
+                // if no success criteria already selected, reset the description
+                // this helps when you select the same SC for two issues  in a row - when doing this
+                // TOOLBOX will not properly fill the SC description textarea
+                if (!successCriterionSelect.querySelectorAll(':checked').length) resetDescription.click();
                 // set 
                 break;
             case 'screenCaptureTest':
@@ -143,7 +152,7 @@
         setTimeout(() => targetOption.style.fontWeight = '', 5000);
     }
 
-    function initCopyEventListeners() {
+    async function initCopyEventListeners() {
         let issueDescriptionLabel = document.querySelector('[for="issue_description"]');
         if (!issueDescriptionLabel) {
             setTimeout(initCopyEventListeners, 20);
@@ -161,6 +170,19 @@
             navigator.clipboard.writeText(recommendationToCopy);
             recommendationToCopy = undefined;
         });
+        // new
+        let pages = document.getElementById('pages');
+        let pagesFilterWrapper = pages.parentElement.children[0].cloneNode();
+        const src = chrome.runtime.getURL("modules/combobox.js");
+        const { default: Combobox } = await import(src);
+        let pagesCombobox = new Combobox('Pages', '', [], { listboxElement: pages });
+        pagesFilterWrapper.append(
+            pagesCombobox.getComboboxLabel(),
+            pagesCombobox.getComboboxElement(),
+            pagesCombobox.getComboboxClearButton(),
+            pagesCombobox.getComboboxArrowButton()
+        );
+        pages.parentElement.insertBefore(pagesFilterWrapper, pages);
     }
 
     function copyTextToClipboard(text) {

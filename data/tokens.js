@@ -100,8 +100,8 @@ export const tokens = {
                 dialog: {
                     relatedsc: ["2.4.3"],
                     issues: "Focus is not restricted within this modal dialog.",
-                    requirement: "Ensure that modal dialogs restrict focus within themselves.",
-                    recommendation: "Typically, modal content restricts focus using JavaScript, where: \n- when moving focus forward while on the last element in the modal content, focus moves to the first focusable element in the modal content\n- when moving focus backwards while on the first element in the modal content, focus moves to the last focusable element in the modal content."
+                    requirement: "Ensure that modal dialogs restrict focus and screen readers within themselves.",
+                    recommendation: "Typically, modal content restricts focus using JavaScript, where: \n- when moving focus forward while on the last element in the modal content, focus moves to the first focusable element in the modal content\n- when moving focus backwards while on the first element in the modal content, focus moves to the last focusable element in the modal content.\n\nTo restrict screen readers the dialog must have the following attributes:\n- ROLE=DIALOG\n- ARIA-MODAL=TRUE\n- while not necessary, we also recommend giving the DIALOG a name, this can be done by adding the attributes ARIA-LABEL or ARIA-LABELLEDBY "
                 }
             }
         },
@@ -136,6 +136,12 @@ export const tokens = {
             relatedsc: ["2.4.3", "2.4.7"],
             issues: "This element is empty but is in focus order. As a result, it does not have an accessible name and it does not have a visible focus indicator while in focus.",
             requirement: "Ensure that empty elements are either constructed properly, or removed.",
+        },
+        ambiguous: {
+            relatedsc: ["4.1.2", "2.4.6"],
+            issues: "The role of this component is ambiguous.",
+            requirement: "Ensure that role of interactive components is unambiguous and appropriate.",
+            recommendation: ""
         }
     },
 
@@ -191,6 +197,8 @@ export const tokens = {
         }
     },
 
+
+
     timing: {
         relatedsc: ["2.2.1"],
         issues: "This content disappears after a time limit is hit, but there is now way to turn off, adjust, or extend this time limit.",
@@ -238,12 +246,18 @@ export const tokens = {
 
     keyboard: {
         relatedsc: ["2.1.1"],
+        issues: "This content is not operable using a keyboard.",
         requirement: "Ensure that all functionality of content can be operated using a keyboard.",
         unfocusable: {
             relatedsc: ["2.1.1", "2.4.3"],
             issues: "This content is not keyboard operable as it is not focusable.",
             requirement: "Ensure that all functionality of content can be operated using a keyboard.",
             recommendation: "We recommend adding TABINDEX=0 to this component."
+        },
+        mobile: {
+            relatedsc: ["2.1.1"],
+            issues: "This content is not operabled using a screen reader.",
+            requirement: "Ensure that all content can be operated using a screen reader."
         }
     },
 
@@ -260,6 +274,13 @@ export const tokens = {
 
     extra: {
         requirement: "In addition, while the following is not necessary for conformance, we recommend "
+    },
+    
+    sensory: {
+        relatedsc: ["1.3.3"],
+        issues: "This content relies solely on a sensory characteristic ($var$) to identify important content.",
+        requirement: "Ensure that sensory characteristics are not the only way to identify important content.",
+        recommendation: "We recommend identifying important content in text."
     },
 
     info: {
@@ -490,6 +511,32 @@ export const tokens = {
                 recommendation: "We recommend using a native elements that have an appropriate/interactive role where possible."
             }
         }
+    },
+
+    unableToAudit: {
+        noContent: {
+            relatedsc: ["0.0.0"],
+            issues: "This page did not have any relevant content. As such we were unable to fully audit the page.",
+            requirement: "This page did not have any relevant content. As such we were unable to fully audit the page.",
+            recommendation: ""
+        },
+        '404': {
+            relatedsc: ["0.0.0"],
+            issues: "We were unable to connect to this page as it returns a 404 page not found.",
+            requirement: "We were unable to connect to this page as it returns a 404 page not found.",
+        },
+        redirect: {
+            relatedsc: ["0.0.0"],
+            issues: "We were unable to connect to this page as it redirects to another page ($var$).",
+            requirement: "We were unable to connect to this page as it redirects to another page ($var$).",
+        }
+    },
+
+    combobox: {
+        issues: "This combobox is improperly constructed.",
+        requirement: "Ensure that COMBOBOX widgets are properly constructed.",
+        recommendation: "Ensure that COMBOBOXes are implemented properly.\n\nWe recommend adding to the INPUT element:\n- ROLE=COMBOBOX\n- ARIA-EXPANDED (TRUE when the list of autocomplete values is visible)\n- ARIA-CONTROLS targeting the associated LISTBOX\n- ARIA-AUTOCOMPLETE=LIST\n\nWe recommend adding to the list of autocomplete values:\n- ROLE=LISTBOX\n- ARIA-LABEL (or something similar)\n- Descendant options should have ROLE=OPTION"
     }
+
 }
 
