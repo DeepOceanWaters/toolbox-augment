@@ -1,3 +1,10 @@
+/**
+ * @typedef {import("./modules/components/filterableMultiselect.js").FilterableMultiselect} FilterableMultiselect
+ * @typedef {import("./modules/components/partneredMultiselect.js").CreatePartneredMultiselect} CreatePartneredMultiselect
+ * 
+ * 
+ * 
+ */
 (async () => {
     let issueCustomStyle;
     let issueToCopy;
@@ -10,6 +17,7 @@
         initCopyEventListeners();
         issueCustomStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
         comboboxStyle = injectStyles(chrome.runtime.getURL('css/combobox.css'));
+        replaceMultiselects();
     }
 
     async function messageRouter(request, sender, sendResponse) {
@@ -137,6 +145,73 @@
                 break;
         }
         return;
+    }
+
+    /**
+     * 
+     */
+    async function replaceMultiselects() {
+        // replace pages multiselect
+        /**
+         * Current html structure:
+         *  div:
+         *      div:
+         *          label[select]
+         *          label[working sample - contains input]
+         *      select:
+         */
+        // insertbefore select
+        let pagesMultiselect = document.getElementById('pages');
+        let filterableMultiselect = toFilterableMultiselect(pagesMultiselect);
+        pagesMultiselect.insertBefore()
+        // hide select, hide selects' label
+
+        // replace success criteria multiselect
+
+        // replace states multiselect
+    }
+
+    /**
+     * 
+     * @param {HTMLSelectElement} multiselect 
+     * @returns {FilterableMultiselect}
+     */
+    async function toFilterableMultiselect(multiselect) {
+        const src = chrome.runtime.getURL("modules/components/partneredMultiselect.js");
+        /** @type {{default: CreatePartneredMultiselect}} */
+        const { default: createPartneredMultiselect } = await import(src);
+        let multiselectLabel = document.querySelector(`[for="${multiselect.id}"]`);
+        let filterableMultiselect = createPartneredMultiselect(
+            multiselectLabel,
+            multiselect
+        );
+
+        let filterableMultiselectWidget = filterableMultiselect.fieldset.fieldset;
+        
+        let filterBoxContainer = document.createElement('div');
+        filterBoxContainer.classList.add('filter-box-pair');
+        filterBoxContainer.append(
+            filterableMultiselect.filterBox.label,
+            filterableMultiselect.filterBox.input
+        );
+
+        let checkboxesContainer = document.createElement('div');
+        checkboxesContainer.classList.add('checkboxes-container');
+        for (let checkbox of filterableMultiselect.checkboxes) {
+            let checkboxPairContainer = document.createElement('div');
+            checkboxPairContainer.classList.add('checkbox-pair');
+            checkboxPairContainer.append(
+                checkbox.input,
+                checkbox.label
+            );
+        }
+
+        filterableMultiselectWidget.append(
+            filterBoxContainer,
+            checkboxesContainer
+        );
+
+        return filterableMultiselectWidget;
     }
 
     /**

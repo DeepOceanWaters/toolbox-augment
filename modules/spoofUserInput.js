@@ -4,9 +4,15 @@
  * faking some events that the Vue component expects.
  * @param {HTMLSelectElement} select 
  * @param {HTMLOptionElement} optionToToggle 
+ * @param {Boolean} selected
  */
-export default function toggleVueOptionSelected(select, optionToToggle) {
-    optionToToggle.selected = !optionToToggle.selected;
+export function spoofOptionSelected(select, optionToToggle, selected) {
+    if (typeof selected === 'boolean') {
+        optionToToggle.selected = selected;
+    }
+    else {
+        optionToToggle.selected = !optionToToggle.selected;
+    }
     let inputEvent = new Event('input', { composed: true, bubbles: true });
     let changeEvent = new Event('change', { bubbles: true });
     select.dispatchEvent(inputEvent);
@@ -23,7 +29,13 @@ Fire an event named change at the select element, with the bubbles attribute ini
 The reset algorithm for a select element selectElement is:
 */
 
-export function updateVueTextareaValue(textarea, value) {
+/**
+ * Spoofs changing the value of a textarea element such that Vue elements will
+ * properly update to the value.
+ * @param {HTMLTextAreaElement} textarea 
+ * @param {String} value 
+ */
+export function spoofUpdateTextareaValue(textarea, value) {
     let inputEvent = new Event('input', { composed: true, bubbles: true });
     textarea.value = value;
     textarea.dispatchEvent(inputEvent);
@@ -32,11 +44,15 @@ export function updateVueTextareaValue(textarea, value) {
 /**
  * Sets the value of the recommendations editor. Replaces current value.
  * @param {HTMLString} value a string that contains HTML
+ * @param {Boolean} replace if true (default) replaces value, if false adds to current value
  */
-export function setRecommendationsValue(value) {
-    let clipboard = document.getElementById('editor2').querySelector('.ql-clipboard');
-    el.innerHTML = '';
+export function setRecommendationsValue(value, replace = true) {
+    let editor = document.getElementById('editor2');
+    let clipboard = editor.querySelector('.ql-clipboard');
+    if (replace) {
+        editor.innerHTML = '';
+    }
     clipboard.innerHTML = value;
     let pasteEvent = new ClipboardEvent('paste');
-    el.dispatchEvent(pasteEvent);
+    editor.dispatchEvent(pasteEvent);
 }

@@ -90,6 +90,10 @@ export const tokens = {
                 requirement: "Ensure that when content in focus is removed, focus is managed and placed somewhere logical.",
                 recommendation: ""
             },
+            replace: {
+                relatedsc: ["2.4.3"],
+                issues: "The c"
+            },
             restrict: {
                 disclosure: {
                     relatedsc: ["2.4.3"],
@@ -237,6 +241,15 @@ export const tokens = {
     reflow: {
         relatedsc: ["1.4.10"],
         requirement: "Ensure that there is no loss of content or functionality when the viewport is set as described in the 1.4.10 Reflow Success Criterion (320 CSS Pixels width by 256 CSS Pixels height)."
+    },
+
+    table: {
+        sortableColumnHeader: {
+            relatedsc: ["4.1.2"],
+            issues: "Columnheaders are not interactive roles, but this one is being used to change the sorted state of the associated column.",
+            requirement: "Ensure that columnheaders are not used to control the sorted state of table columns.",
+            recommendation: "We recommend adding a descendant BUTTON element, wrapping the columnheader text. Note that when the ARIA-SORT attribute on a COLUMNHEADER is updated while the user is focusing a BUTTON in the COLUMNHEADER they will be notified of the change."
+        }
     },
 
     resize: {

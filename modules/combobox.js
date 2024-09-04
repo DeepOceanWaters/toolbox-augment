@@ -3,20 +3,20 @@ export default class Combobox {
         comboboxName,
         listboxName,
         options,
-        {
-            autocomplete,
-            comboboxId,
-            labelId,
-            selectOnly,
-            listboxElement
-        } =
-            {
-                autocomplete: 'listbox',
-                comboboxId: 'comboxbox-a1',
-                labelId: 'label-a1',
-                selectOnly: false
-            }
+        args
     ) {
+        args ??= {
+            autocomplete: 'listbox',
+            comboboxId: 'comboxbox-a1',
+            labelId: 'label-a1',
+            selectOnly: false,
+        };
+        let autocomplete = args.autocomplete || 'listbox';
+        let comboboxId = args.comboboxId || 'comboxbox-a1';
+        let labelId = args.labelId || 'label-a1';
+        let selectOnly = args.selectOnly || false;
+        let listboxElement = args.listboxElement;
+
         this.alwaysVisibile = !!listboxElement;
         this.listboxElement = listboxElement || this.createListboxElement(
             listboxName, options, comboboxId
@@ -147,6 +147,7 @@ export default class Combobox {
         this.comboboxClearButton.dataset.emptyValue = true;
         this.comboboxElement.value = '';
         this.comboboxElement.focus();
+        this.searchOptions();
     }
 
     searchOptions() {
@@ -183,6 +184,9 @@ export default class Combobox {
             case 'ArrowDown':
                 this.toggleListbox(true);
                 e.preventDefault();
+                if (this.listboxElement.tagName === 'SELECT') {
+                    this.listboxElement.querySelector(':is([role="option"], option):not([hidden])')
+                }
                 this.listboxElement.querySelector(':is([role="option"], option):not([hidden])').focus();
                 return;
             case 'Control':
@@ -197,6 +201,7 @@ export default class Combobox {
     }
 
     optionKeyRouter(e) {
+        if (this.alwaysVisibile) return;
         let currentOption = e.target;
         // choose non-hidden options, and filter out any other options
         // that aren't visible
@@ -260,6 +265,7 @@ export default class Combobox {
     }
 
     activateOption(option) {
+        if (this.alwaysVisibile) return;
         let value = option.textContent;
         this.comboboxElement.value = value;
         this.comboboxElement.focus();
@@ -288,6 +294,10 @@ export default class Combobox {
         return this.comboboxClearButton;
     }
 
+    /**
+     * 
+     * @param {Function(combobox value)} callback passes the combobox value and activates when activating an option
+     */
     setActivateOptionCallback(callback) {
         this.activateOptionCallback = callback;
     }
