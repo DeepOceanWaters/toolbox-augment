@@ -1,0 +1,20 @@
+label[for="pages"],
+label[for="success_criteria"],
+label[for="audit_status"],
+#pages,
+#success_criteria,
+#audit_status {
+    display: none!important;
+}
+
+.multiselect-group .checkboxes-container {
+    min-height: 200px;
+    max-height: 300px;
+    overflow-y: scroll;
+    border: 1px solid black;
+    padding: 0 0.5rem;
+}
+
+.multiselect-group input[type="text"] {
+    border: 1px solid black;
+}

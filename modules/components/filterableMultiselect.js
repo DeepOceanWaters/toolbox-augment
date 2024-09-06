@@ -1,11 +1,11 @@
-import generateUniqueId from "../idGenerator";
+import generateUniqueId from "../idGenerator.js";
 
 /**
  * @typedef {Object} InputLabelPair
  * @property {HTMLInputElement} input
  * @property {HTMLLabelElement} label
  * 
- * @typedef {InputLabelPair} Checkbox
+ * @typedef {InputLabelPair} CheckboxPair
  * 
  * @typedef {InputLabelPair} FilterBox
  * 
@@ -16,7 +16,7 @@ import generateUniqueId from "../idGenerator";
  * @typedef {Object} FilterableMultiselect
  * @property {FieldSet} fieldset
  * @property {FilterBox} filterBox
- * @property {Checkbox[]} checkboxes
+ * @property {CheckboxPair[]} checkboxes
  * 
  * @typedef {Object} Filterable
  * @property {any} item
@@ -49,11 +49,9 @@ export default function createFilterableMultiselect(label, options, args) {
         checkboxes, 
         (checkbox) => checkbox.label.textContent
     );
-    addFilterEvents(filterBox, checkboxes);
-    return [fieldset, checkboxes, filterBox];
+    addFilterEvents(filterBox, filterableCheckboxes);
+    return { fieldset: fieldset, checkboxes: checkboxes, filterBox: filterBox };
 }
-
-export function createFilterableMultiselectFromMultiselect()
 
 /* #region create */
 
@@ -91,7 +89,7 @@ function createMultiselectFilterTextBox(label) {
 /**
  * Generates a list of checkbox-label pairs.
  * @param {String[]} options 
- * @returns {Checkbox[]}
+ * @returns {CheckboxPair[]}
  */
 function createCheckboxList(options) {
     let checkboxes = [];
@@ -104,7 +102,7 @@ function createCheckboxList(options) {
 /**
  * Generates a checkbox-label pair based on a label.
  * @param {String} label 
- * @returns {Checkbox}
+ * @returns {CheckboxPair}
  */
 function createCheckbox(label) {
     let checkbox = document.createElement('input');
@@ -113,6 +111,7 @@ function createCheckbox(label) {
 
     let checkboxLabel = document.createElement('label');
     checkboxLabel.htmlFor = checkbox.id;
+    checkboxLabel.textContent = label;
 
     return { label: checkboxLabel, input: checkbox };
 }
@@ -156,6 +155,7 @@ function filter(filterBox, filterables, filteringCallback) {
     
     if (!filteringCallback) {
         filteringCallback = (filterable) => {
+            debugger;
             let text = filterable.filterableText.toLowerCase();
             let filterBoxText = filterBox.input.value.toLowerCase();
             return text.includes(filterBoxText);

@@ -13,6 +13,11 @@ import { spoofOptionSelected } from "../spoofUserInput.js";
  * @param {ToTextCallback} optionsToTextCallback
  * @returns {FilterableMultiselect}
  * 
+ * 
+ * @callback RealignPartneredMultiselect
+ * @param {FilterableMultiselect} partneredMultiselect 
+ * @param {HTMLSelectElement} multiselect
+ * @returns {void}
  *  
  * @typedef {import("./filterableMultiselect.js").FilterableMultiselect} FilterableMultiselect
  */
@@ -45,4 +50,30 @@ export default function createPartneredMultiselect(label, multiselect, optionsTo
     }
 
     return filterableMultiselect;
+}
+
+/**
+ * Sets the partnered multiselect's state to reflect the current multiselect's state. Used when the multiselect updates independently of the partneredMultiselect.
+ * @param {FilterableMultiselect} partneredMultiselect 
+ * @param {HTMLSelectElement} multiselect 
+ */
+export function realignPartneredMultiselect(partneredMultiselect, multiselect) {
+    for (let option of [...multiselect.options]) {
+        let checkboxPair = getAssociatedCheckbox(partneredMultiselect, option);
+        checkboxPair.input.checked = option.selected;
+    }
+}
+
+/**
+ * 
+ * @param {FilterableMultiselect} partneredMultiselect 
+ * @param {HTMLOptionElement} option 
+ * @returns {import("./filterableMultiselect.js").CheckboxPair}
+ */
+function getAssociatedCheckbox(partneredMultiselect, option) {
+    for(let checkbox of partneredMultiselect.checkboxes) {
+        if (includesCaseInsensitive(option.textContent, checkbox.label.textContent)) {
+            return checkbox;
+        }
+    }
 }

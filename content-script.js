@@ -1,18 +1,49 @@
 /**
  * @typedef {import("./modules/components/filterableMultiselect.js").FilterableMultiselect} FilterableMultiselect
  * @typedef {import("./modules/components/partneredMultiselect.js").CreatePartneredMultiselect} CreatePartneredMultiselect
+ * @typedef {import("./modules/components/partneredMultiselect.js").RealignPartneredMultiselect} RealignPartneredMultiselect
  * 
  * 
  * 
  */
 (async () => {
+    const src = chrome.runtime.getURL("modules/components/partneredMultiselect.js");
+    /** @type {{default: CreatePartneredMultiselect, realignPartneredMultiselect: RealignPartneredMultiselect}} */
+    const { default: createPartneredMultiselect, realignPartneredMultiselect: realignPartneredMultiselect } = await import(src);
+
     let issueCustomStyle;
     let issueToCopy;
     let recommendationToCopy;
+    const [pagesId, scId, statesId] = [
+        'pages',
+        'success_criteria',
+        'audit_status'
+    ]
 
     main();
 
     async function main() {
+        // wait until the app is done loading
+        if (!isLoaded()) {
+            setTimeout(main, 80);
+            return;
+        }
+        _main();
+    }
+
+    function isLoaded() {
+        let isLoaded = true;
+        let pages = document.getElementById(pagesId);
+        let successCriteria = document.getElementById(scId);
+        let states = document.getElementById(statesId);
+        isLoaded = pages && successCriteria && states;
+        isLoaded &&= pages.options.length > 0;
+        isLoaded &&= successCriteria.options.length > 0;
+        isLoaded &&= states.options.length > 0;
+        return isLoaded;
+    }
+
+    async function _main() {
         chrome.runtime.onMessage.addListener(messageRouter);
         initCopyEventListeners();
         issueCustomStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
@@ -151,6 +182,8 @@
      * 
      */
     async function replaceMultiselects() {
+        // hides selects and labels
+        injectStyles(chrome.runtime.getURL('css/augmentAddIssues.css'));
         // replace pages multiselect
         /**
          * Current html structure:
@@ -161,33 +194,55 @@
          *      select:
          */
         // insertbefore select
-        let pagesMultiselect = document.getElementById('pages');
-        let filterableMultiselect = toFilterableMultiselect(pagesMultiselect);
-        pagesMultiselect.insertBefore()
-        // hide select, hide selects' label
-
+        /** @type {HTMLSelectElement} */
+        let pagesMultiselect = document.getElementById(pagesId);
+        let [pagesFilterableMultiselect, pagesFilterableMultiselectWidget] = await toFilterableMultiselect(pagesMultiselect);
+        pagesMultiselect.parentElement.insertBefore(pagesFilterableMultiselectWidget, pagesMultiselect);
+        pagesFilterableMultiselectWidget.classList.add('multiselect-group');
         // replace success criteria multiselect
-
+        let scMultiselect = document.getElementById(scId);
+        let [scFilterableMultiselect, scFilterableMultiselectWidget] = await toFilterableMultiselect(scMultiselect);
+        scMultiselect.parentElement.insertBefore(scFilterableMultiselectWidget, scMultiselect);
+        scFilterableMultiselectWidget.classList.add('multiselect-group');
         // replace states multiselect
+        let statusMultiselect = document.getElementById(statesId);
+        let [statusFilterableMultiselect, statusFilterableMultiselectWidget] = await toFilterableMultiselect(statusMultiselect);
+        statusMultiselect.parentElement.insertBefore(statusFilterableMultiselectWidget, statusMultiselect);
+        statusFilterableMultiselectWidget.classList.add('multiselect-group');
+        // add realign events
+        let addIssue = document.querySelector('button[title="Add Issue"]');
+
+        addIssue.parentElement.addEventListener('click', (e) => {
+            if (!["Add Issue", "Edit Issue", "Copy Issue"].includes(e.target.title)) {
+                return;
+            }
+            setTimeout(() => {
+                let selectPairs = [
+                    [pagesFilterableMultiselect, pagesMultiselect],
+                    [scFilterableMultiselect, scMultiselect],
+                    [statusFilterableMultiselect, statusMultiselect]
+                ];
+                for (let pair of selectPairs) {
+                    realignPartneredMultiselect(pair[0], pair[1]);
+                }
+            }, 20);
+        });
     }
 
     /**
      * 
      * @param {HTMLSelectElement} multiselect 
-     * @returns {FilterableMultiselect}
+     * @returns {Promise<[FilterableMultiselect, HTMLFieldSetElement]>}
      */
     async function toFilterableMultiselect(multiselect) {
-        const src = chrome.runtime.getURL("modules/components/partneredMultiselect.js");
-        /** @type {{default: CreatePartneredMultiselect}} */
-        const { default: createPartneredMultiselect } = await import(src);
         let multiselectLabel = document.querySelector(`[for="${multiselect.id}"]`);
         let filterableMultiselect = createPartneredMultiselect(
-            multiselectLabel,
+            multiselectLabel.textContent,
             multiselect
         );
 
         let filterableMultiselectWidget = filterableMultiselect.fieldset.fieldset;
-        
+
         let filterBoxContainer = document.createElement('div');
         filterBoxContainer.classList.add('filter-box-pair');
         filterBoxContainer.append(
@@ -204,6 +259,7 @@
                 checkbox.input,
                 checkbox.label
             );
+            checkboxesContainer.appendChild(checkboxPairContainer);
         }
 
         filterableMultiselectWidget.append(
@@ -211,7 +267,7 @@
             checkboxesContainer
         );
 
-        return filterableMultiselectWidget;
+        return [filterableMultiselect, filterableMultiselectWidget];
     }
 
     /**
@@ -230,10 +286,6 @@
 
     async function initCopyEventListeners() {
         let issueDescriptionLabel = document.querySelector('[for="issue_description"]');
-        if (!issueDescriptionLabel) {
-            setTimeout(initCopyEventListeners, 20);
-            return;
-        }
         let issueDescription = issueDescriptionLabel.parentElement.querySelector('textarea');
         let recommendation = document.getElementById('issue_recommendations');
         issueDescription.addEventListener('click', (e) => {
@@ -245,24 +297,6 @@
             if (!recommendationToCopy) return;
             navigator.clipboard.writeText(recommendationToCopy);
             recommendationToCopy = undefined;
-        });
-        // new
-        let pages = document.getElementById('pages');
-        let pagesFilterWrapper = pages.parentElement.children[0].cloneNode();
-        const src = chrome.runtime.getURL("modules/combobox.js");
-        const { default: Combobox } = await import(src);
-        let pagesCombobox = new Combobox('Search Pages', '', [...pages.options].map(op => op.textContent));
-        pagesFilterWrapper.append(
-            pagesCombobox.getComboboxLabel(),
-            pagesCombobox.getComboboxElement(),
-            pagesCombobox.getComboboxClearButton(),
-            pagesCombobox.getComboboxArrowButton(),
-            pagesCombobox.getListboxElement()
-        );
-        pages.parentElement.insertBefore(pagesFilterWrapper, pages);
-        pagesCombobox.setActivateOptionCallback(async (value) => {
-            let option = [...pages.options].find(op => op.textContent === value);
-            option.selected = true;
         });
     }
 

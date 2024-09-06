@@ -36,6 +36,7 @@
             "resources": [
                 "data/*",
                 "modules/*",
+                "modules/components/*",
                 "css/*"
             ],
             "matches": [
