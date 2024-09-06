@@ -1,4 +1,5 @@
 import generateUniqueId from "../idGenerator.js";
+import includesCaseInsensitive from "../includesCaseInsensitive.js";
 
 /**
  * @typedef {Object} InputLabelPair
@@ -30,6 +31,9 @@ import generateUniqueId from "../idGenerator.js";
  * @param {any} item
  * @returns {Filterable}
  * 
+ * @callback FilterOutcomeCallback called when the outcome is determined
+ * @param {Filterable} filterable item being checked
+ * 
  * @typedef {Object} MultiselectExtraOptions
  * @property {String} instructions 
  */
@@ -38,10 +42,13 @@ import generateUniqueId from "../idGenerator.js";
  * 
  * @param {String} label
  * @param {String[]} options 
+ * @param {FilterOutcomeCallback} filterPositiveCallback called when item meets criteria
+ * @param {FilterOutcomeCallback} filterNegativeCallback called when item does not meet criteria
+ * @param {FilterCallback} filteringCallback determines if item meets criteria
  * @param {MultiselectExtraOptions} args 
  * @returns {FilterableMultiselect}
  */
-export default function createFilterableMultiselect(label, options, args) {
+export default function createFilterableMultiselect(label, options, filterPositiveCallback, filterNegativeCallback, filteringCallback, args) {
     let filterBox = createMultiselectFilterTextBox(label);
     let checkboxes = createCheckboxList(options);
     let fieldset = createFieldset(label);
@@ -49,7 +56,7 @@ export default function createFilterableMultiselect(label, options, args) {
         checkboxes, 
         (checkbox) => checkbox.label.textContent
     );
-    addFilterEvents(filterBox, filterableCheckboxes);
+    addFilterEvents(filterBox, filterableCheckboxes, filterPositiveCallback, filterNegativeCallback, filteringCallback);
     return { fieldset: fieldset, checkboxes: checkboxes, filterBox: filterBox };
 }
 
@@ -124,18 +131,20 @@ function createCheckbox(label) {
  * Filters filterable based on text input on filterbox.
  * @param {FilterBox} filterBox 
  * @param {Filterable[]} filterables
- * @param {Number} throttle throttle filtering on input, milliseconds
+ * @param {FilterOutcomeCallback} filterPositiveCallback called when item meets criteria
+ * @param {FilterOutcomeCallback} filterNegativeCallback called when item does not meet criteria
  * @param {FilterCallback} filteringCallback
+ * @param {Number} throttle throttle filtering on input, milliseconds
  * @return {Filterable[]} list of remaining filterables
  */
-function addFilterEvents(filterBox, filterables, throttle = 300, filteringCallback) {
+function addFilterEvents(filterBox, filterables, filterPositiveCallback, filterNegativeCallback, filteringCallback, throttle = 10) {
     filterBox.input.addEventListener('input', (e) => {
         let timeout = window[`${filterBox.input.id}-filtering`];
         if (timeout) {
             clearTimeout(timeout);
         }
         window[`${filterBox.input.id}-filtering`] = setTimeout(
-            () => filter(filterBox, filterables, filteringCallback), 
+            () => filter(filterBox, filterables, filterPositiveCallback, filterNegativeCallback, filteringCallback), 
             throttle
         );
     });
@@ -145,29 +154,33 @@ function addFilterEvents(filterBox, filterables, throttle = 300, filteringCallba
  * Always returns full list when filterBox is empty.
  * @param {FilterBox} filterBox 
  * @param {Filterable[]} filterables 
- * @param {FilterCallback} filteringCallback 
- * @returns {Filterable[]} only items that returned true for filteringCallback
+ * @param {FilterOutcomeCallback} filterPositiveCallback called when item meets criteria
+ * @param {FilterOutcomeCallback} filterNegativeCallback called when item does not meet criteria
+ * @param {FilterCallback} filteringCallback determines how to filter
  */
-function filter(filterBox, filterables, filteringCallback) {
+function filter(filterBox, filterables, filterPositiveCallback, filterNegativeCallback, filteringCallback) {
     if (filterBox.input.value === '') {
-        return filterables;
+        filteringCallback = () => true;
     }
     
     if (!filteringCallback) {
-        filteringCallback = (filterable) => {
-            debugger;
-            let text = filterable.filterableText.toLowerCase();
-            let filterBoxText = filterBox.input.value.toLowerCase();
-            return text.includes(filterBoxText);
+        filteringCallback = (filterable) => includesCaseInsensitive(filterable.filterableText, filterBox.input.value);
+    }
+    for (let filterable of filterables) {
+        if (filteringCallback(filterable)) {
+            filterPositiveCallback(filterable);
+        }
+        else {
+            filterNegativeCallback(filterable);
         }
     }
-    return filterables.filter(filteringCallback);
 }
 
 /**
  * 
  * @param {any[]} items 
  * @param {ToFilterableTextCallback} toFilterableTextCallback
+ * @returns {Filterable[]}
  */
 function createFilterables(items, toFilterableTextCallback) {
     if (!toFilterableTextCallback) {
@@ -175,7 +188,7 @@ function createFilterables(items, toFilterableTextCallback) {
     }
     let filterables = [];
     for(let item of items) {
-        filterables.push(toFilterableTextCallback(item))
+        filterables.push({item: item, filterableText: toFilterableTextCallback(item)});
     }
     return filterables
 }

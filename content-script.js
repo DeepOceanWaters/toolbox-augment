@@ -2,7 +2,8 @@
  * @typedef {import("./modules/components/filterableMultiselect.js").FilterableMultiselect} FilterableMultiselect
  * @typedef {import("./modules/components/partneredMultiselect.js").CreatePartneredMultiselect} CreatePartneredMultiselect
  * @typedef {import("./modules/components/partneredMultiselect.js").RealignPartneredMultiselect} RealignPartneredMultiselect
- * 
+ * @typedef {import("./modules/components/filterableMultiselect.js").Filterable} Filterable
+ * @typedef {import("./modules/components/filterableMultiselect.js").FilterOutcomeCallback} FilterOutcomeCallback
  * 
  * 
  */
@@ -238,7 +239,15 @@
         let multiselectLabel = document.querySelector(`[for="${multiselect.id}"]`);
         let filterableMultiselect = createPartneredMultiselect(
             multiselectLabel.textContent,
-            multiselect
+            multiselect,
+            /** @type {FilterOutcomeCallback}  */
+            (filterable) => {
+                filterable.item.input.parentElement.hidden = false;
+            },
+            /** @type {FilterOutcomeCallback}  */
+            (filterable) => {
+                filterable.item.input.parentElement.hidden = true;
+            }
         );
 
         let filterableMultiselectWidget = filterableMultiselect.fieldset.fieldset;

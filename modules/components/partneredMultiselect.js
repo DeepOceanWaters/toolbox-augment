@@ -10,6 +10,9 @@ import { spoofOptionSelected } from "../spoofUserInput.js";
  * @callback CreatePartneredMultiselect
  * @param {String} label
  * @param {HTMLSelectElement} multiselect 
+ * @param {FilterOutcomeCallback} filterPositiveCallback called when item meets criteria
+ * @param {FilterOutcomeCallback} filterNegativeCallback called when item does not meet criteria
+ * @param {FilterCallback} filteringCallback determines if item meets criteria
  * @param {ToTextCallback} optionsToTextCallback
  * @returns {FilterableMultiselect}
  * 
@@ -20,24 +23,31 @@ import { spoofOptionSelected } from "../spoofUserInput.js";
  * @returns {void}
  *  
  * @typedef {import("./filterableMultiselect.js").FilterableMultiselect} FilterableMultiselect
+ * @typedef {import("./filterableMultiselect.js").FilterOutcomeCallback} FilterOutcomeCallback
+ * @typedef {import("./filterableMultiselect.js").FilterCallback} FilterCallback
  */
 
 /**
  * 
  * @param {String} label
  * @param {HTMLSelectElement} multiselect 
+ * @param {FilterOutcomeCallback} filterPositiveCallback called when item meets criteria
+ * @param {FilterOutcomeCallback} filterNegativeCallback called when item does not meet criteria
+ * @param {FilterCallback} filteringCallback determines if item meets criteria
  * @param {ToTextCallback} optionsToTextCallback
- * 
  * @returns {FilterableMultiselect}
  */
-export default function createPartneredMultiselect(label, multiselect, optionsToTextCallback) {
+export default function createPartneredMultiselect(label, multiselect, filterPositiveCallback, filterNegativeCallback, filteringCallback, optionsToTextCallback) {
     let options = [...multiselect.querySelectorAll('option')];
     if (!optionsToTextCallback) { 
         optionsToTextCallback = (options) => options.map(o => o.textContent);
     }
     let filterableMultiselect = createFilterableMultiselect(
         label,
-        optionsToTextCallback(options)
+        optionsToTextCallback(options),
+        filterPositiveCallback,
+        filterNegativeCallback,
+        filteringCallback
     );
 
     for (let checkbox of filterableMultiselect.checkboxes) {
