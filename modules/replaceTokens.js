@@ -1,5 +1,19 @@
 import { tokens } from '../data/tokens.js';
 
+/**
+ * @typedef {Object} IssueTemplate
+ * @property {String} issue
+ * @property {String} requirement
+ * @property {String} recommendation
+ * @property {String[]} relatedsc array of success criteria numbers ex ["1.1.1", "4.1.2"]
+ * @property {String[]} resources array of hyperlinks
+ * @property {String[]} args basically a list of variables
+ * 
+ * @typedef {Object} GetRecommendationReturn
+ * @property {String} text
+ * @property {IssueTemplate} template
+ */
+
 export function main() {
     if ('pleaseListTokens' in window) {
         listTokens();
@@ -17,6 +31,11 @@ function descontructTokenString(tokenString) {
     return [possibleTokens, args]
 }
 
+/**
+ * 
+ * @param {string} token 
+ * @returns {GetRecommendationReturn}
+ */
 export function getRecommendation(token) {
     let [possibleTokens, args] = descontructTokenString(token);
     let tokenObj = tokens;

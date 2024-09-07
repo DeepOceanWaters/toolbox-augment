@@ -4,22 +4,63 @@
  * @typedef {import("./modules/components/partneredMultiselect.js").RealignPartneredMultiselect} RealignPartneredMultiselect
  * @typedef {import("./modules/components/filterableMultiselect.js").Filterable} Filterable
  * @typedef {import("./modules/components/filterableMultiselect.js").FilterOutcomeCallback} FilterOutcomeCallback
- * 
- * 
+ * @typedef {import("./modules/spoofUserInput.js").SpoofOptionSelected} SpoofOptionSelected
+ * @typedef {import("./modules/spoofUserInput.js").SpoofUpdateTextareaValue} SpoofUpdateTextareaValue
+ * @typedef {import("./modules/spoofUserInput.js").SetQuillEditorText} SetQuillEditorText
+ * @typedef {import("./modules/replaceTokens.js").IssueTemplate} IssueTemplate
+ * @typedef {import("./modules/replaceTokens.js").GetRecommendationReturn} GetRecommendationReturn
+ * @typedef {import("./data/successCriteria.js").SuccessCriteria} SuccessCriteria
  */
 (async () => {
-    const src = chrome.runtime.getURL("modules/components/partneredMultiselect.js");
     /** @type {{default: CreatePartneredMultiselect, realignPartneredMultiselect: RealignPartneredMultiselect}} */
-    const { default: createPartneredMultiselect, realignPartneredMultiselect: realignPartneredMultiselect } = await import(src);
+    const { 
+        default: createPartneredMultiselect, 
+        realignPartneredMultiselect: realignPartneredMultiselect 
+    } = await import(
+        chrome.runtime.getURL("modules/components/partneredMultiselect.js")
+    );
+
+    const { default: includesCaseInsensitive } = await import(
+        chrome.runtime.getURL("./modules/includesCaseInsensitive.js")
+    );
+
+    /**
+     * @type {{
+     *      spoofOptionSelected: SpoofOptionSelected, 
+     *      spoofUpdateTextareaValue: SpoofUpdateTextareaValue,
+     *      setQuillEditorText: SetQuillEditorText
+     * }}
+     */
+    const {
+        spoofOptionSelected: spoofOptionSelected,
+        spoofUpdateTextareaValue: spoofUpdateTextareaValue, 
+        setQuillEditorText: setQuillEditorText
+    } = await import(
+        chrome.runtime.getURL("modules/spoofUserInput.js")
+    );
+
 
     let issueCustomStyle;
     let issueToCopy;
     let recommendationToCopy;
-    const [pagesId, scId, statesId] = [
-        'pages',
-        'success_criteria',
-        'audit_status'
-    ]
+    const pagesId = 'pages';
+    const scId ='success_criteria';
+    const statesId = 'audit_status';
+    const issueDescId = 'issue_description';
+    const successCriteriaDescEditorId = 'editor1';
+    const recommendationEditorId = 'editor2';
+
+    /** @type {{successCriteria: SuccessCriteria}} */
+    const { successCriteria: successCriteria } = await import(
+        chrome.runtime.getURL("data/successCriteria.js")
+    );
+
+    /** @type {FilterableMultiselect} */
+    let pagesFilterableMultiselect;
+    /** @type {FilterableMultiselect} */
+    let scFilterableMultiselect;
+    /** @type {FilterableMultiselect} */
+    let statusFilterableMultiselect;
 
     main();
 
@@ -37,7 +78,8 @@
         let pages = document.getElementById(pagesId);
         let successCriteria = document.getElementById(scId);
         let states = document.getElementById(statesId);
-        isLoaded = pages && successCriteria && states;
+        let addIssue = document.querySelector('button[title="Add Issue"]');
+        isLoaded = pages && successCriteria && states && addIssue;
         isLoaded &&= pages.options.length > 0;
         isLoaded &&= successCriteria.options.length > 0;
         isLoaded &&= states.options.length > 0;
@@ -46,10 +88,17 @@
 
     async function _main() {
         chrome.runtime.onMessage.addListener(messageRouter);
+        let issueDescription = document.querySelector(`[for="${issueDescId}"]`).parentElement.children.item(1);
+        issueDescription.id = issueDescId;
         initCopyEventListeners();
         issueCustomStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
         comboboxStyle = injectStyles(chrome.runtime.getURL('css/combobox.css'));
-        replaceMultiselects();
+        ({ 
+            pagesFilterableMultiselect: pagesFilterableMultiselect,
+            scFilterableMultiselect: scFilterableMultiselect,
+            statusFilterableMultiselect: statusFilterableMultiselect
+        } = await replaceMultiselects());
+        addIssueTemplateSearch();
     }
 
     async function messageRouter(request, sender, sendResponse) {
@@ -179,8 +228,110 @@
         return;
     }
 
+    async function getNextResource() {
+        let resources = document.querySelectorAll('input[name="resources"]');
+        let resource = [...resources].find(r => r.value.trim() === '');
+        let resolver;
+        if (resource) {
+            resolver = (resolve) => resolve(resource);
+        }
+        else {
+            resolver = (resolve) => {
+                setTimeout(async () => resolve(await getNextResource()), 10);
+            }
+            let addResource = resources.item(0).parentElement.querySelector(':scope > button');
+            addResource.click();
+        }
+        return new Promise((resolve) => {
+            resolver(resolve);
+        })
+    }
+
+    async function addIssueTemplateSearch() {
+        /**
+         * form[form]:
+         *      div[topRow]:
+         *          div:
+         *              target element description input
+         *          div:
+         *              added issue template search
+         */
+        const { 
+            getPossibleTokens: getPossibleTokens, 
+            getRecommendation: getRecommendation 
+        } = await import(
+            chrome.runtime.getURL("modules/replaceTokens.js")
+        );
+
+        const { default: Combobox } = await import(
+            chrome.runtime.getURL("modules/combobox.js")
+        );
+    
+
+        let form = document.getElementById(pagesId).closest('form');
+        let topRow = form.children.item(0);
+        topRow.style.alignItems = 'baseline';
+        topRow.style.gap = '1rem';
+        
+        let issueTemplateContainer = topRow.children.item(0).cloneNode();
+        issueTemplateContainer.classList.remove(...issueTemplateContainer.classList);
+        topRow.appendChild(issueTemplateContainer);
+
+        let possibleTokens = getPossibleTokens();
+        let combobox = new Combobox('Issue Template', 'Issue Templates', possibleTokens);
+        combobox.setActivateOptionCallback(async () => {
+
+            /** @type {{text: String, template: IssueTemplate}} */
+            let { text: text, template: template } = getRecommendation(combobox.getComboboxElement().value);
+
+            // set success criteria
+            for(let sc of template.relatedsc) {
+                let scInput = scFilterableMultiselect.checkboxes.find(
+                    (inputPair) => includesCaseInsensitive(inputPair.label.textContent, sc)
+                ).input;
+                scInput.click();
+            }
+            
+            // set issue description
+            if (template.issue) {
+                let issueDesc = document.getElementById(issueDescId);
+                spoofUpdateTextareaValue(issueDesc, template.issue);
+            }
+            
+            // set recommendation
+            let recommendation = [
+                template.requirement, 
+                template.recommendation
+            ].filter(a => a).join('\n\n'); 
+
+            let recommendationQuillEditor = 
+                document.getElementById(recommendationEditorId).querySelector('.ql-editor');
+            await setQuillEditorText(recommendationQuillEditor, recommendation, false);
+            combobox.toggleListbox(false);
+
+            
+            // add default resources
+            for(const resource of template.resources || []) {
+                let resourceInput = await getNextResource();
+                spoofUpdateTextareaValue(resourceInput, resource);
+            }
+        });
+        issueTemplateContainer.append(
+            combobox.getComboboxLabel(),
+            combobox.getComboboxElement(),
+            combobox.getComboboxClearButton(),
+            combobox.getComboboxArrowButton(),
+            combobox.getListboxElement()
+        );
+        issueTemplateContainer.classList.add('combobox-widget');
+    }
+
     /**
-     * 
+     * @returns {Promise<{ 
+     *      pagesFilterableMultiselect: FilterableMultiselect, 
+     *      scFilterableMultiselect: FilterableMultiselect,  
+     *      statusFilterableMultiselect: FilterableMultiselect
+     * }>}
      */
     async function replaceMultiselects() {
         // hides selects and labels
@@ -210,9 +361,29 @@
         let [statusFilterableMultiselect, statusFilterableMultiselectWidget] = await toFilterableMultiselect(statusMultiselect);
         statusMultiselect.parentElement.insertBefore(statusFilterableMultiselectWidget, statusMultiselect);
         statusFilterableMultiselectWidget.classList.add('multiselect-group');
+        // add success criteria description updater
+        let successCriteriaDescEditor = document.getElementById(successCriteriaDescEditorId).querySelector('.ql-editor');
+        let checkboxPairsContainer = scFilterableMultiselectWidget.querySelector('.checkboxes-container');
+        checkboxPairsContainer.addEventListener('change', (e) => {
+            setTimeout(async () => {
+                let issuesDescriptions = scFilterableMultiselect.checkboxes
+                    .filter(cPairs => cPairs.input.checked)
+                    .map(cPairs => {
+                        let num = cPairs.label.textContent.match(/\d+\.\d+\.\d+/gi)[0];
+                        return `<div>${num} - ${successCriteria[num].description}</div>`;
+                    })
+                    .join('<div></div>');
+                await new Promise((resolve) => {
+                    let scDescReset = successCriteriaDescEditor.parentElement.parentElement.querySelector('button');
+                    scDescReset.click();
+                    setTimeout(() => resolve(), 5);
+                });
+                await setQuillEditorText(successCriteriaDescEditor, issuesDescriptions, false);
+            }, 1000);
+        });
         // add realign events
+        // realigns new multiselects with old multiselects when opening a different issue
         let addIssue = document.querySelector('button[title="Add Issue"]');
-
         addIssue.parentElement.addEventListener('click', (e) => {
             if (!["Add Issue", "Edit Issue", "Copy Issue"].includes(e.target.title)) {
                 return;
@@ -228,6 +399,11 @@
                 }
             }, 20);
         });
+        return { 
+            pagesFilterableMultiselect: pagesFilterableMultiselect, 
+            scFilterableMultiselect: scFilterableMultiselect, 
+            statusFilterableMultiselect: statusFilterableMultiselect
+        };
     }
 
     /**

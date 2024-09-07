@@ -99,7 +99,6 @@ export default class Combobox {
 
     addEventListeners() {
         this.comboboxElement.addEventListener('input', (e) => {
-
             this.toggleListbox(true);
             this.comboboxClearButton.dataset.emptyValue = this.comboboxElement.value === '';
             this.searchOptions(e);
@@ -112,6 +111,8 @@ export default class Combobox {
         this.comboboxArrowButton.addEventListener(
             'click', (e) => {
                 this.toggleListbox();
+                e.preventDefault();
+                e.stopPropagation();
             }
         );
         this.comboboxElement.addEventListener(
