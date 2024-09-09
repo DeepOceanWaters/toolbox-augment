@@ -101,18 +101,23 @@
         let issueDescription = document.querySelector(`[for="${issueDescId}"]`).parentElement.children.item(1);
         issueDescription.id = issueDescId;
         initCopyEventListeners();
-        cssVariablesStyle = injectStyles(chrome.runtime.getURL('css/variables.css'));
-        cssColorVariablesStyle = injectStyles(chrome.runtime.getURL('css/colorVars.css'));
-        issueCustomStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
-        comboboxStyle = injectStyles(chrome.runtime.getURL('css/combobox.css'));
-        checkboxStyle = injectStyles(chrome.runtime.getURL('css/checkbox.css'));
-        filterableMultiselectStyle = injectStyles(chrome.runtime.getURL('css/filterableMultiselects.css'));
+        injectAllStyles();
         ({ 
             pagesFilterableMultiselect: pagesFilterableMultiselect,
             scFilterableMultiselect: scFilterableMultiselect,
             statusFilterableMultiselect: statusFilterableMultiselect
         } = await replaceMultiselects());
         addIssueTemplateSearch();
+    }
+
+    function injectAllStyles() {
+        let cssVariablesStyle = injectStyles(chrome.runtime.getURL('css/variables.css'));
+        let cssColorVariablesStyle = injectStyles(chrome.runtime.getURL('css/colorVars.css'));
+        let issueCustomStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
+        let comboboxStyle = injectStyles(chrome.runtime.getURL('css/combobox.css'));
+        let checkboxStyle = injectStyles(chrome.runtime.getURL('css/checkbox.css'));
+        let filterableMultiselectStyle = injectStyles(chrome.runtime.getURL('css/filterableMultiselects.css'));
+        let floatLabelStyle = injectStyles(chrome.runtime.getURL('css/floatLabel.css'));
     }
 
     async function messageRouter(request, sender, sendResponse) {
@@ -458,13 +463,22 @@
 
         let filterableMultiselectWidget = filterableMultiselect.fieldset.fieldset;
 
+        // create filter box
         let filterBoxContainer = document.createElement('div');
-        filterBoxContainer.classList.add('filter-box-pair');
+        
         filterBoxContainer.append(
             filterableMultiselect.filterBox.label,
             filterableMultiselect.filterBox.input
         );
 
+        filterBoxContainer.classList.add(
+            'filter-box-pair',
+            'float-label-pair'
+        );
+        filterableMultiselect.filterBox.label.classList.add('float-label');
+        filterableMultiselect.filterBox.input.placeholder = ' ';
+
+        // create checkboxes
         let checkboxesContainer = document.createElement('div');
         checkboxesContainer.classList.add('checkboxes-container');
         checkboxesContainer.classList.add('vertical');
@@ -476,6 +490,10 @@
             checkboxesContainer.appendChild(checkboxComponent.component);
         }
 
+        // create header
+        
+
+        // append to widget
         filterableMultiselectWidget.append(
             filterBoxContainer,
             checkboxesContainer

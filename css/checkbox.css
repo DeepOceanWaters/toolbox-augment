@@ -200,18 +200,12 @@
             display: flex;
             width: 100%;
             user-select: none;
-        }
-        
-        input[hidden] {
-            display: none!important;
+
+            &[hidden] {
+                display:  none!important;
+            }
         }
     }
-
-    /* small version */
-
-
-
-    /* small animations */
 
     /**
  * States:
