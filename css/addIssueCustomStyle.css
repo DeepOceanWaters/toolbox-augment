@@ -11,7 +11,7 @@ select[multiple]:not(#essential_functionalities)
 *:has(>select[multiple]:not(
     #success_criteria, 
     #essential_functionalities):hover) 
-{ 
+{
     position:relative;
 }
 

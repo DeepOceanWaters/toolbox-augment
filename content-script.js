@@ -10,6 +10,7 @@
  * @typedef {import("./modules/replaceTokens.js").IssueTemplate} IssueTemplate
  * @typedef {import("./modules/replaceTokens.js").GetRecommendationReturn} GetRecommendationReturn
  * @typedef {import("./data/successCriteria.js").SuccessCriteria} SuccessCriteria
+ * @typedef {import("./modules/components/checkbox.js").CheckboxComponent} CheckboxComponent
  */
 (async () => {
     /** @type {{default: CreatePartneredMultiselect, realignPartneredMultiselect: RealignPartneredMultiselect}} */
@@ -37,6 +38,15 @@
         setQuillEditorText: setQuillEditorText
     } = await import(
         chrome.runtime.getURL("modules/spoofUserInput.js")
+    );
+
+    /**
+     * @type {{
+     *      default: CheckboxComponent
+     * }}
+     */
+    const { default: createCheckboxComponent } = await import(
+        chrome.runtime.getURL("modules/components/checkbox.js")
     );
 
 
@@ -91,8 +101,12 @@
         let issueDescription = document.querySelector(`[for="${issueDescId}"]`).parentElement.children.item(1);
         issueDescription.id = issueDescId;
         initCopyEventListeners();
+        cssVariablesStyle = injectStyles(chrome.runtime.getURL('css/variables.css'));
+        cssColorVariablesStyle = injectStyles(chrome.runtime.getURL('css/colorVars.css'));
         issueCustomStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
         comboboxStyle = injectStyles(chrome.runtime.getURL('css/combobox.css'));
+        checkboxStyle = injectStyles(chrome.runtime.getURL('css/checkbox.css'));
+        filterableMultiselectStyle = injectStyles(chrome.runtime.getURL('css/filterableMultiselects.css'));
         ({ 
             pagesFilterableMultiselect: pagesFilterableMultiselect,
             scFilterableMultiselect: scFilterableMultiselect,
@@ -334,6 +348,13 @@
      * }>}
      */
     async function replaceMultiselects() {
+        const padderClass = 'top-padder';
+        const multiselectWidgetClass = 'multiselect-group';
+        const createPadder = () => {
+            let div = document.createElement('div');
+            div.classList.add(padderClass);
+            return div;
+        }
         // hides selects and labels
         injectStyles(chrome.runtime.getURL('css/augmentAddIssues.css'));
         // replace pages multiselect
@@ -349,37 +370,46 @@
         /** @type {HTMLSelectElement} */
         let pagesMultiselect = document.getElementById(pagesId);
         let [pagesFilterableMultiselect, pagesFilterableMultiselectWidget] = await toFilterableMultiselect(pagesMultiselect);
-        pagesMultiselect.parentElement.insertBefore(pagesFilterableMultiselectWidget, pagesMultiselect);
-        pagesFilterableMultiselectWidget.classList.add('multiselect-group');
+        pagesMultiselect.parentElement.insertBefore(
+            pagesFilterableMultiselectWidget, 
+            pagesMultiselect
+        );
+        pagesFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
+        pagesFilterableMultiselectWidget.parentElement.children.item(0).classList.add(padderClass);
         // replace success criteria multiselect
         let scMultiselect = document.getElementById(scId);
         let [scFilterableMultiselect, scFilterableMultiselectWidget] = await toFilterableMultiselect(scMultiselect);
         scMultiselect.parentElement.insertBefore(scFilterableMultiselectWidget, scMultiselect);
-        scFilterableMultiselectWidget.classList.add('multiselect-group');
+        scFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
+        scFilterableMultiselectWidget.parentElement.insertBefore(
+            createPadder(),
+            scFilterableMultiselectWidget
+        );
         // replace states multiselect
         let statusMultiselect = document.getElementById(statesId);
         let [statusFilterableMultiselect, statusFilterableMultiselectWidget] = await toFilterableMultiselect(statusMultiselect);
         statusMultiselect.parentElement.insertBefore(statusFilterableMultiselectWidget, statusMultiselect);
-        statusFilterableMultiselectWidget.classList.add('multiselect-group');
+        statusFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
+        statusFilterableMultiselectWidget.parentElement.insertBefore(
+            createPadder(),
+            statusFilterableMultiselectWidget
+        );
         // add success criteria description updater
+        // sometimes the sc descriptions does not update properly when selecting an sc. 
+        // this makes sure that it updates properly - both when selecting and unselecting.
         let successCriteriaDescEditor = document.getElementById(successCriteriaDescEditorId).querySelector('.ql-editor');
         let checkboxPairsContainer = scFilterableMultiselectWidget.querySelector('.checkboxes-container');
         checkboxPairsContainer.addEventListener('change', (e) => {
-            setTimeout(async () => {
                 let issuesDescriptions = scFilterableMultiselect.checkboxes
                     .filter(cPairs => cPairs.input.checked)
                     .map(cPairs => {
-                        let num = cPairs.label.textContent.match(/\d+\.\d+\.\d+/gi)[0];
+                        let num = cPairs.label.querySelector('span').textContent.match(/\d+\.\d+\.\d+/gi)[0];
                         return `<div>${num} - ${successCriteria[num].description}</div>`;
                     })
-                    .join('<div></div>');
-                await new Promise((resolve) => {
-                    let scDescReset = successCriteriaDescEditor.parentElement.parentElement.querySelector('button');
-                    scDescReset.click();
-                    setTimeout(() => resolve(), 5);
-                });
-                await setQuillEditorText(successCriteriaDescEditor, issuesDescriptions, false);
-            }, 1000);
+                    .join('<div><br></div>');
+                let scDescReset = successCriteriaDescEditor.parentElement.parentElement.querySelector('button');
+                scDescReset.click();
+                setQuillEditorText(successCriteriaDescEditor, issuesDescriptions, false);
         });
         // add realign events
         // realigns new multiselects with old multiselects when opening a different issue
@@ -437,20 +467,21 @@
 
         let checkboxesContainer = document.createElement('div');
         checkboxesContainer.classList.add('checkboxes-container');
+        checkboxesContainer.classList.add('vertical');
         for (let checkbox of filterableMultiselect.checkboxes) {
-            let checkboxPairContainer = document.createElement('div');
-            checkboxPairContainer.classList.add('checkbox-pair');
-            checkboxPairContainer.append(
-                checkbox.input,
-                checkbox.label
-            );
-            checkboxesContainer.appendChild(checkboxPairContainer);
+            let checkboxComponent = createCheckboxComponent(null, {
+                input: checkbox.input,
+                label: checkbox.label
+            });
+            checkboxesContainer.appendChild(checkboxComponent.component);
         }
 
         filterableMultiselectWidget.append(
             filterBoxContainer,
             checkboxesContainer
         );
+
+        filterableMultiselectWidget.classList.add('toolbox-augmentor');
 
         return [filterableMultiselect, filterableMultiselectWidget];
     }
@@ -502,6 +533,8 @@
         return element;
     }
 
+    /* #region getAuditData */
+
     function getAuditData() {
         let audit = {
             id: -1,
@@ -550,6 +583,9 @@
         }
         return outputRow;
     }
+
+    /* #endregion */
+
 
 
 })();

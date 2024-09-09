@@ -88,7 +88,7 @@ export function setQuillEditorText(quillEditor, value, replace = true) {
         setTimeout(() => {
             currentlyFocused.focus();
             resolve(quillEditor.textContent === value);
-        }, 5);
+        }, 1);
     })
 }
 

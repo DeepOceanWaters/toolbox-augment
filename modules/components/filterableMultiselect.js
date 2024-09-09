@@ -68,10 +68,15 @@ export default function createFilterableMultiselect(label, options, filterPositi
  * @returns {FieldSet}
  */
 function createFieldset(label) {
-    let fieldset = document.createElement('fieldset');
-    let legend = document.createElement('legend');
+    let fieldset = document.createElement('div');
+    let legend = document.createElement('div');
+
     legend.textContent = label;
     fieldset.appendChild(legend);
+
+    legend.id = generateUniqueId();
+    fieldset.setAttribute('role', 'group');
+    fieldset.setAttribute('aria-labelledby', legend.id);
     return { fieldset: fieldset, legend: legend };
 }
 

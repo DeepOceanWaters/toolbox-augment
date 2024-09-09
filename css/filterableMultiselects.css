@@ -1,0 +1,20 @@
+.multiselect-group {
+
+    .checkboxes-container {
+        min-height: 200px;
+        max-height: 300px;
+        overflow-y: scroll;
+        padding: 0 0.5rem;
+
+        border-radius: var(--checkbox-radius);
+    }
+
+    /* filter-box */
+    input[type="text"] {
+        margin-left: 0.15rem;
+        border: 1px solid black;
+        border-radius: var(--checkbox-radius);
+        height: 2rem;
+    }
+    
+}
