@@ -18,6 +18,7 @@ import includesCaseInsensitive from "../includesCaseInsensitive.js";
  * @property {FieldSet} fieldset
  * @property {FilterBox} filterBox
  * @property {CheckboxPair[]} checkboxes
+ * @property {Filterable[]} filterableCheckboxes
  * 
  * @typedef {Object} Filterable
  * @property {any} item
@@ -57,7 +58,8 @@ export default function createFilterableMultiselect(label, options, filterPositi
         (checkbox) => checkbox.label.textContent
     );
     addFilterEvents(filterBox, filterableCheckboxes, filterPositiveCallback, filterNegativeCallback, filteringCallback);
-    return { fieldset: fieldset, checkboxes: checkboxes, filterBox: filterBox };
+    addKeyboardNavigation(filterBox, checkboxes);
+    return { fieldset: fieldset, checkboxes: checkboxes, filterBox: filterBox, filterableCheckboxes: filterableCheckboxes };
 }
 
 /* #region create */
@@ -199,3 +201,12 @@ function createFilterables(items, toFilterableTextCallback) {
 }
 
 /* #endregion filtering */
+
+/**
+ * 
+ * @param {FilterBox} filterBox 
+ * @param {CheckboxPair} checkboxPairs 
+ */
+function addKeyboardNavigation(filterBox, checkboxPairs) {
+
+}
