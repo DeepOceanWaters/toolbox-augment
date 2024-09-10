@@ -34,10 +34,19 @@ import { spoofOptionSelected } from "../spoofUserInput.js";
  * @param {FilterOutcomeCallback} filterPositiveCallback called when item meets criteria
  * @param {FilterOutcomeCallback} filterNegativeCallback called when item does not meet criteria
  * @param {FilterCallback} filteringCallback determines if item meets criteria
+ * @param {Function} postFilterCallback
  * @param {ToTextCallback} optionsToTextCallback
  * @returns {FilterableMultiselect}
  */
-export default function createPartneredMultiselect(label, multiselect, filterPositiveCallback, filterNegativeCallback, filteringCallback, optionsToTextCallback) {
+export default function createPartneredMultiselect(
+    label, 
+    multiselect, 
+    filterPositiveCallback, 
+    filterNegativeCallback, 
+    filteringCallback, 
+    postFilterCallback, 
+    optionsToTextCallback
+) {
     let options = [...multiselect.querySelectorAll('option')];
     if (!optionsToTextCallback) { 
         optionsToTextCallback = (options) => options.map(o => o.textContent);
@@ -47,7 +56,9 @@ export default function createPartneredMultiselect(label, multiselect, filterPos
         optionsToTextCallback(options),
         filterPositiveCallback,
         filterNegativeCallback,
-        filteringCallback
+        filteringCallback,
+        postFilterCallback,
+        optionsToTextCallback
     );
 
     for (let checkbox of filterableMultiselect.checkboxes) {

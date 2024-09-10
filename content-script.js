@@ -21,6 +21,12 @@
         chrome.runtime.getURL("modules/components/partneredMultiselect.js")
     );
 
+    const {
+        addKeyboardNavigation: addKeyboardNavigation
+    } = await import(
+        chrome.runtime.getURL("modules/components/filterableMultiselect.js")
+    );
+
     const { default: includesCaseInsensitive } = await import(
         chrome.runtime.getURL("./modules/includesCaseInsensitive.js")
     );
@@ -371,10 +377,36 @@
          *          label[working sample - contains input]
          *      select:
          */
+        const _createFilterableMultiselect = (multiselect) => {
+            let multiselectLabel = document.querySelector(`[for="${multiselect.id}"]`);
+            let filterableMultiselect = createPartneredMultiselect(
+                multiselectLabel.textContent,
+                multiselect,
+                /** @type {FilterOutcomeCallback}  */
+                (filterable) => {
+                    filterable.item.input.parentElement.hidden = false;
+                },
+                /** @type {FilterOutcomeCallback}  */
+                (filterable) => {
+                    filterable.item.input.parentElement.hidden = true;
+                },
+                null,
+                (positiveMatches, negativeMatches) => {
+                    let tabindexedItem = 
+                        positiveMatches.find(filterable => filterable.item.input.tabIndex === 0)
+                        || negativeMatches.find(filterable => filterable.item.input.tabIndex === 0);
+                    tabindexedItem.tabIndex = -1;
+                    positiveMatches.item.input.tabIndex = 0;
+                }
+            );
+            return filterableMultiselect;
+        }
         // insertbefore select
         /** @type {HTMLSelectElement} */
         let pagesMultiselect = document.getElementById(pagesId);
-        let [pagesFilterableMultiselect, pagesFilterableMultiselectWidget] = await toFilterableMultiselect(pagesMultiselect);
+        let pagesFilterableMultiselect = _createFilterableMultiselect(pagesMultiselect);
+        addKeyboardNavigation(pagesFilterableMultiselect);
+        let pagesFilterableMultiselectWidget = await toFilterableMultiselectWidget(pagesFilterableMultiselect);
         pagesMultiselect.parentElement.insertBefore(
             pagesFilterableMultiselectWidget,
             pagesMultiselect
@@ -389,7 +421,7 @@
             let [bMatch, b1, b2, b3] = b.filterableText.match(regex);
             let aNums = [a1, a2, a3];
             let bNums = [b1, b2, b3];
-            for(let i = 0; i < 3; i++) {
+            for (let i = 0; i < 3; i++) {
                 let aNum = Number(aNums[i]);
                 let bNum = Number(bNums[i]);
                 if (aNum === 0) return 1;
@@ -399,7 +431,10 @@
             return 0;
         }
         let scMultiselect = document.getElementById(scId);
-        let [scFilterableMultiselect, scFilterableMultiselectWidget] = await toFilterableMultiselect(scMultiselect, scSort);
+        let scFilterableMultiselect = _createFilterableMultiselect(scMultiselect);
+        scFilterableMultiselect.filterableCheckboxes = scFilterableMultiselect.filterableCheckboxes.sort(scSort);
+        addKeyboardNavigation(scFilterableMultiselect);
+        let scFilterableMultiselectWidget = await toFilterableMultiselectWidget(scFilterableMultiselect);
         scMultiselect.parentElement.insertBefore(scFilterableMultiselectWidget, scMultiselect);
         scFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
         scFilterableMultiselectWidget.parentElement.insertBefore(
@@ -408,7 +443,9 @@
         );
         // replace states multiselect
         let statusMultiselect = document.getElementById(statesId);
-        let [statusFilterableMultiselect, statusFilterableMultiselectWidget] = await toFilterableMultiselect(statusMultiselect);
+        let statusFilterableMultiselect = _createFilterableMultiselect(statusMultiselect);
+        addKeyboardNavigation(statusFilterableMultiselect);
+        let statusFilterableMultiselectWidget = await toFilterableMultiselectWidget(statusFilterableMultiselect);
         statusMultiselect.parentElement.insertBefore(statusFilterableMultiselectWidget, statusMultiselect);
         statusFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
         statusFilterableMultiselectWidget.parentElement.insertBefore(
@@ -466,24 +503,11 @@
 
     /**
      * 
-     * @param {HTMLSelectElement} multiselect 
-     * @param {CheckboxSortCallback} sort 
+     * @param {FilterableMultiselect} filterableMultiselect
      * @returns {Promise<[FilterableMultiselect, HTMLFieldSetElement]>}
      */
-    async function toFilterableMultiselect(multiselect, sort) {
-        let multiselectLabel = document.querySelector(`[for="${multiselect.id}"]`);
-        let filterableMultiselect = createPartneredMultiselect(
-            multiselectLabel.textContent,
-            multiselect,
-            /** @type {FilterOutcomeCallback}  */
-            (filterable) => {
-                filterable.item.input.parentElement.hidden = false;
-            },
-            /** @type {FilterOutcomeCallback}  */
-            (filterable) => {
-                filterable.item.input.parentElement.hidden = true;
-            }
-        );
+    async function toFilterableMultiselectWidget(filterableMultiselect) {
+
 
         let filterableMultiselectWidget = filterableMultiselect.fieldset.fieldset;
 
@@ -507,13 +531,7 @@
         checkboxesContainer.classList.add('checkboxes-container');
         checkboxesContainer.classList.add('vertical');
 
-        let sortedCheckoxes = filterableMultiselect.filterableCheckboxes;
-        if (sort) {
-            sortedCheckoxes = filterableMultiselect.filterableCheckboxes.sort(
-                sort
-            );
-        }
-        for (let { item: checkboxPair } of sortedCheckoxes) {
+        for (let { item: checkboxPair } of filterableMultiselect.filterableCheckboxes) {
             let checkboxComponent = createCheckboxComponent(null, {
                 input: checkboxPair.input,
                 label: checkboxPair.label
@@ -532,7 +550,7 @@
 
         filterableMultiselectWidget.classList.add('toolbox-augmentor');
 
-        return [filterableMultiselect, filterableMultiselectWidget];
+        return filterableMultiselectWidget;
     }
 
     /**

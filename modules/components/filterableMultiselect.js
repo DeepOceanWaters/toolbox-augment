@@ -46,20 +46,39 @@ import includesCaseInsensitive from "../includesCaseInsensitive.js";
  * @param {FilterOutcomeCallback} filterPositiveCallback called when item meets criteria
  * @param {FilterOutcomeCallback} filterNegativeCallback called when item does not meet criteria
  * @param {FilterCallback} filteringCallback determines if item meets criteria
+ * @param {Callback} postFilterCallback
  * @param {MultiselectExtraOptions} args 
  * @returns {FilterableMultiselect}
  */
-export default function createFilterableMultiselect(label, options, filterPositiveCallback, filterNegativeCallback, filteringCallback, args) {
+export default function createFilterableMultiselect(
+    label,
+    options,
+    filterPositiveCallback,
+    filterNegativeCallback,
+    filteringCallback,
+    postFilterCallback,
+    args) {
     let filterBox = createMultiselectFilterTextBox(label);
     let checkboxes = createCheckboxList(options);
     let fieldset = createFieldset(label);
     let filterableCheckboxes = createFilterables(
-        checkboxes, 
+        checkboxes,
         (checkbox) => checkbox.label.textContent
     );
-    addFilterEvents(filterBox, filterableCheckboxes, filterPositiveCallback, filterNegativeCallback, filteringCallback);
-    addKeyboardNavigation(filterBox, checkboxes);
-    return { fieldset: fieldset, checkboxes: checkboxes, filterBox: filterBox, filterableCheckboxes: filterableCheckboxes };
+    let filterableMultiselect = {
+        fieldset: fieldset,
+        checkboxes: checkboxes,
+        filterBox: filterBox,
+        filterableCheckboxes: filterableCheckboxes
+    };
+    addFilterEvents(
+        filterableMultiselect,
+        filterPositiveCallback,
+        filterNegativeCallback,
+        filteringCallback,
+        postFilterCallback
+    );
+    return filterableMultiselect;
 }
 
 /* #region create */
@@ -136,22 +155,29 @@ function createCheckbox(label) {
 
 /**
  * Filters filterable based on text input on filterbox.
- * @param {FilterBox} filterBox 
- * @param {Filterable[]} filterables
+ * @param {FilterableMultiselect} filterableMultiselect
  * @param {FilterOutcomeCallback} filterPositiveCallback called when item meets criteria
  * @param {FilterOutcomeCallback} filterNegativeCallback called when item does not meet criteria
  * @param {FilterCallback} filteringCallback
+ * @param {Function} postFilterCallback
  * @param {Number} throttle throttle filtering on input, milliseconds
  * @return {Filterable[]} list of remaining filterables
  */
-function addFilterEvents(filterBox, filterables, filterPositiveCallback, filterNegativeCallback, filteringCallback, throttle = 10) {
-    filterBox.input.addEventListener('input', (e) => {
+function addFilterEvents(
+    filterableMultiselect,
+    filterPositiveCallback,
+    filterNegativeCallback,
+    filteringCallback,
+    postFilterCallback,
+    throttle = 10
+) {
+    filterableMultiselect.filterBox.input.addEventListener('input', (e) => {
         let timeout = window[`${filterBox.input.id}-filtering`];
         if (timeout) {
             clearTimeout(timeout);
         }
-        window[`${filterBox.input.id}-filtering`] = setTimeout(
-            () => filter(filterBox, filterables, filterPositiveCallback, filterNegativeCallback, filteringCallback), 
+        window[`${filterableMultiselect.filterBox.input.id}-filtering`] = setTimeout(
+            () => filter(filterableMultiselect, filterPositiveCallback, filterNegativeCallback, filteringCallback, postFilterCallback),
             throttle
         );
     });
@@ -164,16 +190,17 @@ function addFilterEvents(filterBox, filterables, filterPositiveCallback, filterN
  * @param {FilterOutcomeCallback} filterPositiveCallback called when item meets criteria
  * @param {FilterOutcomeCallback} filterNegativeCallback called when item does not meet criteria
  * @param {FilterCallback} filteringCallback determines how to filter
+ * @param {Callback} postFilterCallback
  */
-function filter(filterBox, filterables, filterPositiveCallback, filterNegativeCallback, filteringCallback) {
-    if (filterBox.input.value === '') {
+function filter(filterableMultiselect, filterPositiveCallback, filterNegativeCallback, filteringCallback, postFilterCallback) {
+    if (filterableMultiselect.filterBox.input.value === '') {
         filteringCallback = () => true;
     }
-    
+
     if (!filteringCallback) {
         filteringCallback = (filterable) => includesCaseInsensitive(filterable.filterableText, filterBox.input.value);
     }
-    for (let filterable of filterables) {
+    for (let filterable of filterableMultiselect.filterableCheckboxes) {
         if (filteringCallback(filterable)) {
             filterPositiveCallback(filterable);
         }
@@ -181,6 +208,7 @@ function filter(filterBox, filterables, filterPositiveCallback, filterNegativeCa
             filterNegativeCallback(filterable);
         }
     }
+    postFilterCallback(filterableMultiselect);
 }
 
 /**
@@ -194,19 +222,53 @@ function createFilterables(items, toFilterableTextCallback) {
         throw new Error('Must include toFilterableTextCallback! None found!');
     }
     let filterables = [];
-    for(let item of items) {
-        filterables.push({item: item, filterableText: toFilterableTextCallback(item)});
+    for (let item of items) {
+        filterables.push({ item: item, filterableText: toFilterableTextCallback(item) });
     }
-    return filterables
+    return filterables;
 }
 
 /* #endregion filtering */
 
 /**
  * 
- * @param {FilterBox} filterBox 
- * @param {CheckboxPair} checkboxPairs 
+ * @param {FilterableMultiselect} filterableMultiselect 
  */
-function addKeyboardNavigation(filterBox, checkboxPairs) {
+export function addKeyboardNavigation(filterableMultiselect) {
+    // remove all but first item from focus order
+    for(let [index, filterableCheckbox] of filterableMultiselect.filterableCheckboxes.entries()) {
+        if (index === 0) continue;
+        filterableCheckbox.item.input.tabIndex = -1;
+    }
+    // add event listeners
+    filterableMultiselect.filterBox.input.addEventListener('keydown', (e) => filterBoxKeydownHandler(e, filterableMultiselect))
+    for (let filterableCheckbox of filterableMultiselect.filterableCheckboxes) {
+        filterableCheckbox.item.input.addEventListener('keydown', (e) => {
+            checkboxKeydownHandler(e, filterableCheckbox, filterableMultiselect.filterableCheckboxes);
+        });
+    }
+}
 
+/**
+ * 
+ * @param {FilterableMultiselect} filterableMultiselect 
+ * @param {KeyboardEvent} e 
+ */
+function filterBoxKeydownHandler(e, filterableMultiselect) {
+    if (e.key !== 'ArrowDown') return;
+    filterableMultiselect.checkboxes.find(inputPair => inputPair.input.tabIndex === 0).input.focus();
+    e.preventDefault();
+}
+
+function checkboxKeydownHandler(e, filterableCheckbox, filterableCheckboxes) {
+    if (!['ArrowDown', 'ArrowUp'].includes(e.key)) return;
+    let direction = 1;
+    if (e.key === 'ArrowUp') direction = -1;
+    let curIndex = filterableCheckboxes.indexOf(filterableCheckbox);
+    let nextIndex = (curIndex + filterableCheckboxes.length + direction) % filterableCheckboxes.length;
+    let nextFilterableCheckbox = filterableCheckboxes[nextIndex];
+    filterableCheckbox.item.input.tabIndex = -1;
+    nextFilterableCheckbox.item.input.tabIndex = 0;
+    nextFilterableCheckbox.item.input.focus();
+    e.preventDefault();
 }

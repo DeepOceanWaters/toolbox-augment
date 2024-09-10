@@ -1,8 +1,6 @@
 .multiselect-group {
 
-    .header {
-        
-    }
+    .header {}
 
     .checkboxes-container {
         height: 18rem;
@@ -14,6 +12,11 @@
 
         border-bottom-left-radius: var(--checkbox-radius);
         border-bottom-right-radius: var(--checkbox-radius);
+
+        input[type="checkbox"] {
+            scroll-margin-bottom: 2rem;
+            scroll-margin-top: 2rem;
+        }
     }
 
     /* filter-box */
@@ -26,5 +29,5 @@
     .float-label-pair {
         width: 100%;
     }
-    
+
 }
