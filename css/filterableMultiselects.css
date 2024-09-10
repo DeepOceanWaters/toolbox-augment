@@ -1,6 +1,13 @@
 .multiselect-group {
 
-    .header {}
+    .header {
+        display: flex;
+        justify-content: space-between;
+
+        .settings-controller {
+            font-size: 1.4rem;
+        }
+    }
 
     .checkboxes-container {
         height: 18rem;
@@ -29,5 +36,6 @@
     .float-label-pair {
         width: 100%;
     }
+
 
 }

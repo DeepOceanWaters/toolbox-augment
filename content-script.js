@@ -55,6 +55,10 @@
         chrome.runtime.getURL("modules/components/checkbox.js")
     );
 
+    const { default: createDisclosure } = await import(
+        chrome.runtime.getURL("modules/components/disclosure.js")
+    );
+
 
     let issueCustomStyle;
     let issueToCopy;
@@ -124,6 +128,7 @@
         let checkboxStyle = injectStyles(chrome.runtime.getURL('css/checkbox.css'));
         let filterableMultiselectStyle = injectStyles(chrome.runtime.getURL('css/filterableMultiselects.css'));
         let floatLabelStyle = injectStyles(chrome.runtime.getURL('css/floatLabel.css'));
+        let srOnly = injectStyles(chrome.runtime.getURL('css/sr-only.css'));
     }
 
     async function messageRouter(request, sender, sendResponse) {
@@ -314,7 +319,7 @@
                 let scInput = scFilterableMultiselect.checkboxes.find(
                     (inputPair) => includesCaseInsensitive(inputPair.label.textContent, sc)
                 ).input;
-                scInput.click();
+                if (!scInput.checked) scInput.click();
             }
 
             // set issue description
@@ -324,14 +329,26 @@
             }
 
             // set recommendation
-            let recommendation = [
-                template.requirement,
-                template.recommendation
-            ].filter(a => a).join('\n\n');
+            const _prepare = (paragraph) => {
+                let items = paragraph.split('\n');
+                return `${items.join('<br>')}`;
+            }
+            let recommendationParagraphs = [];
+            if (template.requirement) {
+                recommendationParagraphs.push(
+                    _prepare(template.requirement)
+                );
+            }
+            if (template.recommendation) {
+                recommendationParagraphs.push(
+                    _prepare(template.recommendation)
+                )
+            }
+            //recommendationParagraphs.filter(a => a);
 
             let recommendationQuillEditor =
                 document.getElementById(recommendationEditorId).querySelector('.ql-editor');
-            await setQuillEditorText(recommendationQuillEditor, recommendation, false);
+            await setQuillEditorText(recommendationQuillEditor, recommendationParagraphs, false);
             combobox.toggleListbox(false);
 
 
@@ -392,7 +409,7 @@
                 },
                 null,
                 (positiveMatches, negativeMatches) => {
-                    let tabindexedItem = 
+                    let tabindexedItem =
                         positiveMatches.find(filterable => filterable.item.input.tabIndex === 0)
                         || negativeMatches.find(filterable => filterable.item.input.tabIndex === 0);
                     tabindexedItem.tabIndex = -1;
@@ -401,12 +418,43 @@
             );
             return filterableMultiselect;
         }
+        //
+        const _createShowOnly = (filterableMultiselect) => {
+            let showOnly = createCheckboxComponent('Only Selected ' + filterableMultiselect.fieldset.legend.textContent);
+            showOnly.checkbox.addEventListener('change', (e) => {
+                let firstShowingCheckbox;
+                for (let checkboxPair of filterableMultiselect.checkboxes) {
+                    if (showOnly.checked) {
+                        checkboxPair.input.parentElement.hidden = !checkboxPair.input.checked;
+                        if (!firstShowingCheckbox && !checkboxPair.input.hidden) {
+                            firstShowingCheckbox = checkboxPair.input;
+                        }
+                        else {
+                            checkboxPair.input.tabIndex = -1;
+                        }
+                    }
+                    else {
+                        checkboxPair.input.parentElement.hidden = false;
+                        if (!firstShowingCheckbox) {
+                            firstShowingCheckbox = checkboxPair.input;
+                        }
+                        else {
+                            checkboxPair.input.tabIndex = -1;
+                        }
+                    }
+                }
+                firstShowingCheckbox.tabIndex = 0;
+            });
+            return showOnly;
+        }
         // insertbefore select
         /** @type {HTMLSelectElement} */
         let pagesMultiselect = document.getElementById(pagesId);
         let pagesFilterableMultiselect = _createFilterableMultiselect(pagesMultiselect);
         addKeyboardNavigation(pagesFilterableMultiselect);
-        let pagesFilterableMultiselectWidget = await toFilterableMultiselectWidget(pagesFilterableMultiselect);
+        let pagesShowOnly = _createShowOnly(pagesFilterableMultiselect);
+        let pagesFilterableMultiselectWidget = await toFilterableMultiselectWidget(
+            pagesFilterableMultiselect, [pagesShowOnly.component]);
         pagesMultiselect.parentElement.insertBefore(
             pagesFilterableMultiselectWidget,
             pagesMultiselect
@@ -434,7 +482,9 @@
         let scFilterableMultiselect = _createFilterableMultiselect(scMultiselect);
         scFilterableMultiselect.filterableCheckboxes = scFilterableMultiselect.filterableCheckboxes.sort(scSort);
         addKeyboardNavigation(scFilterableMultiselect);
-        let scFilterableMultiselectWidget = await toFilterableMultiselectWidget(scFilterableMultiselect);
+        let scShowOnly = _createShowOnly(scFilterableMultiselect);
+        let scFilterableMultiselectWidget = await toFilterableMultiselectWidget(
+            scFilterableMultiselect, [scShowOnly.component]);
         scMultiselect.parentElement.insertBefore(scFilterableMultiselectWidget, scMultiselect);
         scFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
         scFilterableMultiselectWidget.parentElement.insertBefore(
@@ -445,7 +495,9 @@
         let statusMultiselect = document.getElementById(statesId);
         let statusFilterableMultiselect = _createFilterableMultiselect(statusMultiselect);
         addKeyboardNavigation(statusFilterableMultiselect);
-        let statusFilterableMultiselectWidget = await toFilterableMultiselectWidget(statusFilterableMultiselect);
+        let statusShowOnly = _createShowOnly(statusFilterableMultiselect);
+        let statusFilterableMultiselectWidget = await toFilterableMultiselectWidget(
+            statusFilterableMultiselect, [statusShowOnly.component]);
         statusMultiselect.parentElement.insertBefore(statusFilterableMultiselectWidget, statusMultiselect);
         statusFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
         statusFilterableMultiselectWidget.parentElement.insertBefore(
@@ -462,9 +514,8 @@
                 .filter(cPairs => cPairs.input.checked)
                 .map(cPairs => {
                     let num = cPairs.label.querySelector('span').textContent.match(/\d+\.\d+\.\d+/gi)[0];
-                    return `<div>${num} - ${successCriteria[num].description}</div>`;
-                })
-                .join('<div><br></div>');
+                    return `${num} - ${successCriteria[num].description}`;
+                });
             let scDescReset = successCriteriaDescEditor.parentElement.parentElement.querySelector('button');
             scDescReset.click();
             setQuillEditorText(successCriteriaDescEditor, issuesDescriptions, false);
@@ -506,19 +557,17 @@
      * @param {FilterableMultiselect} filterableMultiselect
      * @returns {Promise<[FilterableMultiselect, HTMLFieldSetElement]>}
      */
-    async function toFilterableMultiselectWidget(filterableMultiselect) {
+    async function toFilterableMultiselectWidget(filterableMultiselect, options) {
 
 
         let filterableMultiselectWidget = filterableMultiselect.fieldset.fieldset;
 
         // create filter box
         let filterBoxContainer = document.createElement('div');
-
         filterBoxContainer.append(
             filterableMultiselect.filterBox.label,
             filterableMultiselect.filterBox.input
         );
-
         filterBoxContainer.classList.add(
             'filter-box-pair',
             'float-label-pair'
@@ -539,11 +588,50 @@
             checkboxesContainer.appendChild(checkboxComponent.component);
         }
 
-        // create header
+        // create settings
+        let settingsWidget;
+        if (options) {
+            settingsWidget = document.createElement('div');
+            settingsWidget.classList.add('settings-widget');
+            /**
+             * <button class="fa fa-cog"><span class="sr-only">[name] settings />/> 
+             */
 
+            let disclosure = createDisclosure(
+                filterableMultiselect.fieldset.legend.textContent + ' settings',
+                true
+            );
+
+
+            // create controller
+            disclosure.controller.classList.add('settings-controller');
+            disclosure.controller.setAttribute('aria-expanded', 'false');
+
+            let cog = document.createElement('span');
+            cog.classList.add('fa', 'fa-cog');
+            disclosure.controller.prepend(cog);
+
+            disclosure.label.classList.add('sr-only');
+            // create settings container
+            for (let option of options) {
+                let optionRow = document.createElement('div');
+                optionRow.classList.add('settings-option');
+                optionRow.appendChild(option);
+                disclosure.controlled.appendChild(optionRow);
+            }
+            settingsWidget.append(disclosure.controller, disclosure.controlled);
+        }
+
+        // create header
+        let header = document.createElement('div');
+        header.classList.add('header');
+
+        header.appendChild(filterableMultiselect.fieldset.legend);
+        if (settingsWidget) header.appendChild(settingsWidget);
 
         // append to widget
         filterableMultiselectWidget.append(
+            header,
             filterBoxContainer,
             checkboxesContainer
         );

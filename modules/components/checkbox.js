@@ -19,8 +19,8 @@ import generateUniqueId from "../idGenerator.js";
  * @returns {CheckboxComponent}
  */
 export default function createCheckboxComponent(text, args) {
-    let input = args.input || createInput();
-    let [label, spanLabel] = args.label ? createLabelFromElement(args.label, input) : createLabel(text, input);
+    let input = args?.input || createInput();
+    let [label, spanLabel] = args?.label ? createLabelFromElement(args.label, input) : createLabel(text, input);
     label.append(input, spanLabel);
     return { component: label, textLabel: spanLabel, checkbox: input };
 }

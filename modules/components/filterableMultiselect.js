@@ -172,7 +172,7 @@ function addFilterEvents(
     throttle = 10
 ) {
     filterableMultiselect.filterBox.input.addEventListener('input', (e) => {
-        let timeout = window[`${filterBox.input.id}-filtering`];
+        let timeout = window[`${filterableMultiselect.filterBox.input.id}-filtering`];
         if (timeout) {
             clearTimeout(timeout);
         }

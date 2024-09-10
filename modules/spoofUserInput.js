@@ -59,6 +59,7 @@ The reset algorithm for a select element selectElement is:
  */
 export function spoofUpdateTextareaValue(textarea, value) {
     let inputEvent = new Event('input', { composed: true, bubbles: true });
+    if (textarea.value) textarea.value += '\n';
     textarea.value += value;
     textarea.dispatchEvent(inputEvent);
 }
@@ -70,26 +71,62 @@ export function spoofUpdateTextareaValue(textarea, value) {
  * @param {Boolean} replace should replace current value?
  * @returns {Promise<Boolean>} returns true if successful, false otherwise. Promise resolves when focus can be moved again. Focus must be on the ql-editor for the paste event to succeed.
  */
-export function setQuillEditorText(quillEditor, value, replace = true) {
+export function setQuillEditorText(quillEditor, paragraphs, replace = true) {
     let currentlyFocused = document.activeElement;
-    if (replace) {
-        for(let i = 1; i < quillEditor.children.length; i++) {
-            let child = quillEditor.children.item(i);
-            if (isPartOfQuillEditor(child)) continue;
-            child.remove();
+    let emptyChild = quillEditor.children.item(0);
+    if (emptyChild?.innerHTML === '<br>') emptyChild.innerHTML = '&nbsp';
+    let values = [];
+    let foundRealValue = false;
+    for (let i = 0; i < quillEditor.children.length; i++) {
+        let child = quillEditor.children.item(i);
+        let tag = child.tagName.toLowerCase();
+        let isNewline = !foundRealValue && tag === 'div' && (child.innerHTML === '<br>' || child.innerHTML === '&nbsp;');
+        if (!isNewline) {
+            values.push(child.innerHTML);
+            foundRealValue = true;
         }
+        
     }
+    [...quillEditor.children].forEach(c => c.remove());
+    values = unsplit(values, '<br>').map(group => group.join('<br>'));
+    if (values.length === 1 && values[0] === '') {
+        values = [];
+    }
+    values.push(...paragraphs);
     let clipboard = quillEditor.parentElement.querySelector('.ql-clipboard');
-    clipboard.innerHTML = value;
+    clipboard.innerHTML = values.map(v => `<div>${v}</div>`).join('<div><br></div>');
     let pasteEvent = new ClipboardEvent('paste');
     quillEditor.focus();
     quillEditor.dispatchEvent(pasteEvent);
     return new Promise((resolve) => {
         setTimeout(() => {
             currentlyFocused.focus();
-            resolve(quillEditor.textContent === value);
+            resolve();
         }, 1);
     })
+}
+
+/**
+ * 
+ * @param {String[]} arr 
+ * @param {String} unsplitter 
+ * @param {String} subjoiner
+ * @returns {String[][]}
+ */
+function unsplit(arr, unsplitter) {
+    let outputArr = [];
+    let curVal = [];
+    for (let item of arr) {
+        if (item === unsplitter) {
+            outputArr.push(curVal);
+            curVal = [];
+        }
+        else {
+            curVal.push(item);
+        }
+    }
+    if (!outputArr.includes(curVal)) outputArr.push(curVal);
+    return outputArr;
 }
 
 /**
@@ -98,6 +135,6 @@ export function setQuillEditorText(quillEditor, value, replace = true) {
  * @returns {Boolean} is part of the quill editor
  */
 function isPartOfQuillEditor(element) {
-    return element.classList.contains('ql-clipboard') 
+    return element.classList.contains('ql-clipboard')
         || element.classList.contains('ql-tooltip');
 }

@@ -269,7 +269,7 @@ export const tokens = {
         },
         mobile: {
             relatedsc: ["2.1.1"],
-            issues: "This content is not operabled using a screen reader.",
+            issues: "This content is not operable using a screen reader.",
             requirement: "Ensure that all content can be operated using a screen reader."
         }
     },
