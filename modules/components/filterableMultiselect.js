@@ -1,5 +1,6 @@
 import generateUniqueId from "../idGenerator.js";
 import includesCaseInsensitive from "../includesCaseInsensitive.js";
+import createCheckboxComponent from "./checkbox.js";
 
 /**
  * @typedef {Object} InputLabelPair
@@ -18,6 +19,7 @@ import includesCaseInsensitive from "../includesCaseInsensitive.js";
  * @property {FieldSet} fieldset
  * @property {FilterBox} filterBox
  * @property {CheckboxPair[]} checkboxes
+ * @property {ShowOnlyCheckbox} showOnlyCheckbox 
  * @property {Filterable[]} filterableCheckboxes
  * 
  * @typedef {Object} Filterable
@@ -65,12 +67,15 @@ export default function createFilterableMultiselect(
         checkboxes,
         (checkbox) => checkbox.label.textContent
     );
+    
     let filterableMultiselect = {
         fieldset: fieldset,
         checkboxes: checkboxes,
         filterBox: filterBox,
         filterableCheckboxes: filterableCheckboxes
     };
+    let showOnly = createShowOnly(filterableMultiselect);
+    filterableMultiselect.showOnlyCheckbox = showOnly;
     addFilterEvents(
         filterableMultiselect,
         filterPositiveCallback,
@@ -275,4 +280,36 @@ function checkboxKeydownHandler(e, filterableCheckbox, filterableCheckboxes) {
     nextFilterableCheckbox.item.input.tabIndex = 0;
     nextFilterableCheckbox.item.input.focus();
     e.preventDefault();
+}
+
+
+function createShowOnly(filterableMultiselect) {
+    let showOnly = createCheckboxComponent('Only Selected ' + filterableMultiselect.fieldset.legend.textContent);
+    showOnly.checkbox.addEventListener('change', (e) => {
+        let firstShowingCheckbox;
+        for (let checkboxPair of filterableMultiselect.checkboxes) {
+            // if we want to only show checked checkboxes
+            if (showOnly.checkbox.checked) {
+                checkboxPair.input.parentElement.hidden = !checkboxPair.input.checked;
+                if (!firstShowingCheckbox && !checkboxPair.input.hidden) {
+                    firstShowingCheckbox = checkboxPair.input;
+                }
+                else {
+                    checkboxPair.input.tabIndex = -1;
+                }
+            }
+            // if we want to show all checkboxes
+            else {
+                checkboxPair.input.parentElement.hidden = false;
+                if (!firstShowingCheckbox) {
+                    firstShowingCheckbox = checkboxPair.input;
+                }
+                else {
+                    checkboxPair.input.tabIndex = -1;
+                }
+            }
+        }
+        firstShowingCheckbox.tabIndex = 0;
+    });
+    return showOnly;
 }
