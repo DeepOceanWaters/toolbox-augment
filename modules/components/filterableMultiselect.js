@@ -198,17 +198,21 @@ function filter(filterableMultiselect, filterPositiveCallback, filterNegativeCal
     }
 
     if (!filteringCallback) {
-        filteringCallback = (filterable) => includesCaseInsensitive(filterable.filterableText, filterBox.input.value);
+        filteringCallback = (filterable) => includesCaseInsensitive(filterable.filterableText, filterableMultiselect.filterBox.input.value);
     }
+    let positiveMatches = [];
+    let negativeMatches = [];
     for (let filterable of filterableMultiselect.filterableCheckboxes) {
         if (filteringCallback(filterable)) {
             filterPositiveCallback(filterable);
+            positiveMatches.push(filterable);
         }
         else {
             filterNegativeCallback(filterable);
+            negativeMatches.push(filterable);
         }
     }
-    postFilterCallback(filterableMultiselect);
+    postFilterCallback(positiveMatches, negativeMatches);
 }
 
 /**

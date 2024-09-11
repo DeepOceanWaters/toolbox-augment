@@ -307,6 +307,10 @@
         issueTemplateContainer.classList.remove(...issueTemplateContainer.classList);
         topRow.appendChild(issueTemplateContainer);
 
+        let resetIssueContainer = issueTemplateContainer.cloneNode();
+        topRow.appendChild(resetIssueContainer);
+
+
         let possibleTokens = getPossibleTokens();
         let combobox = new Combobox('Issue Template', 'Issue Templates', possibleTokens);
         combobox.setActivateOptionCallback(async () => {
@@ -320,6 +324,7 @@
                     (inputPair) => includesCaseInsensitive(inputPair.label.textContent, sc)
                 ).input;
                 if (!scInput.checked) scInput.click();
+                if (!scFilterableMultiselect.showOnlyCheckbox.checkbox.checked) scFilterableMultiselect.showOnlyCheckbox.checkbox.click();
             }
 
             // set issue description
@@ -349,6 +354,8 @@
             let recommendationQuillEditor =
                 document.getElementById(recommendationEditorId).querySelector('.ql-editor');
             await setQuillEditorText(recommendationQuillEditor, recommendationParagraphs, false);
+            // this gets rid of the extra newline when setting a template for the first time
+            await setQuillEditorText(recommendationQuillEditor, [], false);
             combobox.toggleListbox(false);
 
 
@@ -366,6 +373,10 @@
             combobox.getListboxElement()
         );
         issueTemplateContainer.classList.add('combobox-widget');
+
+        // reset issues
+        // let reset = document.createElement('button');
+        // reset.textContent = 'reset issue';
     }
 
     /**
@@ -424,7 +435,7 @@
             showOnly.checkbox.addEventListener('change', (e) => {
                 let firstShowingCheckbox;
                 for (let checkboxPair of filterableMultiselect.checkboxes) {
-                    if (showOnly.checked) {
+                    if (showOnly.checkbox.checked) {
                         checkboxPair.input.parentElement.hidden = !checkboxPair.input.checked;
                         if (!firstShowingCheckbox && !checkboxPair.input.hidden) {
                             firstShowingCheckbox = checkboxPair.input;
@@ -454,7 +465,7 @@
         addKeyboardNavigation(pagesFilterableMultiselect);
         let pagesShowOnly = _createShowOnly(pagesFilterableMultiselect);
         let pagesFilterableMultiselectWidget = await toFilterableMultiselectWidget(
-            pagesFilterableMultiselect, [pagesShowOnly.component]);
+            pagesFilterableMultiselect);
         pagesMultiselect.parentElement.insertBefore(
             pagesFilterableMultiselectWidget,
             pagesMultiselect
@@ -484,7 +495,7 @@
         addKeyboardNavigation(scFilterableMultiselect);
         let scShowOnly = _createShowOnly(scFilterableMultiselect);
         let scFilterableMultiselectWidget = await toFilterableMultiselectWidget(
-            scFilterableMultiselect, [scShowOnly.component]);
+            scFilterableMultiselect);
         scMultiselect.parentElement.insertBefore(scFilterableMultiselectWidget, scMultiselect);
         scFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
         scFilterableMultiselectWidget.parentElement.insertBefore(
@@ -497,7 +508,7 @@
         addKeyboardNavigation(statusFilterableMultiselect);
         let statusShowOnly = _createShowOnly(statusFilterableMultiselect);
         let statusFilterableMultiselectWidget = await toFilterableMultiselectWidget(
-            statusFilterableMultiselect, [statusShowOnly.component]);
+            statusFilterableMultiselect);
         statusMultiselect.parentElement.insertBefore(statusFilterableMultiselectWidget, statusMultiselect);
         statusFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
         statusFilterableMultiselectWidget.parentElement.insertBefore(
@@ -527,16 +538,19 @@
             if (!["Add Issue", "Edit Issue", "Copy Issue"].includes(e.target.title)) {
                 return;
             }
-            setTimeout(() => {
-                let selectPairs = [
-                    [pagesFilterableMultiselect, pagesMultiselect],
-                    [scFilterableMultiselect, scMultiselect],
-                    [statusFilterableMultiselect, statusMultiselect]
-                ];
-                for (let pair of selectPairs) {
-                    realignPartneredMultiselect(pair[0], pair[1]);
+            let selectPairs = [
+                [pagesFilterableMultiselect, pagesMultiselect],
+                [scFilterableMultiselect, scMultiselect],
+                [statusFilterableMultiselect, statusMultiselect]
+            ];
+            for (let pair of selectPairs) {
+                realignPartneredMultiselect(pair[0], pair[1]);
+                let showOnlyCheckbox = pair[0].showOnlyCheckbox.checkbox;
+                if(showOnlyCheckbox.checked) showOnlyCheckbox.click();
+                if (["Edit Issue", "Copy Issue"].includes(e.target.title)) {
+                    showOnlyCheckbox.click();
                 }
-            }, 20);
+            }
         });
         return {
             pagesFilterableMultiselect: pagesFilterableMultiselect,
@@ -558,6 +572,37 @@
      * @returns {Promise<[FilterableMultiselect, HTMLFieldSetElement]>}
      */
     async function toFilterableMultiselectWidget(filterableMultiselect, options) {
+        /** @returns {CheckboxComponent} */
+        const _createShowOnly = (filterableMultiselect) => {
+            let showOnly = createCheckboxComponent('Only Selected ' + filterableMultiselect.fieldset.legend.textContent);
+            showOnly.checkbox.addEventListener('change', (e) => {
+                let firstShowingCheckbox;
+                for (let checkboxPair of filterableMultiselect.checkboxes) {
+                    // if we want to only show checked checkboxes
+                    if (showOnly.checkbox.checked) {
+                        checkboxPair.input.parentElement.hidden = !checkboxPair.input.checked;
+                        if (!firstShowingCheckbox && !checkboxPair.input.hidden) {
+                            firstShowingCheckbox = checkboxPair.input;
+                        }
+                        else {
+                            checkboxPair.input.tabIndex = -1;
+                        }
+                    }
+                    // if we want to show all checkboxes
+                    else {
+                        checkboxPair.input.parentElement.hidden = false;
+                        if (!firstShowingCheckbox) {
+                            firstShowingCheckbox = checkboxPair.input;
+                        }
+                        else {
+                            checkboxPair.input.tabIndex = -1;
+                        }
+                    }
+                }
+                firstShowingCheckbox.tabIndex = 0;
+            });
+            return showOnly;
+        }
 
 
         let filterableMultiselectWidget = filterableMultiselect.fieldset.fieldset;
@@ -629,11 +674,22 @@
         header.appendChild(filterableMultiselect.fieldset.legend);
         if (settingsWidget) header.appendChild(settingsWidget);
 
+        // show only selected chekcboxes 
+        let showOnlyCheckbox = _createShowOnly(filterableMultiselect);
+        filterableMultiselect.showOnlyCheckbox = showOnlyCheckbox;
+
+        // filter grouping
+        let grouping = document.createElement('div');
+        grouping.classList.add('filtering-group');
+        grouping.append(
+            showOnlyCheckbox.component,
+            filterBoxContainer,
+            checkboxesContainer
+        );
         // append to widget
         filterableMultiselectWidget.append(
             header,
-            filterBoxContainer,
-            checkboxesContainer
+            grouping
         );
 
         filterableMultiselectWidget.classList.add('toolbox-augmentor');
