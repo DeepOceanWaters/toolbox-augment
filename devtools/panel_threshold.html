@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrast Threshold</title>
+    
+    
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/colorVars.css">
+    <link rel="stylesheet" href="../css/buttons.css">
+    <link rel="stylesheet" href="../css/checkbox.css">
+    <link rel="stylesheet" href="../css/sr-only.css">
+    <link rel="stylesheet" href="../css/shortcutUI.css">
+    <link rel="stylesheet" href="../css/subtleButtons.css">
+    <link rel="stylesheet" href="../css/threshold.css">
+    <script src="../modules/components/button.js" type="module"></script>
+    <script src="../modules/colorful.js" type="module"></script>
+    <script src="../modules/ShortcutManager.js" type="module"></script>
+    <script src="../modules/ZoomCanvas.js" type="module"></script>
+    <script src="../css/fileInput.js" defer></script>
+    
+    <script src="../modules/threshold.js" type="module" defer></script>
+    <script src="../modules/shortcutUI.js" type="module" defer></script>
+    <script src="panel_threshold.js" defer></script>
+</head>
+<body>
+    <div id="app">
+        <main>
+            <h1>Threshold</h1>
+            <div class="example flush reduced"><!-- warning text -->
+                <!-- Warning Symbol -->
+                <h2 class="icon-heading">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="warning-symbol icon" height="48" viewBox="0 -960 960 960" width="48">
+                        <path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm340.175-57q12.825 0 21.325-8.675 8.5-8.676 8.5-21.5 0-12.825-8.675-21.325-8.676-8.5-21.5-8.5-12.825 0-21.325 8.675-8.5 8.676-8.5 21.5 0 12.825 8.675 21.325 8.676 8.5 21.5 8.5ZM454-348h60v-224h-60v224Zm26-122Z"/>
+                    </svg>
+                    Warning
+                </h2>
+                <p>
+                    Dues to anti-aliasing, text that conforms to WCAG's 1.4.3 Color Contrast (Minimum)
+                    may not appear legible when processed by this application. This application is
+                    meant to help identify color contrast issues when there is a non-solid background
+                    (e.g. an image background, or a gradient background).
+                </p>
+            </div>
+            <p>
+                Processed image will show colors that meet or exceed the ratio as white (#FFFFFF)
+                and colors that do not meet the threshold ratio will be black (#000000).
+                <br>
+                The formula is:
+                <br>
+                <code>white: image pixel color >= threshold</code>
+                <br>
+                <code>black: image pixel color < threshold.</code>
+            </p>
+            <p>
+                <kbd>Escape</kbd> will open the shortcut menu.
+            </p>
+
+            <div class="content">
+                <div id="settings-side" class="form">
+                    <h2>Settings</h2>
+                    <button id="screen-capture">Capture Screen</button>
+                    <div class="input-pair">
+                        <div class="input-section blank-pair">
+                            <label for="ratio">Ratio</label>
+                            <input type="number" min="0" max="21" step="0.1" value="4.5" id="ratio">
+                        </div>
+                        <div class="input-section blank-pair">
+                            <label for="color">Color Hex</label>
+                            <input type="text" id="color" aria-describedby="color-desc">
+                            <span id="color-box" class="color-box" style="display: none;"></span>
+                            <p id="color-desc" class="post note">Accepts hex only (#000fff)</p>
+                        </div>
+                    </div>
+                    <div data-file-input>
+                        <input type="file" id="input" class="sr-only">
+                        <div data-visual-input>
+                            <div class="btn-wrapper"><label for="input" class="btn">Upload Image</label></div>
+                        </div>
+                        <p data-file-names></p>
+                    </div>
+                    <!-- not currently used -->
+                    <div hidden class="input-section">
+                        <label class="chkbox-pair">
+                            <input type="checkbox" name="" id="" aria-describedby="auto-update-desc">
+                            <span class="label">Automatically process images</span>
+                        </label>
+                        <p id="auto-update-desc" class="post note">
+                            The application will automatically process images after upload 
+                            given the current settings.
+                        </p>
+                    </div>
+                    
+                    <div class="input-section">
+                        <label class="chkbox-pair">
+                            <input type="checkbox" checked name="" id="keep-color" aria-describedby="color-only-desc">
+                            <span class="label">Convert to Black/White</span>
+                        </label>
+                        <p id="color-only-desc" class="post note">
+                            All colors are converted to black if: ratio < target ratio; or white if: ratio >= target ratio.
+                            <br>
+                            If this is not selected, then the original color and all colors that meet 
+                            or exceed the color contrast ratio will retain their original colors.
+                        </p>
+                    </div>
+
+                    <div>
+                        <button id="submit" class="full-width">
+                            <div class="btn secondary full-width">Process Image</div>
+                        </button>
+                        <p id="process-status" role="status"></p>
+                    </div>
+                    <div id="colors-table">
+
+                    </div>
+                </div>
+                <div class="images">
+                    <div>
+                        <h2 id="input-image-heading">Unprocessed Image</h2>
+                        <div id="input-image-container" class="image" tabindex="0" role="region" aria-labelledby="input-image-heading">
+                            <img src="" alt="user image" id="unprocessed">
+                            <canvas id="input-canvas" data-visible></canvas>
+                            <canvas id="input-zoom" class="zoom-canvas" width="150px" height="150px" data-zoom></canvas>
+                        </div>
+                    </div>
+                    <div hidden>
+                        <h2>Processed Image (user ratio)</h2>
+                        <img src="" alt="processed image" id="imgOut">
+                        <canvas id="output"></canvas>
+                    </div>
+                    <div>
+                        <h2>Processed Image (3:1 ratio)</h2>
+                        <canvas id="three-ratio-canvas"></canvas>
+                    </div>
+                    <div>
+                        <h2>Processed Image (4.5:1 ratio)</h2>
+                        <canvas id="four-point-five-ratio-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

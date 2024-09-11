@@ -1,0 +1,13 @@
+label[for="pages"],
+label[for="success_criteria"],
+label[for="audit_status"],
+#pages,
+#success_criteria,
+#audit_status {
+    display: none!important;
+}
+
+/* helps keep the new multiselects even in height*/
+.top-padder {
+    height: 1.5rem;
+}

@@ -1,0 +1,41 @@
+.multiselect-group {
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+
+        .settings-controller {
+            font-size: 1.4rem;
+        }
+    }
+
+    .checkboxes-container {
+        height: 18rem;
+        overflow-y: scroll;
+        padding: 0 0.5rem;
+
+        border: 1px solid var(--black-light);
+        border-top: none;
+
+        border-bottom-left-radius: var(--checkbox-radius);
+        border-bottom-right-radius: var(--checkbox-radius);
+
+        input[type="checkbox"] {
+            scroll-margin-bottom: 2rem;
+            scroll-margin-top: 2rem;
+        }
+    }
+
+    /* filter-box */
+    input[type="text"] {
+        border-top-left-radius: var(--checkbox-radius);
+        border-top-right-radius: var(--checkbox-radius);
+        box-shadow: 0px 4px 7px -5px;
+    }
+
+    .float-label-pair {
+        width: 100%;
+    }
+
+
+}

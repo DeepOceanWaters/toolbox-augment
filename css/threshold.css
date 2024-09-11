@@ -1,0 +1,553 @@
+/* Styling per our co. style guides */
+@import url('https://fonts.googleapis.com/css2?family=Barlow&family=Oswald:wght@700&display=swap');
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
+}
+
+* {
+    font-family: 'Barlow', sans-serif;
+    font-size: 1rem;
+}
+/* end co. styling */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.input-section 
+
+.images {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.images img {
+    visibility: hidden;
+    position: absolute;
+    z-index: -100;
+}
+
+.images .image {
+    position: relative;
+}
+
+input[type="number"] {
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}
+
+#input-canvas {
+    cursor: none;
+}
+
+
+.input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.35rem;
+    padding: 0.25rem;
+}
+
+.color-cell {
+    position: relative;
+}
+
+.color-box {
+    position: absolute;
+    top: 10%;
+    bottom: 10%;
+    right: 10%;
+    left: 10%;
+}
+/*
+.color-box::after {
+    content: "";
+    clip-path: polygon(0% 100%, 100% 100%, 100% 0%);
+    background-color: black;
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    left: -2px;
+    right: -2px;
+    transform: translateZ(-1px);
+}
+*/
+
+#colors-table {
+    border-collapse: collapse;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#colors-table td {
+    border: 1px solid black;
+    padding: 0.5rem;
+}
+#colors-table td.black {
+    background-color: black;
+    border-color: #444;
+}
+#colors-table td.white {
+    background-color: white;
+}
+
+.zoom-canvas {
+    border-radius: 50%;
+    border: 0.2rem solid black;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    outline: 0.2rem solid white;
+    box-sizing: unset;
+}
+
+main {
+    padding: 1rem;
+}
+
+.content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+input[type="button"], button {
+    cursor: pointer;
+}
+
+[hidden] {
+    display: none!important;
+}
+
+.full-width {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+}
+
+input[type="file"] {
+    width: 100%;
+}
+
+.form {
+    width: min-content;
+    border-radius: 0.35rem;
+    border: 2px solid var(--blue-dark);
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    height: fit-content;
+}
+
+.form > :last-child {
+    margin-top: 1rem;
+}
+
+.form > * {
+    margin: 0 1rem;
+}
+
+.form :is(h1, h2, h3, h4, h5, h6) {
+    padding: 0.35rem;
+    background: var(--blue-dark);
+    color: white;
+    margin: 0;
+}
+
+.note {
+    font-size: 0.9rem;
+    padding: 0.15rem;
+}
+
+label {
+    font-size: 1rem;
+}
+
+.input-pair {
+    display: flex;
+}
+
+
+.warning.text {
+    padding: 0.25rem;
+    border-radius: 0.35rem;
+    border: 1px solid var(--yellow-medium);
+    max-width: 600px;
+}
+
+.warning.text svg {
+    width: 2rem;
+    height: 2rem;
+}
+
+.warning.text path {
+    fill: var(--yellow-dark);
+}
+
+:hover .warning.text {
+    background-color: var(--yellow-light);
+}
+
+
+
+
+
+/* taken from other stuff */
+
+
+/* Styling per our co. style guides */
+
+/* end co. styling */
+
+.form-header {
+  position: relative;
+}
+
+.understanding {
+  position: absolute;
+  top: 25%;
+  right: 0;
+  margin-right: 0.8rem;
+}
+
+[for="SC-data"] {
+    display: none;
+}
+
+#SC-data {
+    display: none;
+}
+
+button {
+    display: block;
+}
+
+textarea {
+    box-sizing: border-box;
+}
+
+.blank-pair label {
+    display: block;
+    text-align: center;
+}
+
+.blank-pair input,
+.blank-pair textarea {
+    text-align: center;
+    padding: 8px;
+    box-shadow: 0px 2px 3px -2px var(--blue-dark);
+}
+
+.quiz-footer button {
+    margin: 0 auto;
+    position: relative;
+    bottom: 10px;
+}
+
+textarea {
+    width: 100%;
+    height: 100px;
+    border-radius: 4px;
+}
+
+.blank-pair {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+
+
+.blank-pair input {
+    border: 2px solid var(--blue-dark);
+}
+
+input {
+    border-radius: 4px;
+}
+
+.sc-header .blank-pair:first-child,
+.sc-header .blank-pair:last-child {
+}
+.blank-pair:not(:first-child):not(:last-child) {
+    grid-column: span 2;
+}
+
+
+
+
+.sc-header {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    column-gap: 14px; /* same as .quiz-container padding */
+    margin-bottom: 1.2rem;
+}
+
+.sc-header p {
+    display: flex;
+}
+
+.quiz-container {
+    max-width: 700px;
+    border-radius: 0.6rem;
+}
+
+.quiz-container h3 {
+    text-align: center;
+    margin: 0;
+    padding: 10px 0;
+}
+
+.quiz-content {
+    padding: 10px;
+    display: grid;
+}
+
+.ultra-quiz-container {
+    display: flex;
+}
+
+.quiz-form-container:first-child {
+    margin-right: 15px;
+}
+
+.border-bottom {
+    position: relative;
+    height: 50px;
+    width: calc(100% - 2px);
+    right: -1px;
+    z-index: -1;
+    bottom: 43px;
+    border-radius: 0.9rem;
+}
+
+.blank-pair label, input:not([type="checkbox"]) {
+    z-index: 1;
+}
+
+.blank-pair label:before,
+.blank-pair label:after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 100%;
+    z-index: -1;
+    background-color: var(--blue-dark);
+    margin: 0;
+    border: 1px solid var(--blue-dark);
+}
+.blank-pair label {
+  background-color: var(--blue-dark);
+}
+
+.blank-pair label:after {
+    right: -8px;
+    transform: skew(15deg, 0deg);
+    border-top-right-radius: 5px;
+}
+
+.blank-pair label:before {
+    left: -8px;
+    transform: skew(-15deg, 0deg);
+    border-top-left-radius: 5px;
+    white-space: nowrap;
+}
+
+.blank-pair label {
+    top: 5px;
+    position: relative;
+    z-index: 1;
+    padding: 0px 0px 2px;
+}
+
+.quiz-content ul {
+    list-style: none;
+    padding: 0;
+}
+
+h4 {
+    text-align: center;
+    margin: 20px 20% 0;
+}
+
+.blank-pair svg {
+    height: 100%;
+    position: relative;
+    top: 1px;
+}
+
+
+.label-container {
+    display: flex;
+}
+
+textarea {
+    z-index: 1;
+}
+
+.sc-content {
+    display: grid;
+}
+
+.sc-content li {
+    display: grid;
+}
+
+textarea {
+  border: 1px solid;
+}
+
+fieldset {
+  border: none;
+}
+
+/* color */
+
+/* disabled stuff */
+.disabled label:before,
+.disabled label:after {
+    border-color: transparent transparent #555 transparent;
+}
+
+input:disabled, textarea:disabled {
+    color: black;
+}
+
+.disabled label,
+.answer-sheet .border-bottom {
+    background-color: #555;
+}
+
+
+textarea:disabled {
+    border: 1px solid #999;
+}
+
+.disabled label {
+    border-bottom: 1px solid #555;
+}
+
+.answer-sheet h4,
+.answer-sheet h3 {
+    border-bottom: 1px solid #555;
+}
+
+input:disabled {
+    box-shadow: 0px 1px 0px 0px #999;
+}
+
+.disabled svg {
+    color: #555;
+}
+
+.disabled label:after,
+.disabled label:before {
+    background-color: #555;
+}
+
+/* end disabled stuff */
+
+/*
+label:before,
+label:after {
+    border-color: transparent transparent #005E86 transparent;
+}*/
+
+
+.quiz-container {
+    background-color: #F7F7F7;
+}
+
+.blank-pair:not(.disabled) svg {
+    color: var(--blue-dark);
+}
+
+.blank-pair label {
+    color: white;/*#C80A00;*/
+}
+
+.blank-pair:not(.disabled) label,
+h4,
+textarea,
+.quiz-form-container:not(.answer-sheet) h3 {
+    border-color: var(--blue-dark);
+    border-bottom: 1px solid var(--blue-dark);
+}
+
+
+.border-bottom {
+    background-color: var(--blue-dark);
+}
+
+.blank-pair input:focus-visible {
+    outline: 2px solid var(--blue-dark);
+    outline-offset: 2px;
+    box-shadow: 0px 0px 0px 2px white;
+    
+}
+
+.blank-pair input:not(:focus-visible):hover {
+    transition: 70ms box-shadow ease;
+    box-shadow: 0px 4px 6px -3px var(--blue-dark);
+    background-color: #f2f2f2;
+}
+
+
+kbd {
+    background-color: #EEE;
+    border: 1px solid #EAEAEA;
+    font: 1em "Courier New";
+    border-radius: 0.2rem;
+    padding: 0 0.2rem;
+}
+
+.example {
+    margin: 1rem;
+    overflow: hidden;
+    border-radius: var(--radius);
+    border: 1px solid var(--yellow-medium);
+    background-color: var(--yellow-bright);
+    border-left: 0.5rem solid var(--yellow-medium);
+}
+
+.example.reduced {
+    max-width: 600px;
+}
+
+.example > :is(h1,h2,h3,h4,h5,h6) {
+    background-color: var(--yellow-light);
+}
+.example > * {
+    padding: 1rem;
+}
+
+.icon-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 400;
+}
+
+.icon-heading .icon {
+    width: 1.8rem;
+    height: 1.8rem;
+}
+
+.same-color {
+    background-color: #444;
+    color: white;
+}

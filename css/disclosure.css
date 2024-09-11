@@ -1,0 +1,7 @@
+.disclosure {
+    position: relative;
+
+    .controlled-content {
+        position: absolute;
+    }
+}

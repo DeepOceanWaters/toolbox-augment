@@ -1,21 +1,47 @@
 {
     "name": "Ability Auditor Helper",
     "description": "Base Level Extension",
-    "version": "1.0",
+    "version": "0.1",
     "manifest_version": 3,
+    "devtools_page": "devtools/loader.html",
+    "background": {
+        "service_worker": "devtools/background.js"
+    },
     "permissions": [
         "activeTab",
         "tabs",
-        "storage"
+        "storage",
+        "clipboardWrite",
+        "offscreen"
+    ],
+    "host_permissions": [
+        "<all_urls>"
     ],
     "content_scripts": [
         {
-            "matches": ["<all_urls>"],
-            "js": ["content-script.js"]
+            "matches": [
+                "https://app.a11ytoolbox.io/audits/*"
+            ],
+            "js": [
+                "content-script.js"
+            ]
         }
     ],
     "action": {
         "default_popup": "index.html",
-        "default_icon": "hello_extensions.png"
-    }
+        "default_icon": "extension_icon.png"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "data/*",
+                "modules/*",
+                "modules/components/*",
+                "css/*"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ]
 }

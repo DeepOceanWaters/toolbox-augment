@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/panel.css">
+    <link rel="stylesheet" href="../css/combobox.css">
+    <link rel="stylesheet" href="../css/sr-only.css">
+    <script src="panel_main.js" type="module" defer></script>
+    <script src="../modules/replaceTokens.js" type="module" defer></script>
+</head>
+
+<body>
+    <h2>Settings</h2>
+    <ul>
+        <li><button id="stylesheet-state" aria-pressed="true">Style Add Issue Dialog</button></li>
+    </ul>
+    <h2>Actions</h2>
+    <h3>General Webpage</h3>
+    <ul>
+        <li>
+            <label for="current-page">Current Page</label>
+            <select name="current-page" id="current-page"></select>
+            <button id="sitemap-next-page">Next Page</button>
+            <button id="open-page">Open Current Page</button>
+            <details aria-labelledby="sitemap-content">
+                <summary id="sitemap-content">Initiate Sitemap</summary>
+                <form id="sitemap-init-form">
+                    <label for="sitemap-names">List of Page Names</label>
+                    <textarea name="sitemap-init-names" id="sitemap-names" aria-describedby="sitemap-init-instruction"></textarea>
+                    <label for="sitemap-urls">List of Page URLs</label>
+                    <textarea name="sitemap-init-urls" id="sitemap-urls" aria-describedby="sitemap-init-instruction"></textarea>
+                    <input id="sitemap-init-submit" type="submit" value="Initialize Sitemap">
+                </form>
+            </details>
+        </li>
+        <li><button id="screen-capture">Screen Capture</button></li>
+        <li><button id="expose-alt-text" aria-pressed="false">Alt Text</button></li>
+        <li>
+            <button id="get-element-style">is Large Scale?</button>
+            <output id="get-element-style-out"></output>
+        </li>
+    </ul>
+    <h3>Toolbox</h3>
+    <ul>
+        <li><button id="page-search">Search Pages</button></li>
+        <li>
+            <form action="" id="scroll-to-form">
+                <div class="input-pair">
+                    <label for="scroll-to-num">Issue Number</label>
+                    <input type="number" id="scroll-to-num">
+                </div>
+                <div class="input-pair">
+                    <label for="scroll-to-num">Unique Issue ID</label>
+                    <input type="text" id="scroll-to-id">
+                </div>
+                <input id="scroll-to" type="submit" value="Scroll To">
+            </form>
+        </li>
+        <li>
+            <button id="add-recommendation">Replace Tokens/Add Recommendation</button>
+            <div id="tokens-combobox-widget" style="position: relative;"></div>
+            <div class="template" style="display: none;">
+                <div class="vertical-pair">
+                    <button id="copy-issue">Copy Issues</button>
+                    <label for="issue">Issue</label>
+                    <textarea name="issue" id="issue"></textarea>
+                </div>
+                <div class="vertical-pair">
+                    <button id="copy-recommendation">Copy Recommendation</button>
+                    <label for="recommendation">Recommendation</label>
+                    <textarea name="recommendation" id="recommendation"></textarea>
+                </div>
+                <div id="resources-section">
+                    <h2>Resources</h2>
+                    <ul id="resources"></ul>
+                </div>
+            </div>
+            <label for="tokens-output">Full Text Output</label>
+            <textarea name="" id="tokens-output" cols="30" rows="10"></textarea>
+        </li>
+    </ul>
+</body>
+
+</html>

@@ -1,0 +1,18 @@
+.vertical-pair {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0.25rem;
+    gap: 0.25rem;
+}
+
+#resources-section:not(:has(li)) {
+
+    &::after {
+        content: 'No Resources'
+    }
+
+
+    ul {
+        display: none;
+    }
+}

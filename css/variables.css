@@ -1,0 +1,26 @@
+:root,
+::before,
+::after {
+    --primary-color: #004458;
+    --hover-bg-color: #EFEFEF;
+    --in-radius: 0.35rem;
+    --very-fast-transtion: 40ms;
+    --fast-transition: 70ms;
+    --medium-transition: 120ms;
+    --slow-transition: 240ms;
+
+    --radius: 0.35rem;
+
+    --checkbox-bg-color: #EFEFEF;
+    --outline-color: currentColor;
+    --outline-offset: 0;
+    --padding: 0.3rem;
+    --border-size: 0.2rem;
+    --checkbox-radius: 0.25rem;
+    --timing: 20ms;
+    --slow-timing: 40ms;
+    --checkbox-size: 2rem;
+    --checkbox-border-size: max(2px, 0.15rem);
+    --checkbox-full-size: var(--checkbox-size) + var(--checkbox-border-size);
+    --label-shell-size: var(--padding) + var(--border-size);
+}
