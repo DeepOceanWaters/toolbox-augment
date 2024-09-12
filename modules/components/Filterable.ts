@@ -1,11 +1,11 @@
 export default class Filterable<T> {
-    public items :T[];
-    public positiveMatches :T[];
-    public negativeMatches :T[];
-    private filters :((item :T) => boolean)[];
+    public items: T[];
+    public positiveMatches: T[];
+    public negativeMatches: T[];
+    private filters: ((item: T) => boolean)[];
 
-    constructor(items? :T[]) {
-        this.items = items || [];
+    constructor(items: T[]) {
+        this.items = items;
         this.filters = [];
         this.positiveMatches = [];
         this.negativeMatches = [];
@@ -15,18 +15,18 @@ export default class Filterable<T> {
      * Add a function to filter items.
      * @param filter true adds to positive matches, false to negative matches
      */
-    public addFilter(filter: (item: T) => boolean): void {
+    addFilter(filter: (item: T) => boolean): void {
         this.filters.push(filter);
     }
 
-    public removeFilter(filter: (item: T) => boolean): boolean {
+    removeFilter(filter: (item: T) => boolean): boolean {
         let filterIndex = this.filters.indexOf(filter);
         let wasFound = filterIndex === -1;
         if (wasFound) this.filters.splice(filterIndex, 1);
         return wasFound;
     }
 
-    public filter() {
+    filter() {
         this.positiveMatches = [];
         this.negativeMatches = [];
         for(let item of this.items) {

@@ -1,29 +1,27 @@
-export default class Combobox {
-    constructor(
-        comboboxName,
-        listboxName,
-        options,
-        args
-    ) {
-        args ??= {
-            autocomplete: 'listbox',
-            comboboxId: 'comboxbox-a1',
-            labelId: 'label-a1',
-            selectOnly: false,
-        };
-        let autocomplete = args.autocomplete || 'listbox';
-        let comboboxId = args.comboboxId || 'comboxbox-a1';
-        let labelId = args.labelId || 'label-a1';
-        let selectOnly = args.selectOnly || false;
-        let listboxElement = args.listboxElement;
+import Listbox from "./components/Listbox";
 
-        this.alwaysVisibile = !!listboxElement;
-        this.listboxElement = listboxElement || this.createListboxElement(
-            listboxName, options, comboboxId
-        );
+export default class Combobox {
+    alwaysVisible: boolean;
+    combobox: HTMLInputElement;
+    listbox: Listbox;
+
+
+    constructor(
+        comboboxName: string,
+        listboxName: string,
+        options: string[],
+        args: {
+            alwaysVisible?: boolean
+        }
+    ) {
+        this.alwaysVisible = !!(args?.alwaysVisible);
         this.comboboxElement = this.createComboboxElement(
             this.listboxElement, autocomplete
         );
+        this.listboxElement = this.createListboxElement(
+            listboxName, options, comboboxId
+        );
+        
         this.comboboxLabel = this.createComboboxLabel(
             comboboxName, this.comboboxElement.id, this.labelId
         );
