@@ -4,7 +4,7 @@
  * @param {String} b
  * @return {Boolean} 
  */
-export default function includesCaseInsensitive(a, b) {
+export default function includesCaseInsensitive(a: string, b: string): boolean {
     a = a.toLowerCase();
     b = b.toLowerCase();
     return a.includes(b);

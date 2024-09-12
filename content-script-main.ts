@@ -1,62 +1,19 @@
-/**
- * @typedef {import("./modules/components/FilterableMultiselect.js").FilterableMultiselect} FilterableMultiselect
- * @typedef {import("./modules/components/partneredMultiselect.js").CreatePartneredMultiselect} CreatePartneredMultiselect
- * @typedef {import("./modules/components/partneredMultiselect.js").RealignPartneredMultiselect} RealignPartneredMultiselect
- * @typedef {import("./modules/components/FilterableMultiselect.js").Filterable} Filterable
- * @typedef {import("./modules/components/FilterableMultiselect.js").FilterOutcomeCallback} FilterOutcomeCallback
- * @typedef {import("./modules/spoofUserInput.js").SpoofOptionSelected} SpoofOptionSelected
- * @typedef {import("./modules/spoofUserInput.js").SpoofUpdateTextareaValue} SpoofUpdateTextareaValue
- * @typedef {import("./modules/spoofUserInput.js").SetQuillEditorText} SetQuillEditorText
- * @typedef {import("./modules/replaceTokens.js").IssueTemplate} IssueTemplate
- * @typedef {import("./modules/replaceTokens.js").GetRecommendationReturn} GetRecommendationReturn
- * @typedef {import("./data/successCriteria.js").SuccessCriteria} SuccessCriteria
- * @typedef {import("./modules/components/checkbox.js").CheckboxComponent} CheckboxComponent
- */
-(async () => {
-    /** @type {{default: CreatePartneredMultiselect, realignPartneredMultiselect: RealignPartneredMultiselect}} */
-    const {
-        default: createPartneredMultiselect,
-        realignPartneredMultiselect: realignPartneredMultiselect
-    } = await import(
-        chrome.runtime.getURL("modules/components/partneredMultiselect.js")
-    );
+import CheckboxWidget from "./modules/components/CheckboxWidget";
+import FilterableMultiselect from "./modules/components/filterableMultiselect";
+import partnerFilterableMultiselectAndSelect, { realignPartneredMultiselect } from "./modules/components/partneredMultiselect";
+import includesCaseInsensitive from "./modules/includesCaseInsensitive";
+import { setQuillEditorText, spoofOptionSelected, spoofUpdateTextareaValue } from "./modules/spoofUserInput";
 
+export default function main() {
+    
+
+(async () => {
+
+    // REDO
     const {
         addKeyboardNavigation: addKeyboardNavigation
     } = await import(
         chrome.runtime.getURL("modules/components/filterableMultiselect.js")
-    );
-
-    const { default: includesCaseInsensitive } = await import(
-        chrome.runtime.getURL("./modules/includesCaseInsensitive.js")
-    );
-
-    /**
-     * @type {{
-     *      spoofOptionSelected: SpoofOptionSelected, 
-     *      spoofUpdateTextareaValue: SpoofUpdateTextareaValue,
-     *      setQuillEditorText: SetQuillEditorText
-     * }}
-     */
-    const {
-        spoofOptionSelected: spoofOptionSelected,
-        spoofUpdateTextareaValue: spoofUpdateTextareaValue,
-        setQuillEditorText: setQuillEditorText
-    } = await import(
-        chrome.runtime.getURL("modules/spoofUserInput.js")
-    );
-
-    /**
-     * @type {{
-     *      default: CheckboxComponent
-     * }}
-     */
-    const { default: createCheckboxComponent } = await import(
-        chrome.runtime.getURL("modules/components/checkbox.js")
-    );
-
-    const { default: createDisclosure } = await import(
-        chrome.runtime.getURL("modules/components/disclosure.js")
     );
 
 
@@ -70,17 +27,11 @@
     const successCriteriaDescEditorId = 'editor1';
     const recommendationEditorId = 'editor2';
 
-    /** @type {{successCriteria: SuccessCriteria}} */
-    const { successCriteria: successCriteria } = await import(
-        chrome.runtime.getURL("data/successCriteria.js")
-    );
 
-    /** @type {FilterableMultiselect} */
-    let pagesFilterableMultiselect;
-    /** @type {FilterableMultiselect} */
-    let scFilterableMultiselect;
-    /** @type {FilterableMultiselect} */
-    let statusFilterableMultiselect;
+
+    let pagesFilterableMultiselect: FilterableMultiselect;
+    let scFilterableMultiselect: FilterableMultiselect;
+    let statusFilterableMultiselect: FilterableMultiselect;
 
     main();
 
@@ -95,20 +46,27 @@
 
     function isLoaded() {
         let isLoaded = true;
-        let pages = document.getElementById(pagesId);
-        let successCriteria = document.getElementById(scId);
-        let states = document.getElementById(statesId);
-        let addIssue = document.querySelector('button[title="Add Issue"]');
-        isLoaded = pages && successCriteria && states && addIssue;
-        isLoaded &&= pages.options.length > 0;
-        isLoaded &&= successCriteria.options.length > 0;
-        isLoaded &&= states.options.length > 0;
+        let pages: HTMLSelectElement | null = document.getElementById(pagesId) as HTMLSelectElement | null;
+        let successCriteria: HTMLSelectElement | null = document.getElementById(scId) as HTMLSelectElement | null;
+        let states: HTMLSelectElement | null = document.getElementById(statesId) as HTMLSelectElement | null;
+        //let addIssue = document.querySelector('button[title="Add Issue"]');
+        isLoaded &&= !!(pages && pages.options.length > 0);
+        isLoaded &&= !!(successCriteria && successCriteria.options.length > 0);
+        isLoaded &&= !!(states && states.options.length > 0);
         return isLoaded;
     }
 
     async function _main() {
         chrome.runtime.onMessage.addListener(messageRouter);
-        let issueDescription = document.querySelector(`[for="${issueDescId}"]`).parentElement.children.item(1);
+        let issueDescriptionLabel: HTMLLabelElement = 
+            document.querySelector(`[for="${issueDescId}"]`) as HTMLLabelElement;
+
+        let issueDescription: HTMLTextAreaElement = 
+            issueDescriptionLabel
+            .parentElement!
+            .children
+            .item(1) as HTMLTextAreaElement;
+        
         issueDescription.id = issueDescId;
         initCopyEventListeners();
         injectAllStyles();
@@ -131,7 +89,7 @@
         let srOnly = injectStyles(chrome.runtime.getURL('css/sr-only.css'));
     }
 
-    async function messageRouter(request, sender, sendResponse) {
+    async function messageRouter(request: any, sender: any, sendResponse: Function) {
         switch (request.name) {
             case 'pageSearch':
                 console.log('request: pageSearch');
@@ -149,9 +107,9 @@
                 console.log('request: getElementStyle');
                 const gesSrc = chrome.runtime.getURL('modules/getElementStyle.js');
                 const getElementStyle = await import(gesSrc);
-                let element = document.querySelector('[data-get-element-style]');
+                let element = document.querySelector('[data-get-element-style]') as HTMLElement;
                 let style = getElementStyle.main(element);
-                delete element.dataset.getElementStyle;
+                delete element!.dataset.getElementStyle;
                 sendResponse(style);
                 break;
             case 'scrollTo':
@@ -186,31 +144,31 @@
                 console.log('request: copyToClipboard');
                 copyTextToClipboard(request.text);
                 break;
-            case 'setTemplateDataToCopy':
+            case 'setTemplateDataToCopy':/*
                 console.log('request: setTemplateDataToCopy');
-                issueToCopy = request.issue;
-                recommendationToCopy = request.recommendation;
-                let pageSelect = document.getElementById('pages');
-                let successCriterionSelect = document.getElementById('success_criteria');
+                issueToCopy = request.issue as string;
+                recommendationToCopy = request.recommendation as string;
+                let pageSelect = document.getElementById('pages') as HTMLSelectElement;
+                let successCriterionSelect = document.getElementById('success_criteria') as HTMLSelectElement;
                 scrollSelectOptionIntoView(pageSelect, request.pageURL);
                 if (request.relatedsc) {
                     let sc = request.relatedsc[0];
                     scrollSelectOptionIntoView(successCriterionSelect, sc);
                 }
-                let resetDescription = ((select) => {
+                let resetDescription = ((select: HTMLSelectElement) => {
                     let form = select.closest('form');
-                    let buttons = form.querySelectorAll('button');
-                    return [...buttons].find(b => b.textContent.includes("Reset Descriptions"));
-                })(pageSelect);
+                    let buttons = form!.querySelectorAll('button');
+                    return [...buttons].find(b => b.textContent!.includes("Reset Descriptions"));
+                })(pageSelect as HTMLSelectElement);
                 // if no success criteria already selected, reset the description
                 // this helps when you select the same SC for two issues  in a row - when doing this
                 // TOOLBOX will not properly fill the SC description textarea
                 if (!successCriterionSelect.querySelectorAll(':checked').length) resetDescription.click();
-                // set 
+                // set*/ 
                 break;
             case 'screenCaptureTest':
                 console.log('request: screenCaptureTest');
-                let img = document.getElementById('page-img');
+                let img: HTMLImageElement = document.getElementById('page-img') as HTMLImageElement;
                 if (img) {
                     img.remove();
                     document.documentElement.style.overflow = '';
@@ -727,3 +685,4 @@
 
 
 })();
+}

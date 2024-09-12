@@ -1,23 +1,11 @@
-/**
- * @typedef {import("./modules/components/FilterableMultiselect.js").FilterableMultiselect} FilterableMultiselect
- * @typedef {import("./modules/components/partneredMultiselect.js").CreatePartneredMultiselect} CreatePartneredMultiselect
- * @typedef {import("./modules/components/partneredMultiselect.js").RealignPartneredMultiselect} RealignPartneredMultiselect
- * @typedef {import("./modules/components/FilterableMultiselect.js").Filterable} Filterable
- * @typedef {import("./modules/components/FilterableMultiselect.js").FilterOutcomeCallback} FilterOutcomeCallback
- * @typedef {import("./modules/spoofUserInput.js").SpoofOptionSelected} SpoofOptionSelected
- * @typedef {import("./modules/spoofUserInput.js").SpoofUpdateTextareaValue} SpoofUpdateTextareaValue
- * @typedef {import("./modules/spoofUserInput.js").SetQuillEditorText} SetQuillEditorText
- * @typedef {import("./modules/replaceTokens.js").IssueTemplate} IssueTemplate
- * @typedef {import("./modules/replaceTokens.js").GetRecommendationReturn} GetRecommendationReturn
- * @typedef {import("./data/successCriteria.js").SuccessCriteria} SuccessCriteria
- * @typedef {import("./modules/components/checkbox.js").CheckboxComponent} CheckboxComponent
- */
+import type FilterableMultiselect from "./modules/components/filterableMultiselect";
+
 (async () => {
     /** @type {{default: CreatePartneredMultiselect, realignPartneredMultiselect: RealignPartneredMultiselect}} */
     const {
         default: createPartneredMultiselect,
         realignPartneredMultiselect: realignPartneredMultiselect
-    } = await import(
+    }: { default: Function, realignPartneredMultiselect: Function } = await import(
         chrome.runtime.getURL("modules/components/partneredMultiselect.js")
     );
 
