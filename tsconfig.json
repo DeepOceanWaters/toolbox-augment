@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "lib": [
+            "ESNext",
+            "dom",
+            "dom.iterable",
+            "ES2023",
+            "ES2023.Array"
+        ],
+        "module": "Node16",
+        "moduleResolution": "Node16"
+    }
+}
