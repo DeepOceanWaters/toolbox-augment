@@ -3,7 +3,6 @@
     "description": "Base Level Extension",
     "version": "0.1",
     "manifest_version": 3,
-    "devtools_page": "devtools/loader.html",
     "background": {
         "service_worker": "devtools/background.js"
     },
@@ -23,7 +22,7 @@
                 "https://app.a11ytoolbox.io/audits/*"
             ],
             "js": [
-                "content-script.js"
+                "out/content-script.js"
             ]
         }
     ],
@@ -34,9 +33,9 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "data/*",
-                "modules/*",
-                "modules/components/*",
+                "out/data/*",
+                "out/modules/*",
+                "out/modules/components/*",
                 "css/*"
             ],
             "matches": [
