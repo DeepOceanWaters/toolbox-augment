@@ -10,7 +10,7 @@ export default class Combobox {
         comboboxName: string,
         listboxName: string,
         options: string[],
-        args: {
+        args?: {
             alwaysVisible?: boolean
         }
     ) {

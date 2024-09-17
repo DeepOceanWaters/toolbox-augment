@@ -1,10 +1,10 @@
-import CheckboxWidget from "./modules/components/CheckboxWidget";
-import FilterableMultiselect from "./modules/components/filterableMultiselect";
-import partnerFilterableMultiselectAndSelect, { realignPartneredMultiselect } from "./modules/components/partneredMultiselect";
 import includesCaseInsensitive from "./modules/includesCaseInsensitive";
 import { setQuillEditorText, spoofOptionSelected, spoofUpdateTextareaValue } from "./modules/spoofUserInput";
 import { getPossibleTokens, getRecommendation } from "./modules/replaceTokens.js";
 import Combobox from "./modules/combobox";
+import PartneredMultiselect from "./modules/components/PartneredMultiselect";
+import { successCriteria } from "./data/successCriteria";
+import { issueTemplate } from "./data/tokens";
 
 
 export default function main() {
@@ -21,6 +21,7 @@ export default function main() {
         let issueCustomStyle;
         let issueToCopy;
         let recommendationToCopy;
+
         const pagesId = 'pages';
         const scId = 'success_criteria';
         const statesId = 'audit_status';
@@ -30,9 +31,9 @@ export default function main() {
 
 
 
-        let pagesFilterableMultiselect: FilterableMultiselect;
-        let scFilterableMultiselect: FilterableMultiselect;
-        let statusFilterableMultiselect: FilterableMultiselect;
+        let pagesPartneredMultiselect: PartneredMultiselect;
+        let scPartneredMultiselect: PartneredMultiselect;
+        let statesPartneredMultiselect: PartneredMultiselect;
 
         main();
 
@@ -72,11 +73,11 @@ export default function main() {
             initCopyEventListeners();
             injectAllStyles();
             ({
-                pagesFilterableMultiselect: pagesFilterableMultiselect,
-                scFilterableMultiselect: scFilterableMultiselect,
-                statusFilterableMultiselect: statusFilterableMultiselect
+                pagesPartneredMultiselect: pagesPartneredMultiselect,
+                scPartneredMultiselect: scPartneredMultiselect,
+                statesPartneredMultiselect: statesPartneredMultiselect
             } = await replaceMultiselects());
-            addIssueTemplateSearch();
+            //addIssueTemplateSearch();
         }
 
         function injectAllStyles() {
@@ -276,17 +277,23 @@ export default function main() {
             let possibleTokens = getPossibleTokens();
             let combobox = new Combobox('Issue Template', 'Issue Templates', possibleTokens);
             combobox.setActivateOptionCallback(async () => {
-                let { text: text, template: template }: { text: string, template: IssueTemplate }
+                let { text: text, template: template }: { text: string, template: issueTemplate }
                     = getRecommendation(combobox.getComboboxElement().value);
 
                 // set success criteria
                 for (let sc of template.relatedsc) {
-                    let scInput = scFilterableMultiselect.checkboxes.find(
-                        (checkboxWidget) => includesCaseInsensitive(checkboxWidget.textLabel.textContent!, sc)
-                    )!.checkbox;
-                    if (!scInput.checked) scInput.click();
-                    if (!scFilterableMultiselect.showOnlyCheckbox.checkbox.checked) {
-                        scFilterableMultiselect.showOnlyCheckbox.checkbox.click();
+                    let checkbox = 
+                        scPartneredMultiselect
+                        .checkboxWidgets
+                        .originalItems
+                        .find(
+                            (checkboxWidget) => includesCaseInsensitive(checkboxWidget.textLabel.textContent!, sc)
+                        )!
+                        .checkbox;
+                    if (!checkbox.checked) checkbox.click();
+                    if (!scPartneredMultiselect.showOnlyCheckbox.checkbox.checked) {
+                        scPartneredMultiselect.showOnlyCheckbox.checkbox.click();
+                        scPartneredMultiselect.render();
                     }
                 }
 
@@ -315,7 +322,9 @@ export default function main() {
                 //recommendationParagraphs.filter(a => a);
 
                 let recommendationQuillEditor =
-                    document.getElementById(recommendationEditorId).querySelector('.ql-editor');
+                    document
+                    .getElementById(recommendationEditorId)
+                    .querySelector('.ql-editor') as HTMLElement;
                 await setQuillEditorText(recommendationQuillEditor, recommendationParagraphs, false);
                 // this gets rid of the extra newline when setting a template for the first time
                 await setQuillEditorText(recommendationQuillEditor, [], false);
@@ -329,7 +338,7 @@ export default function main() {
                 }
 
                 // set testing software automatically if previously set
-                let at = document.getElementById('assistive_tech');
+                let at = document.getElementById('assistive_tech') as HTMLInputElement;
                 if (at.value) {
                     let dialogBtns = [...at.closest('[role="dialog"]').querySelectorAll('button')];
                     let addCombo = dialogBtns.find(btn => btn.textContent === 'Add Combo');
@@ -350,21 +359,23 @@ export default function main() {
             // reset.textContent = 'reset issue';
         }
 
-        /**
-         * @returns {Promise<{ 
-         *      pagesFilterableMultiselect: FilterableMultiselect, 
-         *      scFilterableMultiselect: FilterableMultiselect,  
-         *      statusFilterableMultiselect: FilterableMultiselect
-         * }>}
-         */
-        async function replaceMultiselects() {
-            const padderClass = 'top-padder';
-            const multiselectWidgetClass = 'multiselect-group';
-            const createPadder = () => {
-                let div = document.createElement('div');
-                div.classList.add(padderClass);
-                return div;
+
+        async function replaceMultiselects(): Promise<{
+            pagesPartneredMultiselect: PartneredMultiselect,
+            scPartneredMultiselect: PartneredMultiselect,
+            statesPartneredMultiselect: PartneredMultiselect
+        }> {
+            const createPartneredMultiselect = (id: string): PartneredMultiselect => {
+                let multiselect = document.getElementById(id) as HTMLSelectElement;
+                let filterableMultiselect = new PartneredMultiselect(multiselect);
+                addKeyboardNavigation(filterableMultiselect);
+                multiselect.parentElement.insertBefore(
+                    filterableMultiselect,
+                    multiselect
+                );
+                return filterableMultiselect;
             }
+
             // hides selects and labels
             injectStyles(chrome.runtime.getURL('css/augmentAddIssues.css'));
             // replace pages multiselect
@@ -376,229 +387,99 @@ export default function main() {
              *          label[working sample - contains input]
              *      select:
              */
-            const _createFilterableMultiselect = (multiselect) => {
-                let multiselectLabel = document.querySelector(`[for="${multiselect.id}"]`);
-                let filterableMultiselect = createPartneredMultiselect(
-                    multiselectLabel.textContent,
-                    multiselect,
-
-                );
-                return filterableMultiselect;
-            }
             // insertbefore select
-            /** @type {HTMLSelectElement} */
-            let pagesMultiselect = document.getElementById(pagesId);
-            let pagesFilterableMultiselect = _createFilterableMultiselect(pagesMultiselect);
-            addKeyboardNavigation(pagesFilterableMultiselect);
-            let pagesFilterableMultiselectWidget = await toFilterableMultiselectWidget(
-                pagesFilterableMultiselect);
-            pagesMultiselect.parentElement.insertBefore(
-                pagesFilterableMultiselectWidget,
-                pagesMultiselect
-            );
-            pagesFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
-            pagesFilterableMultiselectWidget.parentElement.children.item(0).classList.add(padderClass);
+            let pagesPartneredMultiselect = createPartneredMultiselect(pagesId);
             // replace success criteria multiselect
-            /** @type {CheckboxSortCallback} */
-            const scSort = (a, b) => {
-                let regex = /(\d+)\.(\d+)\.(\d+)/i;
-                let [aMatch, a1, a2, a3] = a.filterableText.match(regex);
-                let [bMatch, b1, b2, b3] = b.filterableText.match(regex);
-                let aNums = [a1, a2, a3];
-                let bNums = [b1, b2, b3];
-                for (let i = 0; i < 3; i++) {
-                    let aNum = Number(aNums[i]);
-                    let bNum = Number(bNums[i]);
-                    if (aNum === 0) return 1;
-                    if (aNum > bNum) return 1;
-                    if (aNum < bNum) return -1;
-                }
-                return 0;
-            }
-            let scMultiselect = document.getElementById(scId);
-            let scFilterableMultiselect = _createFilterableMultiselect(scMultiselect);
-            scFilterableMultiselect.filterableCheckboxes = scFilterableMultiselect.filterableCheckboxes.sort(scSort);
-            addKeyboardNavigation(scFilterableMultiselect);
-            let scFilterableMultiselectWidget = await toFilterableMultiselectWidget(
-                scFilterableMultiselect);
-            scMultiselect.parentElement.insertBefore(scFilterableMultiselectWidget, scMultiselect);
-            scFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
-            scFilterableMultiselectWidget.parentElement.insertBefore(
-                createPadder(),
-                scFilterableMultiselectWidget
-            );
+            let scPartneredMultiselect = createPartneredMultiselect(scId);
+            scPartneredMultiselect.checkboxWidgets.originalItems.sort(
+                (a, b) => {
+                    let regex = /(\d+)\.(\d+)\.(\d+)/i;
+                    let [aMatch, a1, a2, a3] = a.inputPair.label.textContent.match(regex);
+                    let [bMatch, b1, b2, b3] = b.inputPair.label.textContent.match(regex);
+                    let aNums = [a1, a2, a3];
+                    let bNums = [b1, b2, b3];
+                    for (let i = 0; i < 3; i++) {
+                        let aNum = Number(aNums[i]);
+                        let bNum = Number(bNums[i]);
+                        if (aNum === 0) return 1;
+                        if (aNum > bNum) return 1;
+                        if (aNum < bNum) return -1;
+                    }
+                    return 0;
+                });
+            scPartneredMultiselect.render();
             // replace states multiselect
-            let statusMultiselect = document.getElementById(statesId);
-            let statusFilterableMultiselect = _createFilterableMultiselect(statusMultiselect);
-            addKeyboardNavigation(statusFilterableMultiselect);
-            let statusFilterableMultiselectWidget = await toFilterableMultiselectWidget(
-                statusFilterableMultiselect);
-            statusMultiselect.parentElement.insertBefore(statusFilterableMultiselectWidget, statusMultiselect);
-            statusFilterableMultiselectWidget.classList.add(multiselectWidgetClass);
-            statusFilterableMultiselectWidget.parentElement.insertBefore(
-                createPadder(),
-                statusFilterableMultiselectWidget
-            );
+            let statesPartneredMultiselect = createPartneredMultiselect(statesId);
             // add success criteria description updater
             // sometimes the sc descriptions does not update properly when selecting an sc. 
             // this makes sure that it updates properly - both when selecting and unselecting.
-            let successCriteriaDescEditor = document.getElementById(successCriteriaDescEditorId).querySelector('.ql-editor');
-            let checkboxPairsContainer = scFilterableMultiselectWidget.querySelector('.checkboxes-container');
-            checkboxPairsContainer.addEventListener('change', (e) => {
-                let issuesDescriptions = scFilterableMultiselect.checkboxes
-                    .filter(cPairs => cPairs.input.checked)
-                    .map(cPairs => {
-                        let num = cPairs.label.querySelector('span').textContent.match(/\d+\.\d+\.\d+/gi)[0];
-                        return `${num} - ${successCriteria[num].description}`;
-                    });
-                let scDescReset = successCriteriaDescEditor.parentElement.parentElement.querySelector('button');
-                scDescReset.click();
-                setQuillEditorText(successCriteriaDescEditor, issuesDescriptions, false);
-            });
+            let successCriteriaDescEditor =
+                document
+                    .getElementById(successCriteriaDescEditorId)
+                    .querySelector('.ql-editor') as HTMLElement;
+            scPartneredMultiselect
+                .checkboxContainer
+                .addEventListener('change', (e) => {
+                    let issuesDescriptions =
+                        scPartneredMultiselect
+                            .checkboxWidgets
+                            .originalItems
+                            .filter(cw => cw.inputPair.input.checked)
+                            .map(cw => {
+                                let num = 
+                                    cw
+                                    .inputPair
+                                    .label
+                                    .querySelector('span')
+                                    .textContent
+                                    .match(/\d+\.\d+\.\d+/gi)[0];
+                                return `${num} - ${successCriteria[num].description}`;
+                            });
+                    let scDescReset = 
+                        successCriteriaDescEditor
+                        .parentElement
+                        .parentElement
+                        .querySelector('button');
+                    scDescReset.click();
+                    setQuillEditorText(
+                        successCriteriaDescEditor, 
+                        issuesDescriptions, 
+                        false
+                    );
+                });
             // add realign events
-            // realigns new multiselects with old multiselects when opening a different issue
             let addIssue = document.querySelector('button[title="Add Issue"]');
             addIssue.parentElement.addEventListener('click', (e) => {
-                if (!["Add Issue", "Edit Issue", "Copy Issue"].includes(e.target.title)) {
+                let button = e.target as HTMLElement;
+                if (!["Add Issue", "Edit Issue", "Copy Issue"].includes(button.title)) {
                     return;
                 }
-                let selectPairs = [
-                    [pagesFilterableMultiselect, pagesMultiselect],
-                    [scFilterableMultiselect, scMultiselect],
-                    [statusFilterableMultiselect, statusMultiselect]
+                let pMultiselects = [
+                    scPartneredMultiselect,
+                    pagesPartneredMultiselect,
+                    statesPartneredMultiselect
                 ];
-                for (let pair of selectPairs) {
-                    realignPartneredMultiselect(pair[0], pair[1]);
-                    let showOnlyCheckbox = pair[0].showOnlyCheckbox.checkbox;
-                    if (showOnlyCheckbox.checked) showOnlyCheckbox.click();
-                    if (["Edit Issue", "Copy Issue"].includes(e.target.title)) {
+                for (let partneredMultiselect of pMultiselects) {
+                    partneredMultiselect.realign();
+                    let showOnlyCheckbox = 
+                        partneredMultiselect
+                        .showOnlyCheckbox
+                        .checkbox;
+                    if (showOnlyCheckbox.checked) {
                         showOnlyCheckbox.click();
                     }
+                    if (["Edit Issue", "Copy Issue"].includes(button.title)) {
+                        showOnlyCheckbox.click();
+                    }
+                    partneredMultiselect.render();
                 }
             });
+            // return 
             return {
-                pagesFilterableMultiselect: pagesFilterableMultiselect,
-                scFilterableMultiselect: scFilterableMultiselect,
-                statusFilterableMultiselect: statusFilterableMultiselect
+                pagesPartneredMultiselect: pagesPartneredMultiselect,
+                scPartneredMultiselect: scPartneredMultiselect,
+                statesPartneredMultiselect: statesPartneredMultiselect
             };
-        }
-
-        /**
-         * @callback CheckboxSortCallback
-         * @param {Filterable} a
-         * @param {Filterable} b
-         * @returns {Boolean}
-         */
-
-        /**
-         * 
-         * @param {FilterableMultiselect} filterableMultiselect
-         * @returns {Promise<[FilterableMultiselect, HTMLFieldSetElement]>}
-         */
-        async function toFilterableMultiselectWidget(filterableMultiselect, options) {
-            let filterableMultiselectWidget = filterableMultiselect.fieldset.fieldset;
-
-            // create filter box
-            let filterBoxContainer = document.createElement('div');
-            filterBoxContainer.append(
-                filterableMultiselect.filterBox.label,
-                filterableMultiselect.filterBox.input
-            );
-            filterBoxContainer.classList.add(
-                'filter-box-pair',
-                'float-label-pair'
-            );
-            filterableMultiselect.filterBox.label.classList.add('float-label');
-            filterableMultiselect.filterBox.input.placeholder = ' ';
-
-            // create checkboxes
-            let checkboxesContainer = document.createElement('div');
-            checkboxesContainer.classList.add('checkboxes-container');
-            checkboxesContainer.classList.add('vertical');
-
-            for (let { item: checkboxPair } of filterableMultiselect.filterableCheckboxes) {
-                let checkboxComponent = createCheckboxComponent(null, {
-                    input: checkboxPair.input,
-                    label: checkboxPair.label
-                });
-                checkboxesContainer.appendChild(checkboxComponent.component);
-            }
-
-            // create settings
-            let settingsWidget;
-            if (options) {
-                settingsWidget = document.createElement('div');
-                settingsWidget.classList.add('settings-widget');
-                /**
-                 * <button class="fa fa-cog"><span class="sr-only">[name] settings />/> 
-                 */
-
-                let disclosure = createDisclosure(
-                    filterableMultiselect.fieldset.legend.textContent + ' settings',
-                    true
-                );
-
-
-                // create controller
-                disclosure.controller.classList.add('settings-controller');
-                disclosure.controller.setAttribute('aria-expanded', 'false');
-
-                let cog = document.createElement('span');
-                cog.classList.add('fa', 'fa-cog');
-                disclosure.controller.prepend(cog);
-
-                disclosure.label.classList.add('sr-only');
-                // create settings container
-                for (let option of options) {
-                    let optionRow = document.createElement('div');
-                    optionRow.classList.add('settings-option');
-                    optionRow.appendChild(option);
-                    disclosure.controlled.appendChild(optionRow);
-                }
-                settingsWidget.append(disclosure.controller, disclosure.controlled);
-            }
-
-            // create header
-            let header = document.createElement('div');
-            header.classList.add('header');
-
-            header.appendChild(filterableMultiselect.fieldset.legend);
-            if (settingsWidget) header.appendChild(settingsWidget);
-
-            // show only selected chekcboxes 
-            let showOnlyCheckbox = filterableMultiselect.showOnlyCheckbox;
-
-            // filter grouping
-            let grouping = document.createElement('div');
-            grouping.classList.add('filtering-group');
-            grouping.append(
-                showOnlyCheckbox.component,
-                filterBoxContainer,
-                checkboxesContainer
-            );
-            // append to widget
-            filterableMultiselectWidget.append(
-                header,
-                grouping
-            );
-
-            filterableMultiselectWidget.classList.add('toolbox-augmentor');
-
-            return filterableMultiselectWidget;
-        }
-
-        /**
-         * 
-         * @param {HTMLSelectElement} select 
-         * @param {String} text 
-         */
-        function scrollSelectOptionIntoView(select, text, timeout = 5000) {
-            if (!text) return;
-            let options = [...select.querySelectorAll('option')];
-            let targetOption = options.find((o) => o.textContent.includes(text));
-            targetOption.scrollIntoView({ block: 'nearest' });
-            targetOption.style.fontWeight = '800';
-            setTimeout(() => targetOption.style.fontWeight = '', 5000);
         }
 
         async function initCopyEventListeners() {
@@ -626,7 +507,7 @@ export default function main() {
             fakeInput.remove();
         }
 
-        function injectStyles(url) {
+        function injectStyles(url: string) {
             let element = document.createElement('link');
             element.rel = 'stylesheet';
             element.setAttribute('href', url);
@@ -635,7 +516,7 @@ export default function main() {
         }
 
         /* #region getAuditData */
-
+/*
         function getAuditData() {
             let audit = {
                 id: -1,
@@ -684,7 +565,7 @@ export default function main() {
             }
             return outputRow;
         }
-
+*/
         /* #endregion */
 
 

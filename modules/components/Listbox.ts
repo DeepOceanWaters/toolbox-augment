@@ -1,7 +1,7 @@
 import generateUniqueId from "../idGenerator";
 import Option from "./Option";
 import { classPrefix } from "../../data/prefixes";
-import Filterable from "./Filterable";
+import MutableList from "./MutableList";
 
 interface listboxOptions {
     hideLabel: boolean
@@ -9,7 +9,7 @@ interface listboxOptions {
 
 export default class Listbox extends HTMLDivElement {
     label: HTMLSpanElement;
-    options: Filterable<Option>;
+    options: MutableList<Option>;
     listbox: HTMLDivElement;
 
     constructor(
@@ -21,8 +21,9 @@ export default class Listbox extends HTMLDivElement {
         this.classList.add(classPrefix);
         this.label = document.createElement('span');
         this.label.id = generateUniqueId();
+        if (hideLabel) this.label.classList.add('sr-only');
         this.listbox = this.createListbox(label);
-        this.options = new Filterable(options.map(o => new Option(o)));
+        this.options = new MutableList(options.map(o => new Option(o)));
 
         this.append(
             this.label,
@@ -33,10 +34,15 @@ export default class Listbox extends HTMLDivElement {
     private createListbox(label: string) {
         let listbox: HTMLDivElement = document.createElement('div');
         listbox.classList.add('listbox');
+        listbox.setAttribute('aria-labelledby', this.label.id);
         return listbox;
     }
 
-    filter() {
-        
+    render() {
+        this.options.mutate();
+        this.append(
+            this.label,
+            ...this.options.mutatedItems
+        );
     }
 }

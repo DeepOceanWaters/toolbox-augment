@@ -1,28 +1,33 @@
-import InputLabelPair from './inputLabelPair';
 import CheckboxWidget from './CheckboxWidget';
 import Fieldset from './Fieldset';
-import Filterable from './Filterable';
 import FilterBox from './FilterBox';
 import MutableList from './MutableList';
 
-export default class FilterableMultiselect {
+export default class FilterabMultiselect extends HTMLDivElement {
     fieldset: Fieldset;
     filterBox: FilterBox;
     showOnlyCheckbox: CheckboxWidget;
-    mutableCheckboxWidgets: MutableList<CheckboxWidget>;
+    checkboxWidgets: MutableList<CheckboxWidget>;
+    checkboxContainer: HTMLDivElement;
+    filterGroup: HTMLDivElement;
     removeCheckboxesFromFocus: boolean;
 
     constructor(label: string, options: string[], removeCheckboxesFromFocus: boolean = false) 
     {
+        super();
+        this.classList.add('multiselect-group');
         this.removeCheckboxesFromFocus = removeCheckboxesFromFocus;
         this.fieldset = new Fieldset(label);
         this.filterBox = new FilterBox(`Filter ${label}`);
-        let mutableCheckboxWidgets = new MutableList(options.map((o) => new CheckboxWidget(o)));
-        mutableCheckboxWidgets.addMutator(
+        let checkboxWidgets = new MutableList(options.map((o) => new CheckboxWidget(o)));
+        checkboxWidgets.addMutator(
             (checkboxWidgets) => checkboxWidgets.filter(
                 (cw) => this.filterBox.inputLabelPair.input.value === cw.textContent
             )
         );
+        this.checkboxContainer = document.createElement('div');
+        
+        this.filterGroup = document.createElement('div');
         
         this.showOnlyCheckbox = this.createShowOnly();
         this.addFilterEvents();
@@ -38,10 +43,10 @@ export default class FilterableMultiselect {
             });
         showOnly.checkbox.addEventListener('change', (e) => {
             if (showOnly.checkbox.checked) {
-                this.mutableCheckboxWidgets.addMutator(mutator);
+                this.checkboxWidgets.addMutator(mutator);
             }
             else {
-                this.mutableCheckboxWidgets.removeMutator(mutator);
+                this.checkboxWidgets.removeMutator(mutator);
             }
             this.render();
         });
@@ -62,7 +67,20 @@ export default class FilterableMultiselect {
     }
 
     render() {
-        this.mutableCheckboxWidgets.mutate();
-        
+        this.checkboxWidgets.mutate();
+        this.fieldset.render();
+        this.fieldset.append(this);
+        this.append(
+            this.showOnlyCheckbox,
+            this.filterGroup
+        );
+        this.filterGroup.append(
+            this.filterBox,
+            this.checkboxContainer
+        );
+        this.checkboxContainer.append(
+            ...this.checkboxWidgets.mutatedItems
+        );
+        return this;
     }
 }

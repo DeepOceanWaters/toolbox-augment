@@ -18,7 +18,7 @@ export function spoofOptionSelected(select: HTMLSelectElement, optionToToggle: H
  * @param {HTMLTextAreaElement} textarea 
  * @param {String} value 
  */
-export function spoofUpdateTextareaValue(textarea: HTMLTextAreaElement, value: string): void {
+export function spoofUpdateTextareaValue(textarea: HTMLTextAreaElement | HTMLInputElement, value: string): void {
     let inputEvent = new Event('input', { composed: true, bubbles: true });
     if (textarea.value) textarea.value += '\n';
     textarea.value += value;

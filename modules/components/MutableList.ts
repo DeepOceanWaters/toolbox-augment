@@ -1,10 +1,10 @@
 type mutator<T> = (items: T[]) => T[];
 
-interface isMutable {
-    items: MutatableList<any>;
+interface Mutable {
+    items: MutableList<any>;
 }
 
-export default class MutatableList<T> {
+export default class MutableList<T> {
     originalItems: T[];
     mutatedItems: T[];
     mutators: mutator<T>[];

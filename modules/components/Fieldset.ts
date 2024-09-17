@@ -1,21 +1,30 @@
 import generateUniqueId from "../idGenerator";
 
-export default class Fieldset {
-    fieldset: HTMLDivElement;
-    legend: HTMLDivElement;
+export default class Fieldset extends HTMLFieldSetElement {
+    legend: HTMLLegendElement;
+    visualLabel: HTMLSpanElement;
 
     constructor(label: string) {
-        let fieldset = document.createElement('div');
-        let legend = document.createElement('div');
+        super();
+        let legend = document.createElement('legend');
+        let visualLabel = document.createElement('span');
     
+        visualLabel.textContent = label;
         legend.textContent = label;
-        fieldset.appendChild(legend);
-    
-        legend.id = generateUniqueId();
-        fieldset.setAttribute('role', 'group');
-        fieldset.setAttribute('aria-labelledby', legend.id);
+        legend.classList.add('sr-only');
+
+
         
-        this.fieldset = fieldset;
         this.legend = legend;
+        this.visualLabel = visualLabel;
+        this.render();
+    }
+
+    render() {
+        this.prepend(
+            this.legend,
+            this.visualLabel
+        );
+        return this;
     }
 }

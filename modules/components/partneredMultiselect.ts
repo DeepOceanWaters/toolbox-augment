@@ -1,55 +1,53 @@
-import FilterableMultiselect from "./filterableMultiselect.ts";
-import includesCaseInsensitive from "../includesCaseInsensitive.ts";
-import { spoofOptionSelected } from "../spoofUserInput.ts";
-import CheckboxWidget from "./CheckboxWidget.ts";
-
-export default function partnerFilterableMultiselectAndSelect(
-    filterableMultiselect: FilterableMultiselect,
-    multiselect: HTMLSelectElement,
-) {
-    let options = [...multiselect.querySelectorAll('option')];
-
-    for (let checkboxWidget of filterableMultiselect.checkboxes) {
-        let option = options.find(
-            option => includesCaseInsensitive(option.textContent || '', checkboxWidget.textLabel.textContent || '')
-        ) as HTMLOptionElement;
+import includesCaseInsensitive from "../includesCaseInsensitive";
+import { spoofOptionSelected } from "../spoofUserInput";
+import CheckboxWidget from "./CheckboxWidget";
+import FilterabMultiselect from "./FilterableMultiselect";
 
 
-        let select = option.closest('select');
-        checkboxWidget.checkbox.addEventListener('change', (e) => {
-            if (select) spoofOptionSelected(select, option, checkboxWidget.checkbox.checked);
-        });
+export default class PartneredMultiselect extends FilterabMultiselect {
+    multiselect: HTMLSelectElement;
+
+    constructor(multiselect: HTMLSelectElement) {
+        let label = document.querySelector(`[for="${multiselect.id}"]`);
+        let options = [...multiselect.querySelectorAll('option')];
+
+        super(label.textContent, options.map(o => o.textContent));
+
+        this.multiselect = multiselect;
+
+        for (let checkboxWidget of this.checkboxWidgets.originalItems) {
+            let option = options.find(
+                option => includesCaseInsensitive(
+                    option.textContent, 
+                    checkboxWidget.textLabel.textContent
+                )
+            ) as HTMLOptionElement;
+
+            let select = option.closest('select');
+            checkboxWidget.checkbox.addEventListener('change', (e) => {
+                if (select) spoofOptionSelected(select, option, checkboxWidget.checkbox.checked);
+            });
+        }
     }
-}
 
-/**
- * Sets the partnered multiselect's state to reflect the current multiselect's state. Used when the multiselect updates independently of the partneredMultiselect.
- * @param {FilterableMultiselect} partneredMultiselect 
- * @param {HTMLSelectElement} multiselect 
- */
-export function realignPartneredMultiselect(filterableMultiselect: FilterableMultiselect, multiselect: HTMLSelectElement): void {
-    for (let option of [...multiselect.options]) {
-        let checkboxWidget = getAssociatedCheckbox(filterableMultiselect, option);
-        if (checkboxWidget) {
+    realign() {
+        for (let option of [...this.multiselect.options]) {
+            let checkboxWidget = this.getAssociatedCheckbox(option);
             checkboxWidget.checkbox.checked = option.selected;
         }
-        else {
-            throw new Error("couldn't find associated checkbox");
-        }
     }
-}
 
-/**
- * 
- * @param {FilterableMultiselect} partneredMultiselect 
- * @param {HTMLOptionElement} option 
- * @returns {import("./filterableMultiselect.js").CheckboxPair}
- */
-function getAssociatedCheckbox(filterableMultiselect: FilterableMultiselect, option: HTMLOptionElement): CheckboxWidget | null {
-    for (let checkboxWidget of filterableMultiselect.checkboxes) {
-        if (includesCaseInsensitive(option.textContent || '', checkboxWidget.textLabel.textContent || '')) {
-            return checkboxWidget;
+    private getAssociatedCheckbox(option: HTMLOptionElement): CheckboxWidget | never {
+        for (let checkboxWidget of this.checkboxWidgets.originalItems) {
+            if (includesCaseInsensitive(option.textContent, checkboxWidget.textLabel.textContent)) {
+                return checkboxWidget;
+            }
         }
+        throw new Error(`Could not find associated chekcbox for: ${option.textContent}`);
     }
-    return null;
+
+    render() {
+        this.realign();
+        return super.render();
+    }
 }
