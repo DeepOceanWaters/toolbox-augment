@@ -1,11 +1,12 @@
-import generateUniqueId from "../idGenerator";
+import generateUniqueId from "../idGenerator.js";
 
-export default class Disclosure {
+export default class Disclosure extends HTMLDivElement {
     controller: HTMLButtonElement;
     controlled: HTMLDivElement;
     controllerLabel: HTMLSpanElement;
 
     constructor(label: string) {
+        super();
         [this.controller, this.controllerLabel] = this.createController(label);
         this.controlled = this.createControlled();
         this.addEventListeners();

@@ -1,4 +1,4 @@
-import InputLabelPair from "./inputLabelPair.js";
+import InputLabelPair from "./InputLabelPair.js";
 
 export default class CheckboxWidget extends HTMLDivElement {
     public inputPair: InputLabelPair;

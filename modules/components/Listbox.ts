@@ -1,7 +1,7 @@
-import generateUniqueId from "../idGenerator";
-import Option from "./Option";
-import { classPrefix } from "../../data/prefixes";
-import MutableList from "./MutableList";
+import generateUniqueId from "../idGenerator.js";
+import Option from "./Option.js";
+import { classPrefix } from "../../data/prefixes.js";
+import MutableList from "./MutableList.js";
 
 interface listboxOptions {
     hideLabel: boolean

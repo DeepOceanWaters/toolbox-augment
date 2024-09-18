@@ -22,6 +22,7 @@
                 "https://app.a11ytoolbox.io/audits/*"
             ],
             "js": [
+                "./node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js",
                 "out/content-script.js"
             ]
         }
@@ -33,9 +34,7 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "out/data/*",
-                "out/modules/*",
-                "out/modules/components/*",
+                "out/*",
                 "css/*"
             ],
             "matches": [

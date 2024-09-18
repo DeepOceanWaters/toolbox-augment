@@ -1,7 +1,7 @@
-import CheckboxWidget from './CheckboxWidget';
-import Fieldset from './Fieldset';
-import FilterBox from './FilterBox';
-import MutableList from './MutableList';
+import CheckboxWidget from './CheckboxWidget.js';
+import Fieldset from './Fieldset.js';
+import FilterBox from './FilterBox.js';
+import MutableList from './MutableList.js';
 
 export default class FilterabMultiselect extends HTMLDivElement {
     fieldset: Fieldset;

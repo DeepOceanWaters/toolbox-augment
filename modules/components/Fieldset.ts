@@ -1,5 +1,3 @@
-import generateUniqueId from "../idGenerator";
-
 export default class Fieldset extends HTMLFieldSetElement {
     legend: HTMLLegendElement;
     visualLabel: HTMLSpanElement;

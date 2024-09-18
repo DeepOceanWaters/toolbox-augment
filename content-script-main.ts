@@ -1,21 +1,31 @@
-import includesCaseInsensitive from "./modules/includesCaseInsensitive";
-import { setQuillEditorText, spoofOptionSelected, spoofUpdateTextareaValue } from "./modules/spoofUserInput";
+import includesCaseInsensitive from "./modules/includesCaseInsensitive.js";
+import { setQuillEditorText, spoofOptionSelected, spoofUpdateTextareaValue } from "./modules/spoofUserInput.js";
 import { getPossibleTokens, getRecommendation } from "./modules/replaceTokens.js";
-import Combobox from "./modules/combobox";
-import PartneredMultiselect from "./modules/components/PartneredMultiselect";
-import { successCriteria } from "./data/successCriteria";
-import { issueTemplate } from "./data/tokens";
+import Combobox from "./modules/combobox.js";
+import PartneredMultiselect from "./modules/components/PartneredMultiselect.js";
+import { successCriteria } from "./data/successCriteria.js";
+import { issueTemplate } from "./data/tokens.js";
+import FilterabMultiselect from "./modules/components/FilterableMultiselect.js";
+import Fieldset from "./modules/components/Fieldset.js";
+import CheckboxWidget from "./modules/components/CheckboxWidget.js";
+import Disclosure from "./modules/components/Disclosure.js";
+import FilterBox from "./modules/components/FilterBox.js";
+import Listbox from "./modules/components/Listbox.js";
+import Option from "./modules/components/Option.js";
 
 
 export default function main() {
     (async () => {
-
-        // REDO
-        const {
-            addKeyboardNavigation: addKeyboardNavigation
-        } = await import(
-            chrome.runtime.getURL("modules/components/filterableMultiselect.js")
-        );
+        customElements.define('aria-option', Option, { extends: 'div' });
+        customElements.define('aria-listbox', Listbox, { extends: 'div' });
+        customElements.define('filter-box', FilterBox, { extends: 'div' });
+        customElements.define('checkbox-widget', CheckboxWidget, { extends: 'div' });
+        customElements.define('fieldset-widget', Fieldset, { extends: 'fieldset' });
+        customElements.define('filterable-multiselect', FilterabMultiselect, { extends: 'div' });
+        customElements.define('partnered-multiselect', PartneredMultiselect, { extends: 'filterable-multiselect' });
+        customElements.define('disclosure-widget', Disclosure, { extends: 'div' });
+        
+        
 
 
         let issueCustomStyle;
@@ -368,7 +378,7 @@ export default function main() {
             const createPartneredMultiselect = (id: string): PartneredMultiselect => {
                 let multiselect = document.getElementById(id) as HTMLSelectElement;
                 let filterableMultiselect = new PartneredMultiselect(multiselect);
-                addKeyboardNavigation(filterableMultiselect);
+                //addKeyboardNavigation(filterableMultiselect);
                 multiselect.parentElement.insertBefore(
                     filterableMultiselect,
                     multiselect

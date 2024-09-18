@@ -1,4 +1,5 @@
-import Listbox from "./components/Listbox";
+// @ts-nocheck
+import Listbox from "./components/Listbox.js";
 
 export default class Combobox {
     alwaysVisible: boolean;

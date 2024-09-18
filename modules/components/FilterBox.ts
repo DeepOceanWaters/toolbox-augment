@@ -1,4 +1,4 @@
-import InputLabelPair from "./inputLabelPair";
+import InputLabelPair from "./InputLabelPair.js";
 
 export default class FilterBox extends HTMLDivElement {
     clear: HTMLButtonElement;

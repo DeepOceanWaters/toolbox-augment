@@ -1,7 +1,7 @@
-import includesCaseInsensitive from "../includesCaseInsensitive";
-import { spoofOptionSelected } from "../spoofUserInput";
-import CheckboxWidget from "./CheckboxWidget";
-import FilterabMultiselect from "./FilterableMultiselect";
+import includesCaseInsensitive from "../includesCaseInsensitive.js";
+import { spoofOptionSelected } from "../spoofUserInput.js";
+import CheckboxWidget from "./CheckboxWidget.js";
+import FilterabMultiselect from "./FilterableMultiselect.js";
 
 
 export default class PartneredMultiselect extends FilterabMultiselect {
