@@ -73,14 +73,14 @@ export default function main() {
         }
 
         function injectAllStyles() {
-            let cssVariablesStyle = injectStyles(chrome.runtime.getURL('css/variables.css'));
-            let cssColorVariablesStyle = injectStyles(chrome.runtime.getURL('css/colorVars.css'));
-            let issueCustomStyle = injectStyles(chrome.runtime.getURL('css/addIssueCustomStyle.css'));
-            let comboboxStyle = injectStyles(chrome.runtime.getURL('css/combobox.css'));
-            let checkboxStyle = injectStyles(chrome.runtime.getURL('css/checkbox.css'));
-            let filterableMultiselectStyle = injectStyles(chrome.runtime.getURL('css/filterableMultiselects.css'));
-            let floatLabelStyle = injectStyles(chrome.runtime.getURL('css/floatLabel.css'));
-            let srOnly = injectStyles(chrome.runtime.getURL('css/sr-only.css'));
+            let cssVariablesStyle = injectStyles(chrome.runtime.getURL('../css/variables.css'));
+            let cssColorVariablesStyle = injectStyles(chrome.runtime.getURL('../css/colorVars.css'));
+            let issueCustomStyle = injectStyles(chrome.runtime.getURL('../css/addIssueCustomStyle.css'));
+            let comboboxStyle = injectStyles(chrome.runtime.getURL('../css/combobox.css'));
+            let checkboxStyle = injectStyles(chrome.runtime.getURL('../css/checkbox.css'));
+            let filterableMultiselectStyle = injectStyles(chrome.runtime.getURL('../css/filterableMultiselects.css'));
+            let floatLabelStyle = injectStyles(chrome.runtime.getURL('../css/floatLabel.css'));
+            let srOnly = injectStyles(chrome.runtime.getURL('../css/sr-only.css'));
         }
 
         async function messageRouter(request: any, sender: any, sendResponse: Function) {

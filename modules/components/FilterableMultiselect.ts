@@ -17,7 +17,7 @@ export default class FilterabMultiselect implements Widget {
     constructor(label: string, options: string[], removeCheckboxesFromFocus: boolean = false) 
     {
         this.component = document.createElement('div');
-        this.component.classList.add('multiselect-group');
+        this.component.classList.add('multiselect-group', 'toolbox-augmentor');
         this.removeCheckboxesFromFocus = removeCheckboxesFromFocus;
         this.fieldset = new Fieldset(label);
         this.filterBox = new FilterBox(`Filter ${label}`);
@@ -33,7 +33,7 @@ export default class FilterabMultiselect implements Widget {
                 })
             );
         this.checkboxContainer = document.createElement('div');
-        this.checkboxContainer.classList.add('checkbox-container');
+        this.checkboxContainer.classList.add('checkboxes-container');
         
         this.filterGroup = document.createElement('div');
         

@@ -7,7 +7,10 @@ export default class FilterBox implements Widget {
 
     constructor(label: string) {
         this.component = document.createElement('div');
-        this.inputLabelPair = new InputLabelPair(label);
+        this.component.classList.add('float-label-pair');
+        this.inputLabelPair = new InputLabelPair();
+        this.inputLabelPair.label.textContent = label;
+        this.inputLabelPair.label.classList.add('float-label');
         this.inputLabelPair.input.type = 'text';
     }
 
