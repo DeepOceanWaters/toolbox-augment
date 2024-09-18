@@ -1,20 +1,21 @@
 import InputLabelPair from "./InputLabelPair.js";
 
-export default class FilterBox extends HTMLDivElement {
-    clear: HTMLButtonElement;
+export default class FilterBox implements Widget {
     component: HTMLDivElement;
+    clear: HTMLButtonElement;
     inputLabelPair: InputLabelPair;
 
     constructor(label: string) {
-        super();
+        this.component = document.createElement('div');
         this.inputLabelPair = new InputLabelPair(label);
         this.inputLabelPair.input.type = 'text';
     }
 
     public render() {
-        this.append(
+        this.component.append(
             this.inputLabelPair.label,
             this.inputLabelPair.input
         );
+        return this.component;
     }
 }

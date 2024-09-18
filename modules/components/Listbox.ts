@@ -7,7 +7,8 @@ interface listboxOptions {
     hideLabel: boolean
 }
 
-export default class Listbox extends HTMLDivElement {
+export default class Listbox implements Widget {
+    component: HTMLDivElement;
     label: HTMLSpanElement;
     options: MutableList<Option>;
     listbox: HTMLDivElement;
@@ -17,21 +18,24 @@ export default class Listbox extends HTMLDivElement {
         options: string[], 
         { hideLabel = true }: { hideLabel?: boolean } 
     ) {
-        super();
-        this.classList.add(classPrefix);
         this.label = document.createElement('span');
+        this.label.textContent = label;
         this.label.id = generateUniqueId();
         if (hideLabel) this.label.classList.add('sr-only');
-        this.listbox = this.createListbox(label);
+
+        this.listbox = this.createListbox();
+
         this.options = new MutableList(options.map(o => new Option(o)));
 
-        this.append(
+        this.component = document.createElement('div');
+        this.component.classList.add(classPrefix);
+        this.component.append(
             this.label,
             this.listbox
         );
     }
 
-    private createListbox(label: string) {
+    private createListbox() {
         let listbox: HTMLDivElement = document.createElement('div');
         listbox.classList.add('listbox');
         listbox.setAttribute('aria-labelledby', this.label.id);
@@ -40,9 +44,10 @@ export default class Listbox extends HTMLDivElement {
 
     render() {
         this.options.mutate();
-        this.append(
+        this.component.append(
             this.label,
-            ...this.options.mutatedItems
+            ...this.options.mutatedItems.map(i => i.render())
         );
+        return this.component;
     }
 }

@@ -1,12 +1,13 @@
 import generateUniqueId from "../idGenerator.js";
 
-export default class Disclosure extends HTMLDivElement {
+export default class Disclosure implements Widget {
+    component: HTMLDivElement;
     controller: HTMLButtonElement;
     controlled: HTMLDivElement;
     controllerLabel: HTMLSpanElement;
 
     constructor(label: string) {
-        super();
+        this.component = document.createElement('div');
         [this.controller, this.controllerLabel] = this.createController(label);
         this.controlled = this.createControlled();
         this.addEventListeners();
@@ -42,5 +43,13 @@ export default class Disclosure extends HTMLDivElement {
             this.controller.click();
             this.controller.focus();
         });
+    }
+
+    render() {
+        this.component.append(
+            this.controller,
+            this.controlled
+        );
+        return this.component;
     }
 }

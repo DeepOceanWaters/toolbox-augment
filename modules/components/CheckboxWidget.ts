@@ -1,12 +1,13 @@
 import InputLabelPair from "./InputLabelPair.js";
 
-export default class CheckboxWidget extends HTMLDivElement {
-    public inputPair: InputLabelPair;
-    public textLabel: HTMLSpanElement;
-    public checkbox: HTMLInputElement;
+export default class CheckboxWidget implements Widget {
+    component: HTMLDivElement;
+    inputPair: InputLabelPair;
+    textLabel: HTMLSpanElement;
+    checkbox: HTMLInputElement;
 
     constructor(label: string) {
-        super();
+        this.component = document.createElement('div');
         this.inputPair = new InputLabelPair();
         this.textLabel = this.makeLabelText(label);
         this.checkbox = this.inputPair.input;
@@ -23,13 +24,14 @@ export default class CheckboxWidget extends HTMLDivElement {
         return label;
     }
 
-    public render() {
+    render() {
         this.inputPair.label.append(
             this.inputPair.input,
             this.textLabel
-        )
-        this.append(
+        );
+        this.component.append(
             this.inputPair.label
-        )
+        );
+        return this.component;
     }
 }

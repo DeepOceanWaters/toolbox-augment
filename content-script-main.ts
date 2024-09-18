@@ -2,7 +2,6 @@ import includesCaseInsensitive from "./modules/includesCaseInsensitive.js";
 import { setQuillEditorText, spoofOptionSelected, spoofUpdateTextareaValue } from "./modules/spoofUserInput.js";
 import { getPossibleTokens, getRecommendation } from "./modules/replaceTokens.js";
 import Combobox from "./modules/combobox.js";
-import PartneredMultiselect from "./modules/components/PartneredMultiselect.js";
 import { successCriteria } from "./data/successCriteria.js";
 import { issueTemplate } from "./data/tokens.js";
 import FilterabMultiselect from "./modules/components/FilterableMultiselect.js";
@@ -12,21 +11,11 @@ import Disclosure from "./modules/components/Disclosure.js";
 import FilterBox from "./modules/components/FilterBox.js";
 import Listbox from "./modules/components/Listbox.js";
 import Option from "./modules/components/Option.js";
+import PartneredMultiselect from "./modules/components/PartneredMultiselect.js";
 
 
 export default function main() {
     (async () => {
-        customElements.define('aria-option', Option, { extends: 'div' });
-        customElements.define('aria-listbox', Listbox, { extends: 'div' });
-        customElements.define('filter-box', FilterBox, { extends: 'div' });
-        customElements.define('checkbox-widget', CheckboxWidget, { extends: 'div' });
-        customElements.define('fieldset-widget', Fieldset, { extends: 'fieldset' });
-        customElements.define('filterable-multiselect', FilterabMultiselect, { extends: 'div' });
-        customElements.define('partnered-multiselect', PartneredMultiselect, { extends: 'filterable-multiselect' });
-        customElements.define('disclosure-widget', Disclosure, { extends: 'div' });
-        
-        
-
 
         let issueCustomStyle;
         let issueToCopy;
@@ -380,7 +369,7 @@ export default function main() {
                 let filterableMultiselect = new PartneredMultiselect(multiselect);
                 //addKeyboardNavigation(filterableMultiselect);
                 multiselect.parentElement.insertBefore(
-                    filterableMultiselect,
+                    filterableMultiselect.render(),
                     multiselect
                 );
                 return filterableMultiselect;

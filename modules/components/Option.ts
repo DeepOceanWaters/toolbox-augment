@@ -1,10 +1,11 @@
-export default class Option extends HTMLDivElement {
+export default class Option implements Widget {
+    component: HTMLDivElement;
     label: HTMLSpanElement;
 
     constructor(label?: string) {
-        super();
-        this.role = 'option';
-        this.setAttribute('aria-selected', 'false');
+        this.component = document.createElement('div');
+        this.component.role = 'option';
+        this.component.setAttribute('aria-selected', 'false');
         this.label = document.createElement('span');
         this.label.textContent = label || '';
     }
@@ -14,7 +15,7 @@ export default class Option extends HTMLDivElement {
      * @returns the new selected state
      */
     toggleSelection(): boolean {
-        let selected = this.getAttribute('aria-selected') === 'true';
+        let selected = this.component.getAttribute('aria-selected') === 'true';
         this.setSelected(!selected);
         return !selected;
     }
@@ -23,7 +24,7 @@ export default class Option extends HTMLDivElement {
      * set the aria-selected attribute
      */
     setSelected(selected: boolean): void {
-        this.setAttribute('aria-selected', String(selected));
+        this.component.setAttribute('aria-selected', String(selected));
     }
 
     /**
@@ -31,6 +32,10 @@ export default class Option extends HTMLDivElement {
      * @returns the current aria-selected state
      */
     getSelected(): boolean {
-        return this.getAttribute('aria-selected') === 'true';
+        return this.component.getAttribute('aria-selected') === 'true';
+    }
+
+    render() {
+        return this.component;
     }
 }

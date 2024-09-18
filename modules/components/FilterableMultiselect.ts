@@ -1,9 +1,11 @@
+import includesCaseInsensitive from '../includesCaseInsensitive.js';
 import CheckboxWidget from './CheckboxWidget.js';
 import Fieldset from './Fieldset.js';
 import FilterBox from './FilterBox.js';
 import MutableList from './MutableList.js';
 
-export default class FilterabMultiselect extends HTMLDivElement {
+export default class FilterabMultiselect implements Widget {
+    component: HTMLDivElement;
     fieldset: Fieldset;
     filterBox: FilterBox;
     showOnlyCheckbox: CheckboxWidget;
@@ -14,15 +16,18 @@ export default class FilterabMultiselect extends HTMLDivElement {
 
     constructor(label: string, options: string[], removeCheckboxesFromFocus: boolean = false) 
     {
-        super();
-        this.classList.add('multiselect-group');
+        this.component = document.createElement('div');
+        this.component.classList.add('multiselect-group');
         this.removeCheckboxesFromFocus = removeCheckboxesFromFocus;
         this.fieldset = new Fieldset(label);
         this.filterBox = new FilterBox(`Filter ${label}`);
-        let checkboxWidgets = new MutableList(options.map((o) => new CheckboxWidget(o)));
-        checkboxWidgets.addMutator(
+        this.checkboxWidgets = new MutableList(options.map((o) => new CheckboxWidget(o)));
+        this.checkboxWidgets.addMutator(
             (checkboxWidgets) => checkboxWidgets.filter(
-                (cw) => this.filterBox.inputLabelPair.input.value === cw.textContent
+                (cw) => includesCaseInsensitive(
+                    this.filterBox.inputLabelPair.input.value,
+                    cw.textLabel.textContent
+                )
             )
         );
         this.checkboxContainer = document.createElement('div');
@@ -68,19 +73,18 @@ export default class FilterabMultiselect extends HTMLDivElement {
 
     render() {
         this.checkboxWidgets.mutate();
-        this.fieldset.render();
-        this.fieldset.append(this);
-        this.append(
-            this.showOnlyCheckbox,
+        this.fieldset.render().append(this.component);
+        this.component.append(
+            this.showOnlyCheckbox.render(),
             this.filterGroup
         );
         this.filterGroup.append(
-            this.filterBox,
+            this.filterBox.render(),
             this.checkboxContainer
         );
         this.checkboxContainer.append(
-            ...this.checkboxWidgets.mutatedItems
+            ...this.checkboxWidgets.mutatedItems.map(i => i.render())
         );
-        return this;
+        return this.component;
     }
 }

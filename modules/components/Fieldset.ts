@@ -1,9 +1,10 @@
-export default class Fieldset extends HTMLFieldSetElement {
+export default class Fieldset implements Widget {
+    component: HTMLFieldSetElement;
     legend: HTMLLegendElement;
     visualLabel: HTMLSpanElement;
 
     constructor(label: string) {
-        super();
+        this.component = document.createElement('fieldset');
         let legend = document.createElement('legend');
         let visualLabel = document.createElement('span');
     
@@ -19,10 +20,10 @@ export default class Fieldset extends HTMLFieldSetElement {
     }
 
     render() {
-        this.prepend(
+        this.component.prepend(
             this.legend,
             this.visualLabel
         );
-        return this;
+        return this.component;
     }
 }

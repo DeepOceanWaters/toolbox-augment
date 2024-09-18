@@ -30,13 +30,6 @@ export default class PartneredMultiselect extends FilterabMultiselect {
         }
     }
 
-    realign() {
-        for (let option of [...this.multiselect.options]) {
-            let checkboxWidget = this.getAssociatedCheckbox(option);
-            checkboxWidget.checkbox.checked = option.selected;
-        }
-    }
-
     private getAssociatedCheckbox(option: HTMLOptionElement): CheckboxWidget | never {
         for (let checkboxWidget of this.checkboxWidgets.originalItems) {
             if (includesCaseInsensitive(option.textContent, checkboxWidget.textLabel.textContent)) {
@@ -44,6 +37,13 @@ export default class PartneredMultiselect extends FilterabMultiselect {
             }
         }
         throw new Error(`Could not find associated chekcbox for: ${option.textContent}`);
+    }
+
+    realign() {
+        for (let option of [...this.multiselect.options]) {
+            let checkboxWidget = this.getAssociatedCheckbox(option);
+            checkboxWidget.checkbox.checked = option.selected;
+        }
     }
 
     render() {
