@@ -4,13 +4,6 @@ import { getPossibleTokens, getRecommendation } from "./modules/replaceTokens.js
 import Combobox from "./modules/combobox.js";
 import { successCriteria } from "./data/successCriteria.js";
 import { issueTemplate } from "./data/tokens.js";
-import FilterabMultiselect from "./modules/components/FilterableMultiselect.js";
-import Fieldset from "./modules/components/Fieldset.js";
-import CheckboxWidget from "./modules/components/CheckboxWidget.js";
-import Disclosure from "./modules/components/Disclosure.js";
-import FilterBox from "./modules/components/FilterBox.js";
-import Listbox from "./modules/components/Listbox.js";
-import Option from "./modules/components/Option.js";
 import PartneredMultiselect from "./modules/components/PartneredMultiselect.js";
 
 

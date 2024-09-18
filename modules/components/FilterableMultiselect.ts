@@ -24,13 +24,16 @@ export default class FilterabMultiselect implements Widget {
         this.checkboxWidgets = new MutableList(options.map((o) => new CheckboxWidget(o)));
         this.checkboxWidgets.addMutator(
             (checkboxWidgets) => checkboxWidgets.filter(
-                (cw) => includesCaseInsensitive(
-                    this.filterBox.inputLabelPair.input.value,
-                    cw.textLabel.textContent
-                )
-            )
-        );
+                (cw) => {
+                    return this.filterBox.inputLabelPair.input.value === '' 
+                        || includesCaseInsensitive(
+                            this.filterBox.inputLabelPair.input.value,
+                            cw.textLabel.textContent
+                        )
+                })
+            );
         this.checkboxContainer = document.createElement('div');
+        this.checkboxContainer.classList.add('checkbox-container');
         
         this.filterGroup = document.createElement('div');
         
@@ -72,6 +75,7 @@ export default class FilterabMultiselect implements Widget {
     }
 
     render() {
+        debugger;
         this.checkboxWidgets.mutate();
         this.fieldset.render().append(this.component);
         this.component.append(
