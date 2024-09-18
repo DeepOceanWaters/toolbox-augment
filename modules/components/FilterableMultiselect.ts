@@ -27,18 +27,35 @@ export default class FilterabMultiselect implements Widget {
                 (cw) => {
                     return this.filterBox.inputLabelPair.input.value === '' 
                         || includesCaseInsensitive(
-                            this.filterBox.inputLabelPair.input.value,
-                            cw.textLabel.textContent
+                            cw.textLabel.textContent,
+                            this.filterBox.inputLabelPair.input.value
                         )
                 })
             );
         this.checkboxContainer = document.createElement('div');
         this.checkboxContainer.classList.add('checkboxes-container');
+        this.checkboxContainer.classList.add('vertical');
         
         this.filterGroup = document.createElement('div');
+        this.filterGroup.classList.add('filtering-group');
         
         this.showOnlyCheckbox = this.createShowOnly();
         this.addFilterEvents();
+
+        // construct
+        let fieldset = this.fieldset.render();
+        fieldset.append(
+            this.showOnlyCheckbox.render(),
+            this.filterGroup
+        );
+        this.filterGroup.append(
+            this.filterBox.render(),
+            this.checkboxContainer
+        );
+        this.checkboxContainer.append(
+            ...this.checkboxWidgets.mutatedItems.map(i => i.render())
+        );
+        this.component.append(fieldset);
     }
 
     private createShowOnly(): CheckboxWidget {
@@ -76,19 +93,10 @@ export default class FilterabMultiselect implements Widget {
 
     render() {
         this.checkboxWidgets.mutate();
-        let fieldset = this.fieldset.render();
-        fieldset.append(
-            this.showOnlyCheckbox.render(),
-            this.filterGroup
-        );
-        this.filterGroup.append(
-            this.filterBox.render(),
-            this.checkboxContainer
-        );
+        this.checkboxContainer.innerHTML = '';
         this.checkboxContainer.append(
             ...this.checkboxWidgets.mutatedItems.map(i => i.render())
         );
-        this.component.append(fieldset);
         return this.component;
     }
 }
