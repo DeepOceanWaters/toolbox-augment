@@ -75,10 +75,9 @@ export default class FilterabMultiselect implements Widget {
     }
 
     render() {
-        debugger;
         this.checkboxWidgets.mutate();
-        this.fieldset.render().append(this.component);
-        this.component.append(
+        let fieldset = this.fieldset.render();
+        fieldset.append(
             this.showOnlyCheckbox.render(),
             this.filterGroup
         );
@@ -89,6 +88,7 @@ export default class FilterabMultiselect implements Widget {
         this.checkboxContainer.append(
             ...this.checkboxWidgets.mutatedItems.map(i => i.render())
         );
+        this.component.append(fieldset);
         return this.component;
     }
 }
