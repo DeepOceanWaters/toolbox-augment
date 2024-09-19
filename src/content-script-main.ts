@@ -13,6 +13,7 @@ export default function main() {
         let issueCustomStyle;
         let issueToCopy;
         let recommendationToCopy;
+        let chromeVersion;
 
         const pagesId = 'pages';
         const scId = 'success_criteria';
@@ -39,11 +40,11 @@ export default function main() {
         }
 
         function isLoaded() {
+            // for new audits, this won't load until the user switches to advanced issue
             let isLoaded = true;
             let pages: HTMLSelectElement | null = document.getElementById(pagesId) as HTMLSelectElement | null;
             let successCriteria: HTMLSelectElement | null = document.getElementById(scId) as HTMLSelectElement | null;
             let states: HTMLSelectElement | null = document.getElementById(statesId) as HTMLSelectElement | null;
-            //let addIssue = document.querySelector('button[title="Add Issue"]');
             isLoaded &&= !!(pages && pages.options.length > 0);
             isLoaded &&= !!(successCriteria && successCriteria.options.length > 0);
             isLoaded &&= !!(states && states.options.length > 0);
@@ -204,6 +205,9 @@ export default function main() {
                     break;
                 case "colorContrast":
                     break;
+                case 'chromeVersion':
+                    chrome.storage.session.set({ "chrome-version": request.version });
+                    break;
                 default:
                     console.log(`unknown request: ${request.name}`);
                     break;
@@ -274,14 +278,14 @@ export default function main() {
 
                 // set success criteria
                 for (let sc of template.relatedsc) {
-                    let checkbox = 
+                    let checkbox =
                         scPartneredMultiselect
-                        .checkboxWidgets
-                        .originalItems
-                        .find(
-                            (checkboxWidget) => includesCaseInsensitive(checkboxWidget.textLabel.textContent!, sc)
-                        )!
-                        .checkbox;
+                            .checkboxWidgets
+                            .originalItems
+                            .find(
+                                (checkboxWidget) => includesCaseInsensitive(checkboxWidget.textLabel.textContent!, sc)
+                            )!
+                            .checkbox;
                     if (!checkbox.checked) checkbox.click();
                     if (!scPartneredMultiselect.showOnlyCheckbox.checkbox.checked) {
                         scPartneredMultiselect.showOnlyCheckbox.checkbox.click();
@@ -315,8 +319,8 @@ export default function main() {
 
                 let recommendationQuillEditor =
                     document
-                    .getElementById(recommendationEditorId)
-                    .querySelector('.ql-editor') as HTMLElement;
+                        .getElementById(recommendationEditorId)
+                        .querySelector('.ql-editor') as HTMLElement;
                 await setQuillEditorText(recommendationQuillEditor, recommendationParagraphs, false);
                 // this gets rid of the extra newline when setting a template for the first time
                 await setQuillEditorText(recommendationQuillEditor, [], false);
@@ -418,24 +422,24 @@ export default function main() {
                             .originalItems
                             .filter(cw => cw.inputPair.input.checked)
                             .map(cw => {
-                                let num = 
+                                let num =
                                     cw
-                                    .inputPair
-                                    .label
-                                    .querySelector('span')
-                                    .textContent
-                                    .match(/\d+\.\d+\.\d+/gi)[0];
+                                        .inputPair
+                                        .label
+                                        .querySelector('span')
+                                        .textContent
+                                        .match(/\d+\.\d+\.\d+/gi)[0];
                                 return `${num} - ${successCriteria[num].description}`;
                             });
-                    let scDescReset = 
+                    let scDescReset =
                         successCriteriaDescEditor
-                        .parentElement
-                        .parentElement
-                        .querySelector('button');
+                            .parentElement
+                            .parentElement
+                            .querySelector('button');
                     scDescReset.click();
                     setQuillEditorText(
-                        successCriteriaDescEditor, 
-                        issuesDescriptions, 
+                        successCriteriaDescEditor,
+                        issuesDescriptions,
                         false
                     );
                 });
@@ -453,10 +457,10 @@ export default function main() {
                 ];
                 for (let partneredMultiselect of pMultiselects) {
                     partneredMultiselect.realign();
-                    let showOnlyCheckbox = 
+                    let showOnlyCheckbox =
                         partneredMultiselect
-                        .showOnlyCheckbox
-                        .checkbox;
+                            .showOnlyCheckbox
+                            .checkbox;
                     if (showOnlyCheckbox.checked) {
                         showOnlyCheckbox.click();
                     }
@@ -508,56 +512,56 @@ export default function main() {
         }
 
         /* #region getAuditData */
-/*
-        function getAuditData() {
-            let audit = {
-                id: -1,
-                columnHeaders: [],
-                rows: {}
-            };
-            audit.columnHeaders = getColumnHeaders();
-            audit.rows = getAllRowValues();
-
-            return audit;
-        }
-
-        function getColumnHeaders() {
-            let table = document.querySelector('table.issues-table');
-            let tbody = table.querySelector('tbody');
-
-            let rows = tbody.querySelectorAll('tr');
-            let row = rows[0];
-            let columnHeaders = getRowInfo(row, (cell) => cell.dataset.key);
-            return columnHeaders;
-        }
-
-        function getAllRowValues() {
-            let table = document.querySelector('table.issues-table');
-            let tbody = table.querySelector('tbody');
-
-            let rows = tbody.querySelectorAll('tr');
-            let rowsOfValues = {};
-            for (const row of rows) {
-                let rowValues = getRowValues(row);
-                rowsOfValues[rowValues.id] = rowValues;
-            }
-            return rowsOfValues;
-        }
-
-        function getRowValues(row) {
-            return getRowInfo(row, (cell) => cell.children.item(0).children.item(0).innerHTML);
-        }
-
-        function getRowInfo(row, callback) {
-            let outputRow = {};
-            for (let i = 0; i < row.children.length; i++) {
-                let cell = row.children.item(i);
-                let value = callback(cell);
-                outputRow[cell.dataset.key] = htmlUnescape(value);
-            }
-            return outputRow;
-        }
-*/
+        /*
+                function getAuditData() {
+                    let audit = {
+                        id: -1,
+                        columnHeaders: [],
+                        rows: {}
+                    };
+                    audit.columnHeaders = getColumnHeaders();
+                    audit.rows = getAllRowValues();
+        
+                    return audit;
+                }
+        
+                function getColumnHeaders() {
+                    let table = document.querySelector('table.issues-table');
+                    let tbody = table.querySelector('tbody');
+        
+                    let rows = tbody.querySelectorAll('tr');
+                    let row = rows[0];
+                    let columnHeaders = getRowInfo(row, (cell) => cell.dataset.key);
+                    return columnHeaders;
+                }
+        
+                function getAllRowValues() {
+                    let table = document.querySelector('table.issues-table');
+                    let tbody = table.querySelector('tbody');
+        
+                    let rows = tbody.querySelectorAll('tr');
+                    let rowsOfValues = {};
+                    for (const row of rows) {
+                        let rowValues = getRowValues(row);
+                        rowsOfValues[rowValues.id] = rowValues;
+                    }
+                    return rowsOfValues;
+                }
+        
+                function getRowValues(row) {
+                    return getRowInfo(row, (cell) => cell.children.item(0).children.item(0).innerHTML);
+                }
+        
+                function getRowInfo(row, callback) {
+                    let outputRow = {};
+                    for (let i = 0; i < row.children.length; i++) {
+                        let cell = row.children.item(i);
+                        let value = callback(cell);
+                        outputRow[cell.dataset.key] = htmlUnescape(value);
+                    }
+                    return outputRow;
+                }
+        */
         /* #endregion */
 
 
