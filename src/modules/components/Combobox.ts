@@ -1,81 +1,59 @@
 // @ts-nocheck
-import Listbox from "./components/Listbox.js";
+import generateUniqueId from "../idGenerator.js";
+import FilterBox from "./FilterBox.js";
+import Listbox from "./Listbox.js";
 
 export default class Combobox {
     alwaysVisible: boolean;
-    combobox: HTMLInputElement;
+    filterBox: FilterBox;
     listbox: Listbox;
 
 
+
     constructor(
-        comboboxName: string,
-        listboxName: string,
+        label: string,
         options: string[],
         args?: {
             alwaysVisible?: boolean
         }
     ) {
         this.alwaysVisible = !!(args?.alwaysVisible);
-        this.comboboxElement = this.createComboboxElement(
+
+        this.listbox = new Listbox(options);
+        this.listbox.component.hidden = true;
+
+        setupComboboxElement();
+
+        filterBox.inputLabelPair.input = this.createComboboxElement(
             this.listboxElement, autocomplete
         );
-        this.listboxElement = this.createListboxElement(
-            listboxName, options, comboboxId
-        );
+        
         
         this.comboboxLabel = this.createComboboxLabel(
-            comboboxName, this.comboboxElement.id, this.labelId
+            label, filterBox.inputLabelPair.input.id, this.labelId
         );
         this.comboboxArrowButton = this.createComboboxArrow(this.labelId);
-        this.comboboxClearButton = this.createClearButton();
+        this.clearButton = this.createClearButton();
         this.selectOnly = selectOnly;
 
         this.addEventListeners();
     }
 
-    createComboboxElement(listbox, autocomplete, id) {
-        let comboboxElement = document.createElement('input');
-        comboboxElement.type = 'text';
-        comboboxElement.setAttribute('role', 'combobox');
-        comboboxElement.setAttribute('aria-controls', listbox.id);
-        comboboxElement.setAttribute('aria-expanded', 'false');
+    setupComboboxElement() {
+        this.filterBox.type = 'text';
+        this.filterBox.setAttribute('role', 'combobox');
+        this.filterBox.setAttribute('aria-controls', this.listbox.component.id);
+        this.filterBox.setAttribute('aria-expanded', 'false');
         if (!this.selectOnly) {
-            comboboxElement.setAttribute('aria-autocomplete', autocomplete);
+            this.filterBox.setAttribute('aria-autocomplete', autocomplete);
         }
-        if (id) comboboxElement.id = id;
-        if (this.selectOnly) comboboxElement.setAttribute('readonly', 'true');
-        return comboboxElement;
     }
 
-    createListboxElement(name, options, comboboxId) {
-        let listbox = document.createElement('ul');
-        listbox.id = comboboxId + '-listbox';
-        listbox.setAttribute('role', 'listbox');
-        listbox.setAttribute('aria-label', name);
-
-        for (let option of options) {
-            let optionElement = document.createElement('li');
-            optionElement.setAttribute('role', 'option');
-            optionElement.textContent = option;
-            optionElement.tabIndex = -1;
-            listbox.appendChild(optionElement);
-        }
-
-        listbox.hidden = true;
-        return listbox;
-    }
-
-    createComboboxLabel(name, comboboxId, labelId) {
-        let label = document.createElement('label');
-        label.id = labelId;
-        label.htmlFor = comboboxId;
-        label.textContent = name;
-        return label;
-    }
-
-    createComboboxArrow(comboboxLabelId) {
+    createComboboxArrow() {
+        let label = this.filterBox.inputLabelPair.label;
+        label.id = label.id || generateUniqueId();
         let arrowButton = document.createElement('button');
-        arrowButton.setAttribute('aria-labelledby', comboboxLabelId);
+        arrowButton.setAttribute('aria-labelledby', label.id);
         arrowButton.classList.add('combobox-click-helper');
         arrowButton.tabIndex = -1;
         return arrowButton;
@@ -97,24 +75,25 @@ export default class Combobox {
     }
 
     addEventListeners() {
-        this.comboboxElement.addEventListener('input', (e) => {
+        let combobox = filterBox.inputLabelPair.input;
+        combobox.addEventListener('input', (e) => {
             this.toggleListbox(true);
-            this.comboboxClearButton.dataset.emptyValue = this.comboboxElement.value === '';
+            this.clearButton.dataset.emptyValue = combobox.value === '';
             this.searchOptions(e);
 
         });
-        this.comboboxElement.addEventListener('click', (e) => {
+        combobox.addEventListener('click', (e) => {
             this.toggleListbox(true);
             this.searchOptions(e);
         });
-        this.comboboxArrowButton.addEventListener(
+        this.arrowButton.addEventListener(
             'click', (e) => {
                 this.toggleListbox();
                 e.preventDefault();
                 e.stopPropagation();
             }
         );
-        this.comboboxElement.addEventListener(
+        combobox.addEventListener(
             'keydown', (e) => {
                 this.keyRouter(e);
             }
@@ -124,17 +103,17 @@ export default class Combobox {
                 this.optionKeyRouter(e);
             }
         );
-        this.comboboxElement.addEventListener(
+        combobox.addEventListener(
             'focusin', (e) => {
                 this.toggleListbox(true);
             }
         );
-        this.listboxElement.addEventListener(
+        this.listbox.component.addEventListener(
             'click', (e) => {
                 this.activateOption(e.target);
             }
         );
-        this.comboboxClearButton.addEventListener(
+        this.clearButton.addEventListener(
             'click', (e) => {
                 this.clearCombobox();
                 e.preventDefault();
@@ -144,40 +123,20 @@ export default class Combobox {
     }
 
     clearCombobox() {
-        this.comboboxClearButton.dataset.emptyValue = true;
-        this.comboboxElement.value = '';
-        this.comboboxElement.focus();
-        this.searchOptions();
-    }
-
-    searchOptions() {
-        if (this.comboboxElement.value === '') {
-            this.filerOptions(() => true);
-        }
-        else {
-            this.filerOptions((el) => {
-                return el.textContent.toLowerCase().includes(
-                    this.comboboxElement.value.toLowerCase()
-                )
-            });
-        }
-    }
-
-    filerOptions(callback) {
-        let options = [...this.listboxElement.children];
-        for (let option of options) {
-            option.hidden = !callback(option);
-        }
+        this.clearButton.dataset.emptyValue = true;
+        filterBox.inputLabelPair.input.value = '';
+        filterBox.inputLabelPair.input.focus();
+        this.update();
     }
 
     keyRouter(e) {
         switch (e.key) {
             case 'Enter':
-                if (this.comboboxElement.value === '') {
+                if (filterBox.inputLabelPair.input.value === '') {
                     this.toggleListbox(true);
                 }
                 else if (this.activateOptionCallback) {
-                    this.activateOptionCallback(this.comboboxElement.value);
+                    this.activateOptionCallback(filterBox.inputLabelPair.input.value);
                 }
                 e.preventDefault();
                 break;
@@ -192,7 +151,7 @@ export default class Combobox {
             case 'Control':
             case 'Escape':
                 if (!this.listboxElement.hidden) this.toggleListbox();
-                else this.comboboxElement.value = '';
+                else filterBox.inputLabelPair.input.value = '';
                 break;
             default:
                 return;
@@ -205,29 +164,14 @@ export default class Combobox {
         let currentOption = e.target;
         // choose non-hidden options, and filter out any other options
         // that aren't visible
-        let options = Array.from(this.listboxElement.children).filter(e => e.checkVisibility());
-        let currentIndex = options.indexOf(currentOption);
-        let nextFocus, nextIndex;
-        let direction;
         switch (e.key) {
-            case 'ArrowDown':
-                direction = 1;
-                nextIndex = (currentIndex + 1);
-            case 'ArrowUp':
-                // if next index is set 
-                // (aka arrow down was hit), don't set it
-                direction ??= -1;
-                nextIndex ??= (options.length + currentIndex - 1);
-                nextIndex %= options.length;
-                nextFocus = options[nextIndex];
-                break;
             case 'Enter':
             case ' ':
                 this.toggleListbox();
                 this.activateOption(currentOption);
                 return;
             case 'Escape':
-                nextFocus = this.comboboxElement;
+                nextFocus = filterBox.inputLabelPair.input;
                 break;
             default:
                 return;
@@ -242,8 +186,8 @@ export default class Combobox {
             window.innerHeight || 0
         );
         this.listboxElement.style.left = '0px';
-        let containerRect = this.comboboxElement.parentElement.getBoundingClientRect();
-        let comboboxRect = this.comboboxElement.getBoundingClientRect();
+        let containerRect = filterBox.inputLabelPair.input.parentElement.getBoundingClientRect();
+        let comboboxRect = filterBox.inputLabelPair.input.getBoundingClientRect();
         this.listboxElement.style.maxHeight = (viewportHeight - comboboxRect.bottom) + 'px';
         let listboxRect = this.listboxElement.getBoundingClientRect();
         this.listboxElement.style.left = (comboboxRect.x - listboxRect.x) + 'px';
@@ -254,12 +198,12 @@ export default class Combobox {
 
     toggleListbox(visibility) {
         if (this.alwaysVisibile) return;
-        let expanded = this.comboboxElement.getAttribute('aria-expanded') === 'true';
+        let expanded = filterBox.inputLabelPair.input.getAttribute('aria-expanded') === 'true';
         if (visibility !== undefined) {
             expanded = !visibility;
         }
         this.listboxElement.hidden = expanded;
-        this.comboboxElement.setAttribute('aria-expanded', !expanded);
+        filterBox.inputLabelPair.input.setAttribute('aria-expanded', !expanded);
         this.positionListbox();
         return !expanded;
     }
@@ -267,9 +211,9 @@ export default class Combobox {
     activateOption(option) {
         if (this.alwaysVisibile) return;
         let value = option.textContent;
-        this.comboboxElement.value = value;
-        this.comboboxElement.focus();
-        this.comboboxClearButton.dataset.emptyValue = this.comboboxElement.value === '';
+        this.filterBox.inputLabelPair.input.value = value;
+        this.filterBox.inputLabelPair.input.focus();
+        this.clearButton.dataset.emptyValue = filterBox.inputLabelPair.input.value === '';
         this.toggleListbox(false);
         if (this.activateOptionCallback) this.activateOptionCallback(value);
     }
@@ -279,7 +223,7 @@ export default class Combobox {
     }
 
     getComboboxElement() {
-        return this.comboboxElement;
+        return filterBox.inputLabelPair.input;
     }
 
     getListboxElement() {
@@ -290,8 +234,8 @@ export default class Combobox {
         return this.comboboxArrowButton;
     }
 
-    getComboboxClearButton() {
-        return this.comboboxClearButton;
+    getclearButton() {
+        return this.clearButton;
     }
 
     /**

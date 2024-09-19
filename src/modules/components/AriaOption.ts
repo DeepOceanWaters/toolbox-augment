@@ -1,4 +1,4 @@
-export default class Option implements Widget {
+export default class AriaOption implements Widget {
     component: HTMLDivElement;
     label: HTMLSpanElement;
 

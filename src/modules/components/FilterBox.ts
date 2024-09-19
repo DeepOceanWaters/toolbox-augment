@@ -5,7 +5,7 @@ export default class FilterBox implements Widget {
     clear: HTMLButtonElement;
     inputLabelPair: InputLabelPair;
 
-    constructor(label: string) {
+    constructor(label: string, clearable: boolean = false) {
         this.component = document.createElement('div');
         this.component.classList.add('float-label-pair');
         this.component.classList.add('filter-box-pair');
