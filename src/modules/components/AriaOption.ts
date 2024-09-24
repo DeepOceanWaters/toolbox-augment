@@ -6,6 +6,7 @@ export default class AriaOption implements Widget {
         this.component = document.createElement('div');
         this.component.role = 'option';
         this.component.setAttribute('aria-selected', 'false');
+        this.component.tabIndex = -1;
         this.label = document.createElement('span');
         this.label.textContent = label || '';
     }

@@ -218,26 +218,6 @@ export default class Combobox {
         if (this.activateOptionCallback) this.activateOptionCallback(value);
     }
 
-    getComboboxLabel() {
-        return this.comboboxLabel;
-    }
-
-    getComboboxElement() {
-        return filterBox.inputLabelPair.input;
-    }
-
-    getListboxElement() {
-        return this.listboxElement;
-    }
-
-    getComboboxArrowButton() {
-        return this.comboboxArrowButton;
-    }
-
-    getclearButton() {
-        return this.clearButton;
-    }
-
     /**
      * 
      * @param {Function(combobox value)} callback passes the combobox value and activates when activating an option

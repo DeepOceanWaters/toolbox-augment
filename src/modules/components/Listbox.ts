@@ -24,7 +24,6 @@ export default class Listbox implements Widget {
         if (hideLabel) this.label.classList.add('sr-only');
 
         this.listbox = this.createListbox();
-        this.listbox.addEventListener('keydown', (e) => this.optionKeyRouter(e));
 
         this.options = new MutableList(
             options.map(o => {
@@ -43,6 +42,8 @@ export default class Listbox implements Widget {
         this.listbox.append(
             ...this.options.mutatedItems.map(i => i.render())
         )
+
+        this.listbox.addEventListener('keydown', (e) => this.optionKeyRouter(e));
     }
 
     private createListbox() {
@@ -54,14 +55,15 @@ export default class Listbox implements Widget {
         return listbox;
     }
 
-    optionKeyRouter(e) {
-        let currentOption = e.target;
+    optionKeyRouter(e: KeyboardEvent) {
+        let currentOption = e.target as unknown as AriaOption;
         // choose non-hidden options, and filter out any other options
         // that aren't visible
         let options = this.options.mutatedItems;
         let currentIndex = options.indexOf(currentOption);
-        let nextFocus, nextIndex;
-        let direction;
+        let nextFocus: AriaOption; 
+        let nextIndex: number;
+        let direction: -1 | 1;
         switch (e.key) {
             case 'ArrowDown':
                 direction = 1;
@@ -78,7 +80,7 @@ export default class Listbox implements Widget {
                 return;
         }
         e.preventDefault();
-        nextFocus.focus();
+        nextFocus.component.focus();
     }
 
     render() {
