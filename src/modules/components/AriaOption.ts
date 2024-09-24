@@ -1,14 +1,15 @@
-export default class AriaOption implements Widget {
+export default class AriaOption extends Component {
     component: HTMLDivElement;
     label: HTMLSpanElement;
 
-    constructor(label?: string) {
-        this.component = document.createElement('div');
+    constructor(label: string) {
+        super('div');
         this.component.role = 'option';
         this.component.setAttribute('aria-selected', 'false');
         this.component.tabIndex = -1;
+
         this.label = document.createElement('span');
-        this.label.textContent = label || '';
+        this.label.textContent = label;
     }
 
     /**
@@ -17,22 +18,19 @@ export default class AriaOption implements Widget {
      */
     toggleSelection(): boolean {
         let selected = this.component.getAttribute('aria-selected') === 'true';
-        this.setSelected(!selected);
+        this.component
         return !selected;
     }
 
-    /**
-     * set the aria-selected attribute
-     */
-    setSelected(selected: boolean): void {
+    private setSelected(selected: boolean) {
         this.component.setAttribute('aria-selected', String(selected));
     }
 
-    /**
-     * 
-     * @returns the current aria-selected state
-     */
-    getSelected(): boolean {
+    set selected(selected: boolean) {
+        this.setSelected(selected);
+    }
+
+    get selected(): boolean {
         return this.component.getAttribute('aria-selected') === 'true';
     }
 

@@ -7,11 +7,11 @@ interface listboxOptions {
     hideLabel: boolean
 }
 
-export default class Listbox implements Widget {
+export default class Listbox implements ComponentItems, Widget {
     component: HTMLDivElement;
     label: HTMLSpanElement;
-    options: MutableList<AriaOption>;
     listbox: HTMLDivElement;
+    items: AriaOption[];
 
     constructor(
         label: string, 
@@ -25,13 +25,7 @@ export default class Listbox implements Widget {
 
         this.listbox = this.createListbox();
 
-        this.options = new MutableList(
-            options.map(o => {
-                let option = new AriaOption(o);
-                option.component.tabIndex = -1;
-                return option;
-            })
-        );
+        this.items = options.map(o => new AriaOption(o));
 
         this.component = document.createElement('div');
         this.component.classList.add('listbox-container');
@@ -40,7 +34,7 @@ export default class Listbox implements Widget {
             this.listbox
         );
         this.listbox.append(
-            ...this.options.mutatedItems.map(i => i.render())
+            ...this.items.map(i => i.component)
         )
 
         this.listbox.addEventListener('keydown', (e) => this.optionKeyRouter(e));
