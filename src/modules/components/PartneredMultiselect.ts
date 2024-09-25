@@ -1,6 +1,6 @@
 import includesCaseInsensitive from "../includesCaseInsensitive.js";
 import { spoofOptionSelected } from "../spoofUserInput.js";
-import CheckboxWidget from "./CheckboxWidget.js";
+import CheckboxWidget from "./Checkbox.js";
 import FilterabMultiselect from "./FilterableMultiselect.js";
 
 

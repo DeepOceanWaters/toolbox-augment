@@ -10,6 +10,8 @@ export default class AriaOption extends Component {
 
         this.label = document.createElement('span');
         this.label.textContent = label;
+
+        this.component.appendChild(this.label);
     }
 
     /**
@@ -18,7 +20,7 @@ export default class AriaOption extends Component {
      */
     toggleSelection(): boolean {
         let selected = this.component.getAttribute('aria-selected') === 'true';
-        this.component
+        this.setSelected(!selected);
         return !selected;
     }
 

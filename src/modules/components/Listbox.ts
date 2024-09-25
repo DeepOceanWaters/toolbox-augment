@@ -1,16 +1,8 @@
 import generateUniqueId from "../idGenerator.js";
-import { classPrefix } from "../../data/prefixes.js";
-import MutableList from "./MutableList.js";
 import AriaOption from "./AriaOption.js";
 
-interface listboxOptions {
-    hideLabel: boolean
-}
-
-export default class Listbox implements ComponentItems, Widget {
-    component: HTMLDivElement;
+export default class Listbox extends Component implements ComponentItems {
     label: HTMLSpanElement;
-    listbox: HTMLDivElement;
     items: AriaOption[];
 
     constructor(
@@ -18,6 +10,7 @@ export default class Listbox implements ComponentItems, Widget {
         options: string[], 
         { hideLabel = true }: { hideLabel?: boolean } 
     ) {
+        super('div');
         this.label = document.createElement('span');
         this.label.textContent = label;
         this.label.id = generateUniqueId();
@@ -35,9 +28,7 @@ export default class Listbox implements ComponentItems, Widget {
         );
         this.listbox.append(
             ...this.items.map(i => i.component)
-        )
-
-        this.listbox.addEventListener('keydown', (e) => this.optionKeyRouter(e));
+        );
     }
 
     private createListbox() {
@@ -49,38 +40,9 @@ export default class Listbox implements ComponentItems, Widget {
         return listbox;
     }
 
-    optionKeyRouter(e: KeyboardEvent) {
-        let currentOption = e.target as unknown as AriaOption;
-        // choose non-hidden options, and filter out any other options
-        // that aren't visible
-        let options = this.options.mutatedItems;
-        let currentIndex = options.indexOf(currentOption);
-        let nextFocus: AriaOption; 
-        let nextIndex: number;
-        let direction: -1 | 1;
-        switch (e.key) {
-            case 'ArrowDown':
-                direction = 1;
-                nextIndex = (currentIndex + 1);
-            case 'ArrowUp':
-                // if next index is set 
-                // (aka arrow down was hit), don't set it
-                direction ??= -1;
-                nextIndex ??= (options.length + currentIndex - 1);
-                nextIndex %= options.length;
-                nextFocus = options[nextIndex];
-                break;
-            default:
-                return;
-        }
-        e.preventDefault();
-        nextFocus.component.focus();
-    }
-
     render() {
-        this.options.mutate();
         this.listbox.append(
-            ...this.options.mutatedItems.map(i => i.render())
+            ...this.items.map(i => i.component)
         )
         return this.component;
     }

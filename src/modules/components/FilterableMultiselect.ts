@@ -1,5 +1,5 @@
 import includesCaseInsensitive from '../includesCaseInsensitive.js';
-import CheckboxWidget from './CheckboxWidget.js';
+import CheckboxWidget from './Checkbox.js';
 import Fieldset from './Fieldset.js';
 import FilterBox from './FilterBox.js';
 import MutableList from './MutableList.js';

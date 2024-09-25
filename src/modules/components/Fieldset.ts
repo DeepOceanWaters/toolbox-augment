@@ -1,29 +1,24 @@
-export default class Fieldset implements Widget {
-    component: HTMLFieldSetElement;
+export default class Fieldset extends Component implements ComponentItems {
     legend: HTMLLegendElement;
     visualLabel: HTMLSpanElement;
+    items: Component[];
 
     constructor(label: string) {
-        this.component = document.createElement('fieldset');
+        super('fieldset');
         let legend = document.createElement('legend');
         let visualLabel = document.createElement('span');
     
         visualLabel.textContent = label;
+        visualLabel.setAttribute('aria-hidden', 'true');
+
         legend.textContent = label;
         legend.classList.add('sr-only');
-
-
         
         this.legend = legend;
         this.visualLabel = visualLabel;
-        this.render();
-    }
-
-    render() {
         this.component.prepend(
             this.legend,
             this.visualLabel
         );
-        return this.component;
     }
 }
