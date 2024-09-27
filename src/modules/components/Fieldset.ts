@@ -1,4 +1,4 @@
-export default class Fieldset extends Component implements ComponentItems {
+export default class Fieldset extends Component implements HasItems<Component> {
     legend: HTMLLegendElement;
     visualLabel: HTMLSpanElement;
     items: Component[];

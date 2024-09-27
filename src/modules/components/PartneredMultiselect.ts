@@ -1,39 +1,41 @@
 import includesCaseInsensitive from "../includesCaseInsensitive.js";
 import { spoofOptionSelected } from "../spoofUserInput.js";
 import CheckboxWidget from "./Checkbox.js";
+import CheckboxGroup from "./CheckboxGroup.js";
+import FilterableCheckboxGroup from "./FilterableCheckbox.js";
 import FilterabMultiselect from "./FilterableMultiselect.js";
 
 
-export default class PartneredMultiselect extends FilterabMultiselect {
+export default class PartneredCheckboxGroup extends CheckboxGroup {
     multiselect: HTMLSelectElement;
 
     constructor(multiselect: HTMLSelectElement) {
         let label = document.querySelector(`[for="${multiselect.id}"]`);
         let options = [...multiselect.querySelectorAll('option')];
 
-        super(label.textContent, options.map(o => o.textContent));
+        super(options.map(o => o.textContent));
 
         this.multiselect = multiselect;
 
-        for (let checkboxWidget of this.checkboxWidgets.originalItems) {
+        for (let checkbox of this.items) {
             let option = options.find(
                 option => includesCaseInsensitive(
                     option.textContent, 
-                    checkboxWidget.textLabel.textContent
+                    checkbox.textLabel.textContent
                 )
             ) as HTMLOptionElement;
 
             let select = option.closest('select');
-            checkboxWidget.checkbox.addEventListener('change', (e) => {
-                if (select) spoofOptionSelected(select, option, checkboxWidget.checkbox.checked);
+            checkbox.pair.input.addEventListener('change', (e) => {
+                if (select) spoofOptionSelected(select, option, checkbox.pair.input.checked);
             });
         }
     }
 
     private getAssociatedCheckbox(option: HTMLOptionElement): CheckboxWidget | never {
-        for (let checkboxWidget of this.checkboxWidgets.originalItems) {
-            if (includesCaseInsensitive(option.textContent, checkboxWidget.textLabel.textContent)) {
-                return checkboxWidget;
+        for (let checkbox of this.items) {
+            if (includesCaseInsensitive(option.textContent, checkbox.textLabel.textContent)) {
+                return checkbox;
             }
         }
         throw new Error(`Could not find associated chekcbox for: ${option.textContent}`);
@@ -41,8 +43,8 @@ export default class PartneredMultiselect extends FilterabMultiselect {
 
     realign() {
         for (let option of [...this.multiselect.options]) {
-            let checkboxWidget = this.getAssociatedCheckbox(option);
-            checkboxWidget.checkbox.checked = option.selected;
+            let checkbox = this.getAssociatedCheckbox(option);
+            checkbox.pair.input.checked = option.selected;
         }
     }
 

@@ -1,14 +1,12 @@
 type GConstructor<T = {}> = new (...args: any[]) => T;
 
-interface HasItems {
-    items: any[];
+interface HasItems<T> {
+    items: T[];
+
+    update(): void;
 }
 
-interface ComponentItems extends HasItems {
-    items: Component[];
-}
-
-class Component {
+abstract class Component {
     component: HTMLElement;
 
     // make tagName an enum of HTMLTags
@@ -21,17 +19,16 @@ class Component {
     }
 
     render() {
-
+        return this.component;
     }
 }
 
-type Itemable = GConstructor<HasItems>;
-type ComponentItemable = GConstructor<ComponentItems>;
-
+type Itemable = GConstructor<HasItems<any>>;
+type ComponentItemable = GConstructor<HasItems<Component>>;
 
 
 // test
-
+/*
 class CustomListItem extends Component {
     constructor(name: string) {
         super();
@@ -63,4 +60,4 @@ class CustomList extends Component implements HasItems {
 const MutableCustomList = Mutable(CustomList);
 const KeyboardNavigableMutableCustomList = KeyboardNavigable(Mutable(CustomList));
 
-let list  = new KeyboardNavigableMutableCustomList(['a', 'b', '2', '56', 'a4', 'jerry']);
+let list  = new KeyboardNavigableMutableCustomList(['a', 'b', '2', '56', 'a4', 'jerry']);*/

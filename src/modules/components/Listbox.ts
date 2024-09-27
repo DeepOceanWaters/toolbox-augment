@@ -1,7 +1,7 @@
 import generateUniqueId from "../idGenerator.js";
 import AriaOption from "./AriaOption.js";
 
-export default class Listbox extends Component implements ComponentItems {
+export default class Listbox extends Component implements HasItems<Component> {
     label: HTMLSpanElement;
     items: AriaOption[];
 
@@ -16,7 +16,7 @@ export default class Listbox extends Component implements ComponentItems {
         this.label.id = generateUniqueId();
         if (hideLabel) this.label.classList.add('sr-only');
 
-        this.listbox = this.createListbox();
+        this.createListbox();
 
         this.items = options.map(o => new AriaOption(o));
 
@@ -24,24 +24,23 @@ export default class Listbox extends Component implements ComponentItems {
         this.component.classList.add('listbox-container');
         this.component.append(
             this.label,
-            this.listbox
+            this.component
         );
-        this.listbox.append(
+        this.component.append(
             ...this.items.map(i => i.component)
         );
     }
 
     private createListbox() {
-        let listbox: HTMLDivElement = document.createElement('div');
+        let listbox = this.component;
         listbox.id = generateUniqueId();
         listbox.classList.add('listbox');
         listbox.setAttribute('aria-labelledby', this.label.id);
         listbox.setAttribute('role', 'listbox');
-        return listbox;
     }
 
     render() {
-        this.listbox.append(
+        this.component.append(
             ...this.items.map(i => i.component)
         )
         return this.component;

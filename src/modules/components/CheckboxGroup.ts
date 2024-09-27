@@ -2,6 +2,8 @@ import Checkbox from "./Checkbox";
 import Fieldset from "./Fieldset";
 
 export default class CheckboxGroup extends Fieldset {
+    items: Checkbox[];
+    
     constructor(checkboxes: Checkbox[] | string[]) {
         super('fieldset');
         if (checkboxes.length <= 0) { 

@@ -1,7 +1,7 @@
 function KeyboardNavigable<TBase extends ComponentItemable> (Base: TBase) {
     return class KeyboardNavigable extends Base {
         constructor(...args: any[]) {
-            super();
+            super(...args);
             for(let item of this.items) {
                 item.component.tabIndex = -1;
                 item.component.addEventListener('keydown', (e) => this.optionKeyRouter(e));
