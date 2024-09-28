@@ -39,6 +39,10 @@ export default class Listbox extends Component implements HasItems<Component> {
         listbox.setAttribute('role', 'listbox');
     }
 
+    focus() {
+        this.items[0].focus();
+    }
+
     render() {
         this.component.append(
             ...this.items.map(i => i.component)

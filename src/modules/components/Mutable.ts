@@ -6,6 +6,7 @@ interface MutableItems<T> extends HasItems<T> {
 
     addMutator(mutator: mutator): void;
     removeMutator(mutator: mutator): void;
+    update(): void;
 }
 
 function Mutable<TBase extends Itemable> (Base: TBase) {
@@ -28,11 +29,11 @@ function Mutable<TBase extends Itemable> (Base: TBase) {
         }
 
         update() {
-            super.update();
             this.items = [...this.originalItems];
             for(let mutator of this.mutators) {
                 this.items = mutator(this.items);
             }
+            super.update();
         }
     }
 }

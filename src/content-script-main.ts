@@ -1,10 +1,10 @@
 import includesCaseInsensitive from "./modules/includesCaseInsensitive.js";
 import { setQuillEditorText, spoofOptionSelected, spoofUpdateTextareaValue } from "./modules/spoofUserInput.js";
 import { getPossibleTokens, getRecommendation } from "./modules/replaceTokens.js";
-import Combobox from "./modules/combobox.js";
+import Combobox from "./modules/components/Combobox.js";
 import { successCriteria } from "./data/successCriteria.js";
 import { issueTemplate } from "./data/tokens.js";
-import PartneredMultiselect from "./modules/components/PartneredMultiselect.js";
+import FilterableMultiselect from "./modules/components/FilterableMultiselect.js";
 
 
 export default function main() {
@@ -24,9 +24,9 @@ export default function main() {
 
 
 
-        let pagesPartneredMultiselect: PartneredMultiselect;
-        let scPartneredMultiselect: PartneredMultiselect;
-        let statesPartneredMultiselect: PartneredMultiselect;
+        let pagesPartneredMultiselect: FilterableMultiselect;
+        let scPartneredMultiselect: FilterableMultiselect;
+        let statesPartneredMultiselect: FilterableMultiselect;
 
         main();
 
@@ -271,25 +271,26 @@ export default function main() {
 
 
             let possibleTokens = getPossibleTokens();
-            let combobox = new Combobox('Issue Template', 'Issue Templates', possibleTokens);
+            let combobox = new Combobox('Issue Template', possibleTokens);
             combobox.setActivateOptionCallback(async () => {
                 let { text: text, template: template }: { text: string, template: issueTemplate }
-                    = getRecommendation(combobox.getComboboxElement().value);
+                    = getRecommendation(combobox.combobox.input.value);
 
                 // set success criteria
                 for (let sc of template.relatedsc) {
                     let checkbox =
                         scPartneredMultiselect
-                            .checkboxWidgets
+                            .checkboxGroup
                             .originalItems
                             .find(
-                                (checkboxWidget) => includesCaseInsensitive(checkboxWidget.textLabel.textContent!, sc)
+                                (checkbox) => includesCaseInsensitive(checkbox.textLabel.textContent!, sc)
                             )!
-                            .checkbox;
-                    if (!checkbox.checked) checkbox.click();
-                    if (!scPartneredMultiselect.showOnlyCheckbox.checkbox.checked) {
-                        scPartneredMultiselect.showOnlyCheckbox.checkbox.click();
-                        scPartneredMultiselect.render();
+                            .input;
+                    if (!checkbox.checked) {
+                        checkbox.click();
+                    }
+                    if (!scPartneredMultiselect.showOnlyCheckbox.input.checked) {
+                        scPartneredMultiselect.showOnlyCheckbox.input.click();
                     }
                 }
 
@@ -342,11 +343,7 @@ export default function main() {
                 }
             });
             issueTemplateContainer.append(
-                combobox.getComboboxLabel(),
-                combobox.getComboboxElement(),
-                combobox.getComboboxClearButton(),
-                combobox.getComboboxArrowButton(),
-                combobox.getListboxElement()
+                combobox.component
             );
             issueTemplateContainer.classList.add('combobox-widget');
 
@@ -357,16 +354,15 @@ export default function main() {
 
 
         async function replaceMultiselects(): Promise<{
-            pagesPartneredMultiselect: PartneredMultiselect,
-            scPartneredMultiselect: PartneredMultiselect,
-            statesPartneredMultiselect: PartneredMultiselect
+            pagesPartneredMultiselect: FilterableMultiselect,
+            scPartneredMultiselect: FilterableMultiselect,
+            statesPartneredMultiselect: FilterableMultiselect
         }> {
-            const createPartneredMultiselect = (id: string): PartneredMultiselect => {
+            const createPartneredMultiselect = (id: string): FilterableMultiselect => {
                 let multiselect = document.getElementById(id) as HTMLSelectElement;
-                let filterableMultiselect = new PartneredMultiselect(multiselect);
-                //addKeyboardNavigation(filterableMultiselect);
+                let filterableMultiselect = new FilterableMultiselect(multiselect);
                 multiselect.parentElement.insertBefore(
-                    filterableMultiselect.render(),
+                    filterableMultiselect.component,
                     multiselect
                 );
                 return filterableMultiselect;
@@ -387,23 +383,23 @@ export default function main() {
             let pagesPartneredMultiselect = createPartneredMultiselect(pagesId);
             // replace success criteria multiselect
             let scPartneredMultiselect = createPartneredMultiselect(scId);
-            scPartneredMultiselect.checkboxWidgets.originalItems.sort(
+            scPartneredMultiselect.checkboxGroup.originalItems.sort(
                 (a, b) => {
                     let regex = /(\d+)\.(\d+)\.(\d+)/i;
-                    let [aMatch, a1, a2, a3] = a.inputPair.label.textContent.match(regex);
-                    let [bMatch, b1, b2, b3] = b.inputPair.label.textContent.match(regex);
+                    let [aMatch, a1, a2, a3] = a.textLabel.textContent.match(regex);
+                    let [bMatch, b1, b2, b3] = b.textLabel.textContent.match(regex);
                     let aNums = [a1, a2, a3];
                     let bNums = [b1, b2, b3];
                     for (let i = 0; i < 3; i++) {
                         let aNum = Number(aNums[i]);
                         let bNum = Number(bNums[i]);
-                        if (aNum === 0) return 1;
+                        if (aNum === 0) continue;
                         if (aNum > bNum) return 1;
                         if (aNum < bNum) return -1;
                     }
                     return 0;
                 });
-            scPartneredMultiselect.render();
+            scPartneredMultiselect.update();
             // replace states multiselect
             let statesPartneredMultiselect = createPartneredMultiselect(statesId);
             // add success criteria description updater
@@ -414,19 +410,18 @@ export default function main() {
                     .getElementById(successCriteriaDescEditorId)
                     .querySelector('.ql-editor') as HTMLElement;
             scPartneredMultiselect
-                .checkboxContainer
+                .checkboxGroup
+                .component
                 .addEventListener('change', (e) => {
                     let issuesDescriptions =
                         scPartneredMultiselect
-                            .checkboxWidgets
+                            .checkboxGroup
                             .originalItems
-                            .filter(cw => cw.inputPair.input.checked)
-                            .map(cw => {
+                            .filter(checkbox => checkbox.input.checked)
+                            .map(checkbox => {
                                 let num =
-                                    cw
-                                        .inputPair
-                                        .label
-                                        .querySelector('span')
+                                    checkbox
+                                        .textLabel
                                         .textContent
                                         .match(/\d+\.\d+\.\d+/gi)[0];
                                 return `${num} - ${successCriteria[num].description}`;
@@ -456,18 +451,18 @@ export default function main() {
                     statesPartneredMultiselect
                 ];
                 for (let partneredMultiselect of pMultiselects) {
-                    partneredMultiselect.realign();
+                    partneredMultiselect.checkboxGroup.realign();
                     let showOnlyCheckbox =
                         partneredMultiselect
                             .showOnlyCheckbox
-                            .checkbox;
+                            .input;
                     if (showOnlyCheckbox.checked) {
                         showOnlyCheckbox.click();
                     }
                     if (["Edit Issue", "Copy Issue"].includes(button.title)) {
                         showOnlyCheckbox.click();
                     }
-                    partneredMultiselect.render();
+                    partneredMultiselect.update();
                 }
             });
             // return 
@@ -510,61 +505,6 @@ export default function main() {
             document.head.appendChild(element);
             return element;
         }
-
-        /* #region getAuditData */
-        /*
-                function getAuditData() {
-                    let audit = {
-                        id: -1,
-                        columnHeaders: [],
-                        rows: {}
-                    };
-                    audit.columnHeaders = getColumnHeaders();
-                    audit.rows = getAllRowValues();
-        
-                    return audit;
-                }
-        
-                function getColumnHeaders() {
-                    let table = document.querySelector('table.issues-table');
-                    let tbody = table.querySelector('tbody');
-        
-                    let rows = tbody.querySelectorAll('tr');
-                    let row = rows[0];
-                    let columnHeaders = getRowInfo(row, (cell) => cell.dataset.key);
-                    return columnHeaders;
-                }
-        
-                function getAllRowValues() {
-                    let table = document.querySelector('table.issues-table');
-                    let tbody = table.querySelector('tbody');
-        
-                    let rows = tbody.querySelectorAll('tr');
-                    let rowsOfValues = {};
-                    for (const row of rows) {
-                        let rowValues = getRowValues(row);
-                        rowsOfValues[rowValues.id] = rowValues;
-                    }
-                    return rowsOfValues;
-                }
-        
-                function getRowValues(row) {
-                    return getRowInfo(row, (cell) => cell.children.item(0).children.item(0).innerHTML);
-                }
-        
-                function getRowInfo(row, callback) {
-                    let outputRow = {};
-                    for (let i = 0; i < row.children.length; i++) {
-                        let cell = row.children.item(i);
-                        let value = callback(cell);
-                        outputRow[cell.dataset.key] = htmlUnescape(value);
-                    }
-                    return outputRow;
-                }
-        */
-        /* #endregion */
-
-
 
     })();
 }

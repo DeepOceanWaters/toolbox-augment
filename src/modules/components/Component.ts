@@ -6,7 +6,7 @@ interface HasItems<T> {
     update(): void;
 }
 
-abstract class Component {
+class Component {
     component: HTMLElement;
 
     // make tagName an enum of HTMLTags
@@ -18,6 +18,10 @@ abstract class Component {
 
     }
 
+    focus() {
+        this.component.focus();
+    }
+
     render() {
         return this.component;
     }
@@ -25,39 +29,3 @@ abstract class Component {
 
 type Itemable = GConstructor<HasItems<any>>;
 type ComponentItemable = GConstructor<HasItems<Component>>;
-
-
-// test
-/*
-class CustomListItem extends Component {
-    constructor(name: string) {
-        super();
-        this.component = document.createElement('li');
-        this.component.textContent = name;
-    }
-}
-
-class CustomList extends Component implements HasItems {
-    items: CustomListItem[] = [];
-
-    constructor(items: string[]) {
-        super('ul')
-        this.items = items.map(i => new CustomListItem('hello'));
-    }
-
-    update () {
-
-    }
-
-    render() {
-        this.component.append(
-            ...this.items.map(i => i.component)
-        );
-        return this.component;
-    }
-}
-
-const MutableCustomList = Mutable(CustomList);
-const KeyboardNavigableMutableCustomList = KeyboardNavigable(Mutable(CustomList));
-
-let list  = new KeyboardNavigableMutableCustomList(['a', 'b', '2', '56', 'a4', 'jerry']);*/

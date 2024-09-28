@@ -1,6 +1,5 @@
-import includesCaseInsensitive from "../includesCaseInsensitive";
-import CheckboxGroup from "./CheckboxGroup";
-import InputLabelPair from "./InputLabelPair";
+import includesCaseInsensitive from "../includesCaseInsensitive.js";
+import InputLabelPair from "./InputLabelPair.js";
 
 type MutableComponents = GConstructor<MutableItems<Component>>;
 
@@ -55,36 +54,4 @@ export default function TextFilterable<TBase extends MutableComponents>(Base: TB
             return this._filter;
         }
     }
-}
-
-export function connectFiltererAndItems(
-    textInput: TextInput, 
-    items: MutableComponents, 
-    componentToText: (a: Component) => string = (a) => a.component.textContent) {
-            throttle = 20;
-            this.addFilterEvents();
-
-            let filter = 
-                (items) => items.filter(
-                    (item) => {
-                        return this.filterInput.value === ''
-                            || includesCaseInsensitive(
-                                item.component.textContent,
-                                textInput.input.value)
-                    }
-                );
-
-            this.mutators.push(this.filter);
-
-            this.filterInput.addEventListener('input', (e) => {
-                let timeout = window[`${this.filterInput.id}-filtering`];
-                if (timeout) {
-                    clearTimeout(timeout);
-                }
-                window[`${this.filterInput.id}-filtering`] = setTimeout(
-                    () => this.update(),
-                    this.throttle
-                );
-            });
-        }
 }

@@ -2,8 +2,6 @@ import includesCaseInsensitive from "../includesCaseInsensitive.js";
 import { spoofOptionSelected } from "../spoofUserInput.js";
 import CheckboxWidget from "./Checkbox.js";
 import CheckboxGroup from "./CheckboxGroup.js";
-import FilterableCheckboxGroup from "./FilterableCheckbox.js";
-import FilterabMultiselect from "./FilterableMultiselect.js";
 
 
 export default class PartneredCheckboxGroup extends CheckboxGroup {
@@ -13,7 +11,7 @@ export default class PartneredCheckboxGroup extends CheckboxGroup {
         let label = document.querySelector(`[for="${multiselect.id}"]`);
         let options = [...multiselect.querySelectorAll('option')];
 
-        super(options.map(o => o.textContent));
+        super(label.textContent, options.map(o => o.textContent));
 
         this.multiselect = multiselect;
 
@@ -26,8 +24,8 @@ export default class PartneredCheckboxGroup extends CheckboxGroup {
             ) as HTMLOptionElement;
 
             let select = option.closest('select');
-            checkbox.pair.input.addEventListener('change', (e) => {
-                if (select) spoofOptionSelected(select, option, checkbox.pair.input.checked);
+            checkbox.input.addEventListener('change', (e) => {
+                if (select) spoofOptionSelected(select, option, checkbox.input.checked);
             });
         }
     }
@@ -44,7 +42,7 @@ export default class PartneredCheckboxGroup extends CheckboxGroup {
     realign() {
         for (let option of [...this.multiselect.options]) {
             let checkbox = this.getAssociatedCheckbox(option);
-            checkbox.pair.input.checked = option.selected;
+            checkbox.input.checked = option.selected;
         }
     }
 

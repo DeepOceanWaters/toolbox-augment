@@ -30,7 +30,7 @@ function KeyboardNavigable<TBase extends ComponentItemable> (Base: TBase) {
                 default:
                     return;
             }
-            nextFocus.component.focus();
+            nextFocus.focus();
             e.preventDefault();
         }
 

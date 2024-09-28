@@ -1,11 +1,11 @@
-import Checkbox from "./Checkbox";
-import Fieldset from "./Fieldset";
+import Checkbox from "./Checkbox.js";
+import Fieldset from "./Fieldset.js";
 
 export default class CheckboxGroup extends Fieldset {
     items: Checkbox[];
     
-    constructor(checkboxes: Checkbox[] | string[]) {
-        super('fieldset');
+    constructor(label:string, checkboxes: Checkbox[] | string[]) {
+        super(label);
         if (checkboxes.length <= 0) { 
             throw new Error("Cannot initialize CheckboxGroup with empty array.");
         }
@@ -17,5 +17,12 @@ export default class CheckboxGroup extends Fieldset {
         else {
             this.items = checkboxes as Checkbox[];
         }
+    }
+
+    update(): void {
+        this.component.append(
+            ...this.items.map(i => i.component)
+        );
+        super.update();
     }
 }

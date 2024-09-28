@@ -1,14 +1,19 @@
 // @ts-nocheck
 import generateUniqueId from "../idGenerator.js";
+import AriaOption from "./AriaOption.js";
 import FilterBox from "./FilterBox.js";
 import Listbox from "./Listbox.js";
+import TextInput from "./TextInput.js";
 
-export default class Combobox {
+const KMListbox = KeyboardNavigable(Mutable(Listbox));
+type KMListbox = MutableItems<AriaOption> & Listbox;
+
+export default class Combobox extends Component {
     alwaysVisible: boolean;
-    filterBox: FilterBox;
-    listbox: Listbox;
-
-
+    combobox: TextInput;
+    listbox: KMListbox;
+    clearButton?: HTMLButtonElement;
+    arrowButton?: HTMLButtonElement;
 
     constructor(
         label: string,
@@ -17,10 +22,13 @@ export default class Combobox {
             alwaysVisible?: boolean
         }
     ) {
+        super('div');
         this.alwaysVisible = !!(args?.alwaysVisible);
 
-        this.listbox = new Listbox(options);
+        this.listbox = new KMListbox(options);
         this.listbox.component.hidden = true;
+
+        this.combobox = new TextInput(label);
 
         setupComboboxElement();
 
@@ -37,13 +45,19 @@ export default class Combobox {
         this.selectOnly = selectOnly;
 
         this.addEventListeners();
+
+        this.component.append(
+            this.combobox.component,
+            this.clearButton,
+            this.arrowButton,
+            this.listbox.component
+        );
     }
 
     setupComboboxElement() {
-        this.filterBox.type = 'text';
-        this.filterBox.setAttribute('role', 'combobox');
-        this.filterBox.setAttribute('aria-controls', this.listbox.component.id);
-        this.filterBox.setAttribute('aria-expanded', 'false');
+        this.combobox.setAttribute('role', 'combobox');
+        this.combobox.setAttribute('aria-controls', this.listbox.component.id);
+        this.combobox.setAttribute('aria-expanded', 'false');
         if (!this.selectOnly) {
             this.filterBox.setAttribute('aria-autocomplete', autocomplete);
         }
@@ -143,10 +157,7 @@ export default class Combobox {
             case 'ArrowDown':
                 this.toggleListbox(true);
                 e.preventDefault();
-                if (this.listboxElement.tagName === 'SELECT') {
-                    this.listboxElement.querySelector(':is([role="option"], option):not([hidden])')
-                }
-                this.listboxElement.querySelector(':is([role="option"], option):not([hidden])').focus();
+                this.listbox.focus();
                 return;
             case 'Control':
             case 'Escape':
@@ -198,12 +209,12 @@ export default class Combobox {
 
     toggleListbox(visibility) {
         if (this.alwaysVisibile) return;
-        let expanded = filterBox.inputLabelPair.input.getAttribute('aria-expanded') === 'true';
+        let expanded = this.combobox.input.getAttribute('aria-expanded') === 'true';
         if (visibility !== undefined) {
             expanded = !visibility;
         }
-        this.listboxElement.hidden = expanded;
-        filterBox.inputLabelPair.input.setAttribute('aria-expanded', !expanded);
+        this.listbox.component.hidden = expanded;
+        this.combobox.input.setAttribute('aria-expanded', !expanded);
         this.positionListbox();
         return !expanded;
     }
@@ -211,9 +222,9 @@ export default class Combobox {
     activateOption(option) {
         if (this.alwaysVisibile) return;
         let value = option.textContent;
-        this.filterBox.inputLabelPair.input.value = value;
-        this.filterBox.inputLabelPair.input.focus();
-        this.clearButton.dataset.emptyValue = filterBox.inputLabelPair.input.value === '';
+        this.combobox.input.value = value;
+        this.combobox.inputLabelPair.input.focus();
+        this.clearButton.dataset.emptyValue = this.combobox.input.value === '';
         this.toggleListbox(false);
         if (this.activateOptionCallback) this.activateOptionCallback(value);
     }
