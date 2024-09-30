@@ -1,5 +1,6 @@
 import generateUniqueId from "../idGenerator.js";
 import AriaOption from "./AriaOption.js";
+import Component, { HasItems } from "./Component.js";
 
 export default class Listbox extends Component implements HasItems<Component> {
     label: HTMLSpanElement;

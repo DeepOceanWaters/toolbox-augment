@@ -4,7 +4,7 @@ import Fieldset from "./Fieldset.js";
 export default class CheckboxGroup extends Fieldset {
     items: Checkbox[];
     
-    constructor(label:string, checkboxes: Checkbox[] | string[]) {
+    constructor(label: string, checkboxes: Checkbox[] | string[]) {
         super(label);
         if (checkboxes.length <= 0) { 
             throw new Error("Cannot initialize CheckboxGroup with empty array.");
@@ -20,6 +20,7 @@ export default class CheckboxGroup extends Fieldset {
     }
 
     update(): void {
+        this.component.innerHTML = '';
         this.component.append(
             ...this.items.map(i => i.component)
         );

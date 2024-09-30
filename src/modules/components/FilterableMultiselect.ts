@@ -1,4 +1,8 @@
+import includesCaseInsensitive from "../includesCaseInsensitive.js";
 import Checkbox from "./Checkbox.js";
+import Component from "./Component.js";
+import KeyboardNavigable from "./KeyboardNavigable.js";
+import Mutable, { MutableItems } from "./Mutable.js";
 import PartneredCheckboxGroup from "./PartneredMultiselect.js";
 import TextInput from "./TextInput.js";
 
@@ -14,13 +18,15 @@ export default class FilterableMultiselect extends Component {
 
     constructor(multiselect: HTMLSelectElement, removeCheckboxesFromFocus: boolean = false) {
         let multiselectName = document.querySelector(`label[for="${multiselect.id}"]`).textContent;
+        
 
         super('div');
+        this.checkboxGroup = new KMPCG(multiselect);
+
         this.heading = document.createElement('h3');
+        this.heading.textContent = multiselectName;
 
         this.createFilterer(multiselectName);
-
-        this.checkboxGroup = new KMPCG(multiselect);
 
         this.createShowOnly();
 
@@ -63,6 +69,11 @@ export default class FilterableMultiselect extends Component {
                 throttle
             );
         });
+        this.checkboxGroup.addMutator(
+            (checkboxes) => checkboxes.filter(
+                (c) => includesCaseInsensitive(c.textLabel.textContent, this.filterer.input.value)
+            )
+        );
     }
 
     update() {

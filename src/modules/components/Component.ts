@@ -1,12 +1,12 @@
 type GConstructor<T = {}> = new (...args: any[]) => T;
 
-interface HasItems<T> {
+export interface HasItems<T> {
     items: T[];
 
     update(): void;
 }
 
-class Component {
+export default class Component {
     component: HTMLElement;
 
     // make tagName an enum of HTMLTags
@@ -27,5 +27,5 @@ class Component {
     }
 }
 
-type Itemable = GConstructor<HasItems<any>>;
-type ComponentItemable = GConstructor<HasItems<Component>>;
+export type Itemable = GConstructor<HasItems<any>>;
+export type ComponentItemable = GConstructor<HasItems<Component>>;

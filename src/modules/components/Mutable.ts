@@ -1,6 +1,8 @@
+import { HasItems, Itemable } from "./Component.js";
+
 type mutator = (a: any[]) => any[];
 
-interface MutableItems<T> extends HasItems<T> {
+export interface MutableItems<T> extends HasItems<T> {
     originalItems: T[];
     mutators: mutator[];
 
@@ -9,7 +11,7 @@ interface MutableItems<T> extends HasItems<T> {
     update(): void;
 }
 
-function Mutable<TBase extends Itemable> (Base: TBase) {
+export default function Mutable<TBase extends Itemable> (Base: TBase) {
     return class Mutable extends Base {
         originalItems: any[] = [];
         mutators: mutator[] = [];
@@ -29,6 +31,7 @@ function Mutable<TBase extends Itemable> (Base: TBase) {
         }
 
         update() {
+            if (this.originalItems.length === 0) this.originalItems = [...this.items];
             this.items = [...this.originalItems];
             for(let mutator of this.mutators) {
                 this.items = mutator(this.items);

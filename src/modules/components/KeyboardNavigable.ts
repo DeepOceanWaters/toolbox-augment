@@ -1,12 +1,16 @@
-function KeyboardNavigable<TBase extends ComponentItemable> (Base: TBase) {
+import Component, { ComponentItemable } from "./Component.js";
+
+export default function KeyboardNavigable<TBase extends ComponentItemable> (Base: TBase) {
     return class KeyboardNavigable extends Base {
+        _allowTabNavigation: boolean;
+
         constructor(...args: any[]) {
             super(...args);
             for(let item of this.items) {
                 item.component.tabIndex = -1;
                 item.component.addEventListener('keydown', (e) => this.optionKeyRouter(e));
             }
-            this.allowTabNavigation = false;
+            this._allowTabNavigation = false;
         }
 
         optionKeyRouter(e: KeyboardEvent) {
@@ -35,16 +39,16 @@ function KeyboardNavigable<TBase extends ComponentItemable> (Base: TBase) {
         }
 
         set allowTabNavigation(allowed: boolean) {
-            if (this.allowTabNavigation !== allowed) {
+            if (this._allowTabNavigation !== allowed) {
                 for (let item of this.items) {
                     item.component.tabIndex = allowed ? 0 : -1;
                 }
             }
-            this.allowTabNavigation = allowed;
+            this._allowTabNavigation = allowed;
         }
 
         get allowTabNavigation() {
-            return this.allowTabNavigation;
+            return this._allowTabNavigation;
         }
     }
 }

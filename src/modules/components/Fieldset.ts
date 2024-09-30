@@ -1,3 +1,5 @@
+import Component, { HasItems } from "./Component.js";
+
 export default class Fieldset extends Component implements HasItems<Component> {
     legend: HTMLLegendElement;
     visualLabel: HTMLSpanElement;
@@ -20,5 +22,7 @@ export default class Fieldset extends Component implements HasItems<Component> {
             this.legend,
             this.visualLabel
         );
+
+        this.items = [];
     }
 }

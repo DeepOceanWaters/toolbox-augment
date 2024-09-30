@@ -1,4 +1,5 @@
 import generateUniqueId from "../idGenerator.js";
+import Component from "./Component.js";
 
 export default class Disclosure extends Component {
     controller: HTMLButtonElement;

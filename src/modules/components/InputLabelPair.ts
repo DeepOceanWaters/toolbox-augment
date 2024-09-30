@@ -1,6 +1,7 @@
 import generateUniqueId from "../idGenerator.js";
+import Component from "./Component.js";
 
-export default class InputLabelPair extends Component{
+export default class InputLabelPair extends Component {
     input: HTMLInputElement;
     label: HTMLLabelElement;
     
