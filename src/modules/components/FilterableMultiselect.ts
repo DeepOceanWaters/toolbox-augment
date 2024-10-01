@@ -10,32 +10,47 @@ const KMPCG = KeyboardNavigable(Mutable(PartneredCheckboxGroup));
 type KMPCG = MutableItems<Checkbox> & PartneredCheckboxGroup;
 
 export default class FilterableMultiselect extends Component {
+    name: string;
     heading: HTMLHeadingElement;
     filterer: TextInput;
     showOnlyCheckbox: Checkbox;
     checkboxGroup: KMPCG;
+    filterGroup: HTMLDivElement;
     removeCheckboxesFromFocus: boolean;
 
     constructor(multiselect: HTMLSelectElement, removeCheckboxesFromFocus: boolean = false) {
-        let multiselectName = document.querySelector(`label[for="${multiselect.id}"]`).textContent;
-        
-
         super('div');
+        this.name = document.querySelector(`label[for="${multiselect.id}"]`).textContent;
+        
+        
         this.checkboxGroup = new KMPCG(multiselect);
+        this.checkboxGroup.component.classList.add('checkboxes-container', 'vertical');
 
         this.heading = document.createElement('h3');
-        this.heading.textContent = multiselectName;
+        this.heading.textContent = this.name;
 
-        this.createFilterer(multiselectName);
+        this.createFilterer(this.name);
 
         this.createShowOnly();
 
-        this.component.append(
-            this.heading,
-            this.showOnlyCheckbox.component,
+        this.filterGroup = document.createElement('div');
+        this.filterGroup.classList.add('filtering-group');
+        this.filterGroup.append(
             this.filterer.component,
             this.checkboxGroup.component
         );
+
+        this.component.classList.add('toolbox-augmentor', 'multiselect-group');
+        this.component.append(
+            this.heading,
+            this.showOnlyCheckbox.component,
+            this.filterGroup
+        );
+
+        this.checkboxGroup.component.addEventListener('keyup', (e) => {
+            if (e.key !== 'Escape') return;
+            this.filterer.input.focus();
+        });
     }
 
     private createShowOnly(): void {
@@ -68,6 +83,15 @@ export default class FilterableMultiselect extends Component {
                 () => this.update(),
                 throttle
             );
+        });
+        this.filterer.input.addEventListener('keyup', (e) => {
+            if (e.key !== 'ArrowDown') return;
+            let timeout = window[`${this.filterer.input.id}-filtering`];
+            if (timeout) {
+                clearTimeout(timeout);
+                this.update();
+            }
+            this.checkboxGroup.items[0].focus();
         });
         this.checkboxGroup.addMutator(
             (checkboxes) => checkboxes.filter(

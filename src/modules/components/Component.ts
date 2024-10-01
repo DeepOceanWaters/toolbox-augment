@@ -1,5 +1,11 @@
 type GConstructor<T = {}> = new (...args: any[]) => T;
 
+export enum FocusType {
+    UNFOCUSABLE,
+    TAB,
+    PROGRAMMATIC
+}
+
 export interface HasItems<T> {
     items: T[];
 
@@ -12,6 +18,18 @@ export default class Component {
     // make tagName an enum of HTMLTags
     constructor(tagName: string = 'div') {
         this.component = document.createElement(tagName);
+    }
+
+    setFocus(type: FocusType = FocusType.TAB) {
+        switch (type) {
+            case FocusType.TAB:
+                this.component.tabIndex = 0;
+                break;
+            case FocusType.UNFOCUSABLE:
+            case FocusType.PROGRAMMATIC:
+                this.component.tabIndex = -1;
+                break;
+        }
     }
 
     update() {

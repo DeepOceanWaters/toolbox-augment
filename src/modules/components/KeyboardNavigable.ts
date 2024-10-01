@@ -1,4 +1,4 @@
-import Component, { ComponentItemable } from "./Component.js";
+import Component, { ComponentItemable, FocusType } from "./Component.js";
 
 export default function KeyboardNavigable<TBase extends ComponentItemable> (Base: TBase) {
     return class KeyboardNavigable extends Base {
@@ -14,7 +14,7 @@ export default function KeyboardNavigable<TBase extends ComponentItemable> (Base
         }
 
         optionKeyRouter(e: KeyboardEvent) {
-            let currentOption = e.currentTarget as unknown as Component;
+            let currentOption = this.items.find((o) => o.component === e.currentTarget);
             let currentIndex = this.items.indexOf(currentOption);
             let nextFocus: Component; 
             let nextIndex: number;
@@ -41,7 +41,7 @@ export default function KeyboardNavigable<TBase extends ComponentItemable> (Base
         set allowTabNavigation(allowed: boolean) {
             if (this._allowTabNavigation !== allowed) {
                 for (let item of this.items) {
-                    item.component.tabIndex = allowed ? 0 : -1;
+                    item.setFocus(allowed ? FocusType.TAB : FocusType.PROGRAMMATIC);
                 }
             }
             this._allowTabNavigation = allowed;

@@ -1,3 +1,4 @@
+import { FocusType } from "./Component.js";
 import InputLabelPair from "./InputLabelPair.js";
 
 export default class Checkbox extends InputLabelPair {
@@ -21,6 +22,19 @@ export default class Checkbox extends InputLabelPair {
         this.component.append(
             this.label
         );
+    }
+
+    setFocus(type?: FocusType): void {
+        if (type === FocusType.TAB) {
+            this.input.removeAttribute('tabindex');
+        }
+        else {
+            this.input.setAttribute('tabindex', '-1');
+        }
+    }
+
+    focus(): void {
+        this.input.focus();
     }
 
     render() {
