@@ -5,6 +5,10 @@ export default class TextInput extends InputLabelPair {
         super();
         this.label.textContent = label;
         this.input.type = 'text';
+        this.component.append(
+            this.label,
+            this.input
+        );
     }
 
     static asFloatLabel(label: string): TextInput {

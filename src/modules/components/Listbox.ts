@@ -9,25 +9,21 @@ export default class Listbox extends Component implements HasItems<Component> {
     constructor(
         label: string, 
         options: string[], 
-        { hideLabel = true }: { hideLabel?: boolean } 
+        args?: { hideLabel?: boolean }
     ) {
         super('div');
         this.label = document.createElement('span');
         this.label.textContent = label;
         this.label.id = generateUniqueId();
-        if (hideLabel) this.label.classList.add('sr-only');
+        if (!!(args?.hideLabel)) this.label.classList.add('sr-only');
 
         this.createListbox();
 
         this.items = options.map(o => new AriaOption(o));
 
-        this.component = document.createElement('div');
         this.component.classList.add('listbox-container');
         this.component.append(
             this.label,
-            this.component
-        );
-        this.component.append(
             ...this.items.map(i => i.component)
         );
     }
@@ -38,6 +34,14 @@ export default class Listbox extends Component implements HasItems<Component> {
         listbox.classList.add('listbox');
         listbox.setAttribute('aria-labelledby', this.label.id);
         listbox.setAttribute('role', 'listbox');
+    }
+
+    update(): void {
+        this.component.innerHTML = '';
+        this.component.append(
+            this.label,
+            ...this.items.map(i => i.component)
+        );
     }
 
     focus() {

@@ -70,7 +70,7 @@ export default function main() {
                 scPartneredMultiselect: scPartneredMultiselect,
                 statesPartneredMultiselect: statesPartneredMultiselect
             } = await replaceMultiselects());
-            //addIssueTemplateSearch();
+            addIssueTemplateSearch();
         }
 
         function injectAllStyles() {

@@ -15,3 +15,20 @@ label[for="pages"] + label {
 .top-padder {
     height: 1.5rem;
 }
+
+/* changes Issue Number column from uuid (ex fj84f64asdf2) to the actual number */
+/* (relative to the current group, should try to get hundreds added later) */
+
+table {
+    counter-reset: issue_table;
+}
+
+
+td[data-key="issue_number"]::before {
+    counter-increment: issue_table;
+    content: counter(issue_table);
+    
+}
+td[data-key="issue_number"] span {
+        display: none;
+    }

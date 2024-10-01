@@ -1,8 +1,8 @@
 // @ts-nocheck
 import generateUniqueId from "../idGenerator.js";
+import includesCaseInsensitive from "../includesCaseInsensitive.js";
 import AriaOption from "./AriaOption.js";
 import Component from "./Component.js";
-import FilterBox from "./FilterBox.js";
 import KeyboardNavigable from "./KeyboardNavigable.js";
 import Listbox from "./Listbox.js";
 import Mutable, { MutableItems } from "./Mutable.js";
@@ -11,41 +11,51 @@ import TextInput from "./TextInput.js";
 const KMListbox = KeyboardNavigable(Mutable(Listbox));
 type KMListbox = MutableItems<AriaOption> & Listbox;
 
+export enum Autocomplete {
+    LISTBOX = 'listbox',
+    INLINE = 'inline',
+    BOTH = 'both'
+}
+
 export default class Combobox extends Component {
     alwaysVisible: boolean;
     combobox: TextInput;
     listbox: KMListbox;
     clearButton?: HTMLButtonElement;
     arrowButton?: HTMLButtonElement;
+    autocomplete: Autocomplete;
+    selectOnly: boolean;
 
     constructor(
         label: string,
         options: string[],
         args?: {
-            alwaysVisible?: boolean
+            alwaysVisible?: boolean,
+            autocomplete?: Autocomplete,
+            selectOnly?: boolean
         }
     ) {
         super('div');
+        this.selectOnly = !!(args?.selectOnly);
         this.alwaysVisible = !!(args?.alwaysVisible);
+        this.alwaysVisible = args?.autocomplete ? args.autocomplete : Autocomplete.LISTBOX;
 
-        this.listbox = new KMListbox(options);
+        this.listbox = new KMListbox(label, options);
         this.listbox.component.hidden = true;
-
-        this.combobox = new TextInput(label);
-
-        setupComboboxElement();
-
-        filterBox.inputLabelPair.input = this.createComboboxElement(
-            this.listboxElement, autocomplete
+        this.listbox.addMutator(
+            (options) => options.filter(
+                (o: AriaOption) => includesCaseInsensitive(o.component.textContent, this.combobox.input.value)
+            )
         );
+
+        this.combobox = TextInput.asFloatLabel(label);
+
+        this.setupComboboxElement();
+
+        this.setupComboboxElement();
         
-        
-        this.comboboxLabel = this.createComboboxLabel(
-            label, filterBox.inputLabelPair.input.id, this.labelId
-        );
-        this.comboboxArrowButton = this.createComboboxArrow(this.labelId);
+        this.arrowButton = this.createComboboxArrow(this.labelId);
         this.clearButton = this.createClearButton();
-        this.selectOnly = selectOnly;
 
         this.addEventListeners();
 
@@ -58,16 +68,17 @@ export default class Combobox extends Component {
     }
 
     setupComboboxElement() {
-        this.combobox.setAttribute('role', 'combobox');
-        this.combobox.setAttribute('aria-controls', this.listbox.component.id);
-        this.combobox.setAttribute('aria-expanded', 'false');
+        let input = this.combobox.input;
+        input.setAttribute('role', 'combobox');
+        input.setAttribute('aria-controls', this.listbox.component.id);
+        input.setAttribute('aria-expanded', 'false');
         if (!this.selectOnly) {
-            this.filterBox.setAttribute('aria-autocomplete', autocomplete);
+            input.setAttribute('aria-autocomplete', this.autocomplete);
         }
     }
 
     createComboboxArrow() {
-        let label = this.filterBox.inputLabelPair.label;
+        let label = this.combobox.label;
         label.id = label.id || generateUniqueId();
         let arrowButton = document.createElement('button');
         arrowButton.setAttribute('aria-labelledby', label.id);
@@ -92,16 +103,14 @@ export default class Combobox extends Component {
     }
 
     addEventListeners() {
-        let combobox = filterBox.inputLabelPair.input;
+        let combobox = this.combobox.input;
         combobox.addEventListener('input', (e) => {
             this.toggleListbox(true);
             this.clearButton.dataset.emptyValue = combobox.value === '';
-            this.searchOptions(e);
-
+            this.listbox.update();
         });
         combobox.addEventListener('click', (e) => {
             this.toggleListbox(true);
-            this.searchOptions(e);
         });
         this.arrowButton.addEventListener(
             'click', (e) => {
@@ -115,7 +124,7 @@ export default class Combobox extends Component {
                 this.keyRouter(e);
             }
         );
-        this.listboxElement.addEventListener(
+        this.listbox.component.addEventListener(
             'keydown', (e) => {
                 this.optionKeyRouter(e);
             }
@@ -141,19 +150,19 @@ export default class Combobox extends Component {
 
     clearCombobox() {
         this.clearButton.dataset.emptyValue = true;
-        filterBox.inputLabelPair.input.value = '';
-        filterBox.inputLabelPair.input.focus();
+        this.combobox.input.value = '';
+        this.combobox.input.focus();
         this.update();
     }
 
     keyRouter(e) {
         switch (e.key) {
             case 'Enter':
-                if (filterBox.inputLabelPair.input.value === '') {
+                if (this.combobox.input.value === '') {
                     this.toggleListbox(true);
                 }
                 else if (this.activateOptionCallback) {
-                    this.activateOptionCallback(filterBox.inputLabelPair.input.value);
+                    this.activateOptionCallback(this.combobox.input.value);
                 }
                 e.preventDefault();
                 break;
@@ -164,8 +173,8 @@ export default class Combobox extends Component {
                 return;
             case 'Control':
             case 'Escape':
-                if (!this.listboxElement.hidden) this.toggleListbox();
-                else filterBox.inputLabelPair.input.value = '';
+                if (!this.listbox.component.hidden) this.toggleListbox();
+                else this.combobox.input.value = '';
                 break;
             default:
                 return;
@@ -185,7 +194,7 @@ export default class Combobox extends Component {
                 this.activateOption(currentOption);
                 return;
             case 'Escape':
-                nextFocus = filterBox.inputLabelPair.input;
+                nextFocus = this.combobox.input;
                 break;
             default:
                 return;
@@ -199,13 +208,13 @@ export default class Combobox extends Component {
             document.documentElement.clientHeight || 0,
             window.innerHeight || 0
         );
-        this.listboxElement.style.left = '0px';
-        let containerRect = filterBox.inputLabelPair.input.parentElement.getBoundingClientRect();
-        let comboboxRect = filterBox.inputLabelPair.input.getBoundingClientRect();
-        this.listboxElement.style.maxHeight = (viewportHeight - comboboxRect.bottom) + 'px';
-        let listboxRect = this.listboxElement.getBoundingClientRect();
-        this.listboxElement.style.left = (comboboxRect.x - listboxRect.x) + 'px';
-        this.listboxElement.style.top = (comboboxRect.bottom - comboboxRect.top) + 'px';
+        this.listbox.component.style.left = '0px';
+        let containerRect = this.combobox.input.parentElement.getBoundingClientRect();
+        let comboboxRect = this.combobox.input.getBoundingClientRect();
+        this.listbox.component.style.maxHeight = (viewportHeight - comboboxRect.bottom) + 'px';
+        let listboxRect = this.listbox.component.getBoundingClientRect();
+        this.listbox.component.style.left = (comboboxRect.x - listboxRect.x) + 'px';
+        this.listbox.component.style.top = (comboboxRect.bottom - comboboxRect.top) + 'px';
 
     }
 
@@ -226,7 +235,7 @@ export default class Combobox extends Component {
         if (this.alwaysVisibile) return;
         let value = option.textContent;
         this.combobox.input.value = value;
-        this.combobox.inputLabelPair.input.focus();
+        this.combobox.input.focus();
         this.clearButton.dataset.emptyValue = this.combobox.input.value === '';
         this.toggleListbox(false);
         if (this.activateOptionCallback) this.activateOptionCallback(value);
