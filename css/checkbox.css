@@ -79,16 +79,6 @@
         outline-offset: var(--outline-offset);
     }
 
-    .chkbox-pair:active input[type="checkbox"] {
-        scale: 0.95;
-        transition: var(--timing) scale ease-in-out;
-    }
-
-
-    .chkbox-pair:active input[type="checkbox"]::before {
-        /*scale: 0.7;*/
-    }
-
 
 
 
@@ -127,7 +117,7 @@
     input[type="checkbox"]:focus-visible,
     input[type="radio"]:hover,
     input[type="radio"]:focus-visible {
-        transition: var(--slow-timing) box-shadow ease-in-out;
+        /*transition: var(--timing) box-shadow ease-in-out;*/
         box-shadow: 0px 3px 5px -3px black;
     }
 
@@ -136,7 +126,6 @@
         content: "";
         opacity: 0;
         scale: 0.6;
-        transition: var(--timing) scale ease-in-out;
         background-color: var(--color);
         clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
     }
@@ -190,7 +179,6 @@
 
     /* circle focus indicator */
     input[type="checkbox"]:focus-visible::after {
-        transition: var(--slow-timing) width ease-in-out, var(--slow-timing) height ease-in-out, var(--timing) opacity ease-in-out;
         opacity: 1;
     }
 
