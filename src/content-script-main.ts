@@ -5,7 +5,15 @@ import Combobox from "./modules/components/Combobox.js";
 import { successCriteria } from "./data/successCriteria.js";
 import { issueTemplate } from "./data/tokens.js";
 import FilterableMultiselect from "./modules/components/FilterableMultiselect.js";
+import CheckboxGroup from "./modules/components/CheckboxGroup.js";
+import Fieldset from "./modules/components/Fieldset.js";
+import TestingSoftwareCombo from "./modules/components/TestingSoftwareCombo.js";
 
+enum EditorType {
+    ADD,
+    EDIT,
+    COPY
+}
 
 export default function main() {
     (async () => {
@@ -22,7 +30,13 @@ export default function main() {
         const successCriteriaDescEditorId = 'editor1';
         const recommendationEditorId = 'editor2';
 
+        let openIssueEditorCallbacks: ((type: EditorType) => void)[] = [];
 
+        let testingSoftwareOptions: string[] = [];
+        let assistiveTechOptions: string[] = [];
+        let testingSection = document.getElementById('software_used').parentElement.parentElement;
+
+        let currentCombos: TestingSoftwareCombo[] = [];
 
         let pagesPartneredMultiselect: FilterableMultiselect;
         let scPartneredMultiselect: FilterableMultiselect;
@@ -71,6 +85,29 @@ export default function main() {
                 statesPartneredMultiselect: statesPartneredMultiselect
             } = await replaceMultiselects());
             addIssueTemplateSearch();
+            setupTestingSoftwareSection();
+            // setup post issue editor opening callback
+            let addIssue = document.querySelector('button[title="Add Issue"]');
+            addIssue.parentElement.addEventListener('click', (e) => {
+                let button = e.target as HTMLElement;
+                let issueEditorType: EditorType;
+                switch (button.title) {
+                    case "Add Issue":
+                        issueEditorType = EditorType.ADD;
+                        break;
+                    case "Edit Issue":
+                        issueEditorType = EditorType.EDIT;
+                        break;
+                    case "Copy Issue":
+                        issueEditorType = EditorType.COPY;
+                        break;
+                    default:
+                        return;
+                }
+                for (let callback of openIssueEditorCallbacks) {
+                    callback(issueEditorType);
+                }
+            });
         }
 
         function injectAllStyles() {
@@ -439,18 +476,15 @@ export default function main() {
                     );
                 });
             // add realign events
-            let addIssue = document.querySelector('button[title="Add Issue"]');
-            addIssue.parentElement.addEventListener('click', (e) => {
-                let button = e.target as HTMLElement;
-                if (!["Add Issue", "Edit Issue", "Copy Issue"].includes(button.title)) {
-                    return;
-                }
+            const realignMultiselect = (editorType: EditorType) => {
                 let pMultiselects = [
                     scPartneredMultiselect,
                     pagesPartneredMultiselect,
                     statesPartneredMultiselect
                 ];
                 for (let partneredMultiselect of pMultiselects) {
+                    partneredMultiselect.filterer.input.value = '';
+                    partneredMultiselect.update();
                     partneredMultiselect.checkboxGroup.realign();
                     let showOnlyCheckbox =
                         partneredMultiselect
@@ -459,18 +493,68 @@ export default function main() {
                     if (showOnlyCheckbox.checked) {
                         showOnlyCheckbox.click();
                     }
-                    if (["Edit Issue", "Copy Issue"].includes(button.title)) {
+                    if ([EditorType.EDIT, EditorType.COPY].includes(editorType)) {
                         showOnlyCheckbox.click();
                     }
                     partneredMultiselect.update();
                 }
-            });
+            }
+            openIssueEditorCallbacks.push(realignMultiselect);
             // return 
             return {
                 pagesPartneredMultiselect: pagesPartneredMultiselect,
                 scPartneredMultiselect: scPartneredMultiselect,
                 statesPartneredMultiselect: statesPartneredMultiselect
             };
+        }
+
+        function setupTestingSoftwareSection() {
+            let softwareUsed = document.getElementById('software_used') as HTMLSelectElement;
+            let softwareUsedLabel = document.querySelector(`[for="${softwareUsed.id}"]`);
+            let assistiveTech = document.getElementById('assistive_tech') as HTMLSelectElement;
+            let assistiveTechLabel = document.querySelector(`[for="${assistiveTech.id}"]`);
+
+            let testingSection = softwareUsed.parentElement.parentElement;
+            testingSection.hidden = true;
+
+            const resetTestingSoftware = (editorType: EditorType) => {
+                currentCombos.filter((combo, i) => {
+                    if (i === 0) return true;
+                    else {
+                        combo.component.remove();
+                    }
+                    return false;
+                })
+                    
+                }
+                for(let combo of currentCombos) {
+                    combo.update();
+                }
+            }
+            openIssueEditorCallbacks.push();
+        }
+
+        function addTestingSoftwareCombo() {
+            let softwareUsed = document.getElementById('software_used') as HTMLSelectElement;
+            let softwareUsedLabel = document.querySelector(`[for="${softwareUsed.id}"]`);
+            let assistiveTech = document.getElementById('assistive_tech') as HTMLSelectElement;
+            let assistiveTechLabel = document.querySelector(`[for="${assistiveTech.id}"]`);
+
+            let softwareCheckboxGroup = new CheckboxGroup(
+                softwareUsedLabel.textContent,
+                [...softwareUsed.options].map(o => o.textContent)
+            );
+            let assistiveTechCheckboxGroup = new CheckboxGroup(
+                assistiveTechLabel.textContent,
+                [...assistiveTech.options].map(o => o.textContent)
+            );
+
+            let comboGroup = new Fieldset(`Testing Software Combo ${currentCombos.length}`);
+            currentCombos.push(comboGroup);
+            testingSection.append(
+                softwareCheckboxGroup.component,
+                assistiveTechCheckboxGroup.component
+            );
         }
 
         async function initCopyEventListeners() {

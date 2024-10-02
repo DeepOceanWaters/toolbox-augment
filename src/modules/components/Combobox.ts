@@ -40,7 +40,7 @@ export default class Combobox extends Component {
         this.alwaysVisible = !!(args?.alwaysVisible);
         this.alwaysVisible = args?.autocomplete ? args.autocomplete : Autocomplete.LISTBOX;
 
-        this.listbox = new KMListbox(label, options);
+        this.listbox = new KMListbox(label, options, { hideLabel: true });
         this.listbox.component.hidden = true;
         this.listbox.addMutator(
             (options) => options.filter(
@@ -49,6 +49,7 @@ export default class Combobox extends Component {
         );
 
         this.combobox = TextInput.asFloatLabel(label);
+        this.combobox.input.setAttribute('autocomplete', 'off');
 
         this.setupComboboxElement();
 

@@ -83,3 +83,17 @@ function unsplit(arr: string[], unsplitter: string): string[][] {
     if (!outputArr.includes(curVal)) outputArr.push(curVal);
     return outputArr;
 }
+
+export function addTestingSoftware(text: string, identifier: string) {
+    let label = document.querySelector('[for="browser_combos"]');
+    let addCombo = [...label.parentElement.parentElement.querySelectorAll('button')].find(btn => btn.textContent === 'Add Combo');
+    addCombo.click();
+    let inputs = label.querySelectorAll('input');
+    let removeBtns = label.querySelectorAll('button');
+    let newInput = inputs.item(inputs.length - 1);
+    let newRemoveBtn = removeBtns.item(removeBtns.length - 1);
+    newRemoveBtn.dataset.comboId = identifier;
+    newInput.dataset.comboId = identifier;
+    spoofUpdateTextareaValue(newInput, text);
+    return newInput;
+}

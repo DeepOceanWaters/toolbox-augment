@@ -74,6 +74,7 @@ export default class FilterableMultiselect extends Component {
 
     private createFilterer(name: string, throttle: number = 10): void {
         this.filterer = TextInput.asFloatLabel(`Filter ${name}`);
+        this.filterer.input.setAttribute('autocomplete', 'off');
         this.filterer.input.addEventListener('input', (e) => {
             let timeout = window[`${this.filterer.input.id}-filtering`];
             if (timeout) {
