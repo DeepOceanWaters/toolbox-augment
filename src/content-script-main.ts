@@ -29,12 +29,15 @@ export default function main() {
         const issueDescId = 'issue_description';
         const successCriteriaDescEditorId = 'editor1';
         const recommendationEditorId = 'editor2';
+        const softwareUseId = 'software_used';
+        const atId = 'assistive_tech';
+        
 
         let openIssueEditorCallbacks: ((type: EditorType) => void)[] = [];
 
         let testingSoftwareOptions: string[] = [];
         let assistiveTechOptions: string[] = [];
-        let testingSection = document.getElementById('software_used').parentElement.parentElement;
+        let testingSection: HTMLDivElement;
 
         let currentCombos: TestingSoftwareCombo[] = [];
 
@@ -56,16 +59,25 @@ export default function main() {
         function isLoaded() {
             // for new audits, this won't load until the user switches to advanced issue
             let isLoaded = true;
+            
             let pages: HTMLSelectElement | null = document.getElementById(pagesId) as HTMLSelectElement | null;
             let successCriteria: HTMLSelectElement | null = document.getElementById(scId) as HTMLSelectElement | null;
             let states: HTMLSelectElement | null = document.getElementById(statesId) as HTMLSelectElement | null;
-            isLoaded &&= !!(pages && pages.options.length > 0);
-            isLoaded &&= !!(successCriteria && successCriteria.options.length > 0);
-            isLoaded &&= !!(states && states.options.length > 0);
+            let software: HTMLSelectElement | null = document.getElementById(softwareUseId) as HTMLSelectElement | null;
+            let at: HTMLSelectElement | null = document.getElementById(softwareUseId) as HTMLSelectElement | null;
+
+            const selectIsLoaded = (select: HTMLSelectElement) => !!(select && select.options.length > 0);
+            isLoaded &&= selectIsLoaded(pages);
+            isLoaded &&= selectIsLoaded(successCriteria);
+            isLoaded &&= selectIsLoaded(states);
+            isLoaded &&= selectIsLoaded(software);
+            isLoaded &&= selectIsLoaded(at);
             return isLoaded;
         }
 
         async function _main() {
+            testingSection = document.getElementById('software_used').parentElement.parentElement as HTMLDivElement;
+
             chrome.runtime.onMessage.addListener(messageRouter);
             let issueDescriptionLabel: HTMLLabelElement =
                 document.querySelector(`[for="${issueDescId}"]`) as HTMLLabelElement;
@@ -86,6 +98,7 @@ export default function main() {
             } = await replaceMultiselects());
             addIssueTemplateSearch();
             setupTestingSoftwareSection();
+            initSettings();
             // setup post issue editor opening callback
             let addIssue = document.querySelector('button[title="Add Issue"]');
             addIssue.parentElement.addEventListener('click', (e) => {
@@ -250,6 +263,10 @@ export default function main() {
                     break;
             }
             return;
+        }
+
+        function initSettings() {
+            
         }
 
         /**
@@ -518,15 +535,14 @@ export default function main() {
             testingSection.hidden = true;
 
             const resetTestingSoftware = (editorType: EditorType) => {
-                currentCombos.filter((combo, i) => {
+                currentCombos = currentCombos.filter((combo, i) => {
                     if (i === 0) return true;
                     else {
                         combo.component.remove();
                     }
                     return false;
-                })
+                });
                     
-                }
                 for(let combo of currentCombos) {
                     combo.update();
                 }
@@ -536,25 +552,15 @@ export default function main() {
 
         function addTestingSoftwareCombo() {
             let softwareUsed = document.getElementById('software_used') as HTMLSelectElement;
-            let softwareUsedLabel = document.querySelector(`[for="${softwareUsed.id}"]`);
             let assistiveTech = document.getElementById('assistive_tech') as HTMLSelectElement;
-            let assistiveTechLabel = document.querySelector(`[for="${assistiveTech.id}"]`);
 
-            let softwareCheckboxGroup = new CheckboxGroup(
-                softwareUsedLabel.textContent,
-                [...softwareUsed.options].map(o => o.textContent)
-            );
-            let assistiveTechCheckboxGroup = new CheckboxGroup(
-                assistiveTechLabel.textContent,
+            let comboGroup = new TestingSoftwareCombo(
+                currentCombos.length,
+                [...softwareUsed.options].map(o => o.textContent),
                 [...assistiveTech.options].map(o => o.textContent)
             );
-
-            let comboGroup = new Fieldset(`Testing Software Combo ${currentCombos.length}`);
             currentCombos.push(comboGroup);
-            testingSection.append(
-                softwareCheckboxGroup.component,
-                assistiveTechCheckboxGroup.component
-            );
+            testingSection.append(comboGroup.component);
         }
 
         async function initCopyEventListeners() {

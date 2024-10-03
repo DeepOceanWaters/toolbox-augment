@@ -23,6 +23,14 @@ table {
     counter-reset: issue_table;
 }
 
+html:has([aria-label="pagination"] li + li + li [aria-current]) table {
+    counter-set: issue_table 100;
+}
+
+html:has([aria-label="pagination"] li + li + li + li [aria-current]) table {
+    counter-set: issue_table 200;
+}
+
 
 td[data-key="issue_number"]::before {
     counter-increment: issue_table;

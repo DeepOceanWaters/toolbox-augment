@@ -1,6 +1,6 @@
-import Component from "./Component"
+import Component from "./Component.js"
 
-export default class Span extends Component {
+export default class SpanCustom extends Component {
     constructor(text: string) {
         super('span');
         this.component.append(text);

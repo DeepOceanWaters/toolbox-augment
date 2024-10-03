@@ -49,7 +49,6 @@ export default class Combobox extends Component {
         );
 
         this.combobox = TextInput.asFloatLabel(label);
-        this.combobox.input.setAttribute('autocomplete', 'off');
 
         this.setupComboboxElement();
 
@@ -60,6 +59,7 @@ export default class Combobox extends Component {
 
         this.addEventListeners();
 
+        this.component.classList.add('combobox-widget');
         this.component.append(
             this.combobox.component,
             this.clearButton,
@@ -113,21 +113,13 @@ export default class Combobox extends Component {
         combobox.addEventListener('click', (e) => {
             this.toggleListbox(true);
         });
-        this.arrowButton.addEventListener(
-            'click', (e) => {
-                this.toggleListbox();
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        );
+        this.component.addEventListener('focusout', (e) => {
+            if (this.component.contains(e.relatedTarget)) return;
+            this.toggleListbox(false);
+        });
         combobox.addEventListener(
             'keydown', (e) => {
                 this.keyRouter(e);
-            }
-        );
-        this.listbox.component.addEventListener(
-            'keydown', (e) => {
-                this.optionKeyRouter(e);
             }
         );
         combobox.addEventListener(
@@ -136,8 +128,21 @@ export default class Combobox extends Component {
             }
         );
         this.listbox.component.addEventListener(
+            'keydown', (e) => {
+                this.optionKeyRouter(e);
+            }
+        );
+        
+        this.listbox.component.addEventListener(
             'click', (e) => {
                 this.activateOption(e.target);
+            }
+        );
+        this.arrowButton.addEventListener(
+            'click', (e) => {
+                this.toggleListbox();
+                e.preventDefault();
+                e.stopPropagation();
             }
         );
         this.clearButton.addEventListener(
@@ -196,6 +201,7 @@ export default class Combobox extends Component {
                 return;
             case 'Escape':
                 nextFocus = this.combobox.input;
+                this.toggleListbox(false);
                 break;
             default:
                 return;
@@ -232,14 +238,15 @@ export default class Combobox extends Component {
         return !expanded;
     }
 
-    activateOption(option) {
+    async activateOption(option) {
         if (this.alwaysVisibile) return;
         let value = option.textContent;
         this.combobox.input.value = value;
-        this.combobox.input.focus();
         this.clearButton.dataset.emptyValue = this.combobox.input.value === '';
+        
+        if (this.activateOptionCallback) await this.activateOptionCallback(value);
+        this.combobox.input.focus();
         this.toggleListbox(false);
-        if (this.activateOptionCallback) this.activateOptionCallback(value);
     }
 
     /**

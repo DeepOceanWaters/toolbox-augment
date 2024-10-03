@@ -1,11 +1,11 @@
-import Component, { HasItems } from "./Component";
+import Component, { HasItems } from "./Component.js";
 
 enum ListType {
     UNORDERED = 'ul',
     ORDERED = 'ol'
 }
 
-export default class List extends Component implements HasItems<Component|string> {
+export default class ListCustom extends Component implements HasItems<Component|string> {
     items: Component[];
 
     constructor(type = ListType.UNORDERED) {

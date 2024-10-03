@@ -111,7 +111,9 @@ export const tokens: issueTemplateData = {
             },
             replace: {
                 relatedsc: ["2.4.3"],
-                issues: "The c"
+                issues: "When activating this component, focus is lost and not managed.",
+                requirement: "Ensure that when this component is activated, focus is managed and placed somewhere logical.",
+                recommendation: ""
             },
             restrict: {
                 disclosure: {

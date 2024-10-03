@@ -1,10 +1,12 @@
-import CheckboxGroup from "./CheckboxGroup";
-import Component from "./Component";
-import List from "./List";
-import Span from "./Span";
+import CheckboxGroup from "./CheckboxGroup.js";
+import Component from "./Component.js";
+import List from "./List.js";
+import Span from "./Span.js";
 
 type HeadingLevel = 1|2|3|4|5|6;
 
+// how to tell new from old testing inputs?
+// mark with AUDIT #
 export default class TestingSoftwareCombo extends Component {
     heading: HTMLHeadingElement;
     software: CheckboxGroup;
@@ -45,9 +47,8 @@ export default class TestingSoftwareCombo extends Component {
             for(let assistiveTechCheckbox of this.assistiveTech.items) {
                 let software = softwareCheckbox.textLabel;
                 let assistiveTech = assistiveTechCheckbox.textLabel;
-                this.output.items.push(new Span(`${software} + ${assistiveTech}`));
+                this.output.items.push(new Span(`${software} and ${assistiveTech}`));
             }
         }
     }
-
 }

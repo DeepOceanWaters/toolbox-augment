@@ -7,7 +7,6 @@ export default class AriaOption extends Component {
     constructor(label: string) {
         super('div');
         this.component.role = 'option';
-        this.component.setAttribute('aria-selected', 'false');
         this.component.tabIndex = -1;
 
         this.label = document.createElement('span');
@@ -27,7 +26,12 @@ export default class AriaOption extends Component {
     }
 
     private setSelected(selected: boolean) {
-        this.component.setAttribute('aria-selected', String(selected));
+        if (selected) {
+            this.component.setAttribute('aria-selected', String(selected));
+        }
+        else {
+            this.component.removeAttribute('aria-selected');
+        }
     }
 
     set selected(selected: boolean) {
