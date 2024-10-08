@@ -1,3 +1,6 @@
+import { relative } from "path"
+import { Recoverable } from "repl"
+
 export type issueTemplate = {
     issue: string,
     requirement: string,
@@ -222,7 +225,12 @@ export const tokens: issueTemplateData = {
         }
     },
 
-
+    pauseStopHide: {
+        relatedsc: ['2.2.2'],
+        issues: "This content automatically updates, but there is no way to pause, stop, or hide the content.",
+        requirement: "Ensure that users can pause, stop, or hide content that moves automatically or updates automatically.",
+        recommendation: "",
+    },
 
     timing: {
         relatedsc: ["2.2.1"],

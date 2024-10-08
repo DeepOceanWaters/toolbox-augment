@@ -18,12 +18,15 @@ export function spoofOptionSelected(select: HTMLSelectElement, optionToToggle: H
  * @param {HTMLTextAreaElement} textarea 
  * @param {String} value 
  */
-export function spoofUpdateTextareaValue(textarea: HTMLTextAreaElement | HTMLInputElement, value: string): void {
+export function spoofUpdateTextareaValue(textarea: HTMLTextAreaElement | HTMLInputElement, value: string, replace = false): void {
     let inputEvent = new Event('input', { composed: true, bubbles: true });
+    if (replace) textarea.value = '';
     if (textarea.value) textarea.value += '\n';
     textarea.value += value;
     textarea.dispatchEvent(inputEvent);
 }
+
+
 
 /**
  * Sets the value of the passed quill editor. Replaces current value.
@@ -46,7 +49,7 @@ export function setQuillEditorText(quillEditor: HTMLElement, paragraphs: string[
             values.push(child!.innerHTML);
             foundRealValue = true;
         }
-        
+
     }
     [...quillEditor.children].forEach(c => c.remove());
     values = unsplit(values, '<br>').map(group => group.join('<br>'));
@@ -84,16 +87,38 @@ function unsplit(arr: string[], unsplitter: string): string[][] {
     return outputArr;
 }
 
-export function addTestingSoftware(text: string, identifier: string) {
+export async function addTestingSoftware(text: string, len: number = null, numAttempts: number = 0) {
+    numAttempts++;
     let label = document.querySelector('[for="browser_combos"]');
-    let addCombo = [...label.parentElement.parentElement.querySelectorAll('button')].find(btn => btn.textContent === 'Add Combo');
-    addCombo.click();
     let inputs = label.querySelectorAll('input');
-    let removeBtns = label.querySelectorAll('button');
-    let newInput = inputs.item(inputs.length - 1);
-    let newRemoveBtn = removeBtns.item(removeBtns.length - 1);
-    newRemoveBtn.dataset.comboId = identifier;
-    newInput.dataset.comboId = identifier;
-    spoofUpdateTextareaValue(newInput, text);
-    return newInput;
+    
+
+    
+    if (len === null) {
+        let addCombo = [...label.parentElement.parentElement.querySelectorAll('button')].find(btn => btn.textContent === 'Add Combo');
+        addCombo.click();
+        len = [...inputs].length;
+    }
+
+    let resolver: Function;
+    if (numAttempts > 100) {
+        console.log('too many attemps');
+        resolver = (resolve) => resolve();
+    }
+    else if (inputs.length > len) {
+        resolver = (resolve) => {
+            let newInput = inputs.item(inputs.length - 1);
+            spoofUpdateTextareaValue(newInput, text);
+            resolve();
+        }
+    }
+    else {
+        resolver = (resolve) => {
+            setTimeout(async () => resolve(await addTestingSoftware(text, len, numAttempts)), 1);
+        }
+    }
+
+    return new Promise((resolve) => resolver(resolve));
 }
+
+

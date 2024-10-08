@@ -5,6 +5,8 @@ import Span from "./Span.js";
 
 type HeadingLevel = 1|2|3|4|5|6;
 
+const invisChar = ''
+
 // how to tell new from old testing inputs?
 // mark with AUDIT #
 export default class TestingSoftwareCombo extends Component {
@@ -43,12 +45,14 @@ export default class TestingSoftwareCombo extends Component {
         for(let btn of document.querySelectorAll(`button[data-combo-identifier="${this.inputIdentifier}"]`)) {
             (btn as HTMLButtonElement).click();
         }
+        let outputTexts = [];
         for(let softwareCheckbox of this.software.items) {
             for(let assistiveTechCheckbox of this.assistiveTech.items) {
                 let software = softwareCheckbox.textLabel;
                 let assistiveTech = assistiveTechCheckbox.textLabel;
-                this.output.items.push(new Span(`${software} and ${assistiveTech}`));
+                outputTexts.push(`${software} + ${assistiveTech}`);
             }
         }
+        let outputText = outputTexts.join(', ');
     }
 }
