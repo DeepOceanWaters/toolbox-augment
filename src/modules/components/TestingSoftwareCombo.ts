@@ -14,12 +14,15 @@ export default class TestingSoftwareCombo extends Component {
     software: CheckboxGroup;
     assistiveTech: CheckboxGroup;
     output: List;
-    private inputIdentifier: string;
+    private associatedInput: HTMLInputElement;
+    private associatedDelete: HTMLButtonElement;
 
     constructor(
         position: number, 
         software: string[], 
-        assistiveTech: string[], 
+        assistiveTech: string[],
+        associatedInput: HTMLInputElement,
+        associatedDelete: HTMLButtonElement,
         args?: {
             headingLevel?: HeadingLevel
         }
@@ -27,7 +30,8 @@ export default class TestingSoftwareCombo extends Component {
         let label = `Testing Software Combo ${position}`;
         super('div');
 
-        this.inputIdentifier = label;
+        this.associatedInput = associatedInput;
+        this.associatedDelete = associatedDelete;
 
         let headingLevel = args?.headingLevel || 3;
         this.heading = document.createElement(`h${headingLevel}`);
@@ -42,9 +46,7 @@ export default class TestingSoftwareCombo extends Component {
 
     update() {
         this.output.items = [];
-        for(let btn of document.querySelectorAll(`button[data-combo-identifier="${this.inputIdentifier}"]`)) {
-            (btn as HTMLButtonElement).click();
-        }
+        
         let outputTexts = [];
         for(let softwareCheckbox of this.software.items) {
             for(let assistiveTechCheckbox of this.assistiveTech.items) {

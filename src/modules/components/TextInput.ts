@@ -4,12 +4,16 @@ import InputLabelPair from "./InputLabelPair.js";
 
 interface TextInputArguments {
     autocomplete?: [HTMLAutocomplete] | string[] ,
+    value?: string
 }
 
 export default class TextInput extends InputLabelPair {
     constructor(
         label: string, 
-        { autocomplete = [HTMLAutocomplete.OFF] }: TextInputArguments = {}
+        { 
+            autocomplete = [HTMLAutocomplete.OFF],
+            value = null
+        }: TextInputArguments = {}
     ) {
         super();
         this.label.textContent = label;
@@ -19,6 +23,9 @@ export default class TextInput extends InputLabelPair {
             this.label,
             this.input
         );
+        if (value !== null) {
+            this.input.value = value;
+        }
     }
 
     static asFloatLabel(label: string, args?: TextInputArguments): TextInput {
@@ -31,5 +38,9 @@ export default class TextInput extends InputLabelPair {
             textInput.input
         );
         return textInput;
+    }
+
+    focus() {
+        this.input.focus();
     }
 }

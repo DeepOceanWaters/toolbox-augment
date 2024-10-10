@@ -1,5 +1,5 @@
 import includesCaseInsensitive from "./modules/includesCaseInsensitive.js";
-import { setQuillEditorText, spoofOptionSelected, spoofUpdateTextareaValue } from "./modules/spoofUserInput.js";
+import { getNextResource, setQuillEditorText, spoofOptionSelected, spoofUpdateTextareaValue } from "./modules/spoofUserInput.js";
 import { getPossibleTokens, getRecommendation } from "./modules/replaceTokens.js";
 import Combobox from "./modules/components/Combobox.js";
 import { successCriteria } from "./data/successCriteria.js";
@@ -8,6 +8,7 @@ import FilterableMultiselect from "./modules/components/FilterableMultiselect.js
 import CheckboxGroup from "./modules/components/CheckboxGroup.js";
 import Fieldset from "./modules/components/Fieldset.js";
 import TestingSoftwareCombo from "./modules/components/TestingSoftwareCombo.js";
+import { Settings } from "./modules/AuditSettings.js";
 
 enum EditorType {
     ADD,
@@ -265,40 +266,26 @@ export default function main() {
             return;
         }
 
-        function initSettings() {
-            
+        async function initSettings() {
+            let settingsNames = await Settings.getSettingsNames();
+            let oldSettingsSection = document.querySelector('[for="browser_combos"]').closest('form > div') as HTMLDivElement;
+            let customSettingsSection = document.createElement('div');
+            oldSettingsSection
+                .parentElement
+                .insertBefore(
+                    customSettingsSection,
+                    oldSettingsSection
+                );
+            oldSettingsSection.style.display = 'none';
+            let settings = [];
+            for(let type in settingsNames) {
+                for(let settingName of type) {
+
+                }
+            }
         }
 
-        /**
-         * Gets the next resource input element. If no empty resource 
-         * input elements exists, clicks the "add resource" button,
-         * waits just a little for the events to resolve, and returns 
-         * the next resouce.
-         * NOTE: click() executes events synchronously, so using promises
-         * with timeouts probably isn't necessary. Will want to change in
-         * the future.
-         * @returns promise returning the next resource input
-         */
-        async function getNextResource(): Promise<HTMLInputElement> {
-            let resources: NodeListOf<HTMLInputElement> =
-                document.querySelectorAll('input[name="resources"]') as NodeListOf<HTMLInputElement>;
-            let resource = [...resources].find(r => r.value.trim() === '');
-            let resolver: (resolve: Function) => void;
-            if (resource) {
-                resolver = (resolve) => resolve(resource);
-            }
-            else {
-                resolver = (resolve) => {
-                    setTimeout(async () => resolve(await getNextResource()), 1);
-                }
-                let addResource: HTMLButtonElement =
-                    resources.item(0).parentElement.querySelector(':scope > button') as HTMLButtonElement;
-                addResource.click();
-            }
-            return new Promise((resolve) => {
-                resolver(resolve);
-            })
-        }
+        
 
         async function addIssueTemplateSearch(): Promise<void> {
             /**
@@ -550,7 +537,7 @@ export default function main() {
             openIssueEditorCallbacks.push();
         }
 
-        function addTestingSoftwareCombo() {
+        function addTestingSoftwareCombo() {/*
             let softwareUsed = document.getElementById('software_used') as HTMLSelectElement;
             let assistiveTech = document.getElementById('assistive_tech') as HTMLSelectElement;
 
@@ -560,7 +547,7 @@ export default function main() {
                 [...assistiveTech.options].map(o => o.textContent)
             );
             currentCombos.push(comboGroup);
-            testingSection.append(comboGroup.component);
+            testingSection.append(comboGroup.component);*/
         }
 
         async function initCopyEventListeners() {
