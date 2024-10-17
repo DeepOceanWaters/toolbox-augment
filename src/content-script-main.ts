@@ -8,7 +8,7 @@ import FilterableMultiselect from "./modules/components/FilterableMultiselect.js
 import CheckboxGroup from "./modules/components/CheckboxGroup.js";
 import Fieldset from "./modules/components/Fieldset.js";
 import TestingSoftwareCombo from "./modules/components/TestingSoftwareCombo.js";
-import { Settings } from "./modules/AuditSettings.js";
+import Settings from "./modules/AuditSettings.js";
 
 enum EditorType {
     ADD,
@@ -267,7 +267,7 @@ export default function main() {
         }
 
         async function initSettings() {
-            let settingsNames = await Settings.getSettingsNames();
+            let settingsByType = await Settings.getSettings();
             let oldSettingsSection = document.querySelector('[for="browser_combos"]').closest('form > div') as HTMLDivElement;
             let customSettingsSection = document.createElement('div');
             oldSettingsSection
@@ -278,9 +278,10 @@ export default function main() {
                 );
             oldSettingsSection.style.display = 'none';
             let settings = [];
-            for(let type in settingsNames) {
+            for(let type in settingsByType) {
                 for(let settingName of type) {
-
+                    let setting = type[settingName];
+                    let environment = Settings.fromSettings(setting, setting.type);
                 }
             }
         }
@@ -318,7 +319,14 @@ export default function main() {
                     = getRecommendation(combobox.combobox.input.value);
 
                 // set success criteria
-                for (let sc of template.relatedsc) {
+                let relatedsc = [];
+                if (template.relatedsc && Array.isArray(template.relatedsc)) {
+                    relatedsc = template.relatedsc;
+                }
+                else if (typeof template.relatedsc === 'string') {
+                    relatedsc.push(template.relatedsc);
+                }
+                for (let sc of relatedsc) {
                     let checkbox =
                         scPartneredMultiselect
                             .checkboxGroup

@@ -1,3 +1,4 @@
+import Settings from "../AuditSettings.js";
 import CheckboxGroup from "./CheckboxGroup.js";
 import Component from "./Component.js";
 import List from "./List.js";
@@ -19,8 +20,7 @@ export default class TestingSoftwareCombo extends Component {
 
     constructor(
         position: number, 
-        software: string[], 
-        assistiveTech: string[],
+        settings: Settings,
         associatedInput: HTMLInputElement,
         associatedDelete: HTMLButtonElement,
         args?: {
@@ -37,8 +37,8 @@ export default class TestingSoftwareCombo extends Component {
         this.heading = document.createElement(`h${headingLevel}`);
         this.heading.textContent = label;
 
-        this.software = new CheckboxGroup('Software', software);
-        this.assistiveTech = new CheckboxGroup('Assistive Technology', assistiveTech);
+        this.software = new CheckboxGroup('Software', settings.settings["software"]);
+        this.assistiveTech = new CheckboxGroup('Assistive Technology', settings.settings["assistiveTech"]);
         this.output = new List();
 
         this.component.addEventListener('change', (e) => this.update());

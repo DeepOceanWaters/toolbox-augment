@@ -1,4 +1,4 @@
-import { TestingEnvironment } from "../AuditSettings.js";
+import Settings, {  } from "../AuditSettings.js";
 import generateUniqueId from "../idGenerator.js";
 import createRemoveEvent from "../RemoveEvent.js";
 import CustomButton from "./Button.js";
@@ -13,9 +13,9 @@ export default class TestingEnvironmentsSection extends Component {
 }
 
 export class TestingEnvironmentGroup extends Disclosure {
-    environment: TestingEnvironment;
+    environment: Settings;
 
-    constructor(environment: TestingEnvironment) {
+    constructor(environment: Settings) {
         super('Testing Environment');
         this.environment = environment;
 
@@ -68,8 +68,8 @@ export class TestingEnvironmentGroup extends Disclosure {
         let deviceModel = new TextInput('Device Model');
         let operatingSystem = new TextInput('Operating System');
 
-        deviceModel.input.value = this.environment.settings.deviceModel;
-        operatingSystem.input.value = this.environment.settings.operatingSystem;
+        deviceModel.input.value = this.environment.settings["deviceModel"] || '';
+        operatingSystem.input.value = this.environment.settings["operatingSystem"] || '';
 
         let envGroup = document.createElement('div');
         envGroup.append(
@@ -78,12 +78,12 @@ export class TestingEnvironmentGroup extends Disclosure {
         );
 
         let softwareGroup = this.createInputSection(
-            this.environment.settings.software, 
+            this.environment.settings["software"], 
             'Software'
         );
 
         let atGroup = this.createInputSection(
-            this.environment.settings.assistiveTech,
+            this.environment.settings["assistiveTech"],
             'Assistive Technology'
         );
 
@@ -102,14 +102,10 @@ export class TestingEnvironmentGroup extends Disclosure {
                         .filter(i => i.nestedComponent.input.value.trim() !== '')
                         .map(c => c.nestedComponent.input.value);
             }
-            this.environment.setSoftware(
-                groupToValue(softwareGroup)
-            );
-            this.environment.setAssistiveTech(
-                groupToValue(atGroup)
-            );
-            this.environment.settings.operatingSystem = operatingSystem.input.value;
-            this.environment.settings.deviceModel = deviceModel.input.value;
+            this.environment.settings["software"] = groupToValue(softwareGroup);
+            this.environment.settings["assistiveTech"] = groupToValue(atGroup);
+            this.environment.settings["operatingSystem"] = operatingSystem.input.value;
+            this.environment.settings["deviceModel"] = deviceModel.input.value;
             this.environment.updateSettings();
         });
 
@@ -140,5 +136,9 @@ class RemovableComponent<T extends Component> extends Component {
         this.remove.button.addEventListener('click', () => {
             this.component.dispatchEvent(createRemoveEvent(this));
         });
+    }
+
+    focus() {
+        this.nestedComponent.focus();
     }
 }

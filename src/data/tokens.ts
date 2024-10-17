@@ -530,6 +530,7 @@ export const tokens: issueTemplateData = {
     },
 
     thirdparty: {
+        relatedsc: [],
         recommendation: "Content that is powered by code from a 3rd party vendor (such as YouTube, Twitter, etc.) must have a disclaimer added before it. The disclaimer should point out what aspect of this content is beyond your control. It should also give direct contact information so that users who have trouble accessing this content can get help easily.\n\nDisclaimers should come before the content in question, and must conform to WCAG. We recommend displaying disclaimers as either plain text, or a toggletip. We have added a link in the Resources section that demonstrates a toggletip.",
         resources: [
             "https://www.tpgi.com/simple-standalone-toggletip-widget-pattern/"
