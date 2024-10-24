@@ -1,10 +1,10 @@
-enum AuditType {
+export enum AuditType {
     AUDIT = 'Audit',
     FINAL_CHECKS = 'Final Checks',
     SPOT_CHECK = 'Spot Check'
 }
 
-enum StorageType {
+export enum StorageType {
     SESSION = 'session',
     LOCAL = 'local',
     SYNC = 'sync'
@@ -17,14 +17,14 @@ interface SettingsObject {
     type: StorageType
 }
 
-interface TestingEnvironment extends SettingsObject {
+export interface TestingEnvironment extends SettingsObject {
     operatingSystem?: string,
     deviceModel?: string,
     assistiveTech: string[],
     software: string[],
 }
 
-interface AuditSettings extends SettingsObject {
+export interface AuditSettings extends SettingsObject {
     auditId: string
     auditType: AuditType,
     auditNumber: number

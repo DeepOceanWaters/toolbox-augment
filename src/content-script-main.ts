@@ -8,7 +8,7 @@ import FilterableMultiselect from "./modules/components/FilterableMultiselect.js
 import CheckboxGroup from "./modules/components/CheckboxGroup.js";
 import Fieldset from "./modules/components/Fieldset.js";
 import TestingSoftwareCombo from "./modules/components/TestingSoftwareCombo.js";
-import Settings from "./modules/AuditSettings.js";
+import Settings, { StorageType, TestingEnvironment } from "./modules/AuditSettings.js";
 
 enum EditorType {
     ADD,
@@ -68,7 +68,7 @@ export default function main() {
             let at: HTMLSelectElement | null = document.getElementById(softwareUseId) as HTMLSelectElement | null;
 
             const selectIsLoaded = (select: HTMLSelectElement) => !!(select && select.options.length > 0);
-            isLoaded &&= selectIsLoaded(pages);
+            isLoaded &&= !!pages;
             isLoaded &&= selectIsLoaded(successCriteria);
             isLoaded &&= selectIsLoaded(states);
             isLoaded &&= selectIsLoaded(software);
@@ -99,7 +99,7 @@ export default function main() {
             } = await replaceMultiselects());
             addIssueTemplateSearch();
             setupTestingSoftwareSection();
-            initSettings();
+            //initSettings();
             // setup post issue editor opening callback
             let addIssue = document.querySelector('button[title="Add Issue"]');
             addIssue.parentElement.addEventListener('click', (e) => {
@@ -277,15 +277,16 @@ export default function main() {
                     oldSettingsSection
                 );
             oldSettingsSection.style.display = 'none';
+            
             let settings = [];
             for(let type in settingsByType) {
                 for(let settingName of type) {
                     let setting = type[settingName];
                     let environment = Settings.fromSettings(setting, setting.type);
+                    settings.push(environment);
                 }
             }
         }
-
         
 
         async function addIssueTemplateSearch(): Promise<void> {
@@ -451,6 +452,7 @@ export default function main() {
             scPartneredMultiselect.update();
             // replace states multiselect
             let statesPartneredMultiselect = createPartneredMultiselect(statesId);
+            statesPartneredMultiselect.update();
             // add success criteria description updater
             // sometimes the sc descriptions does not update properly when selecting an sc. 
             // this makes sure that it updates properly - both when selecting and unselecting.
