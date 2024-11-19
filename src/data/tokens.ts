@@ -7,13 +7,13 @@ export type issueTemplate = {
     recommendation: string,
     relatedsc: string[],
     resources: string[],
-    arguments: string[] 
+    arguments: string[]
 } & {
     [x: symbol]: issueTemplate
 }
 
 export type issueTemplateData = {
-    aliases: {[x: symbol]: string},
+    aliases: { [x: symbol]: string },
     keywords: Set<string>,
 } & {
     [x: symbol]: issueTemplate
@@ -300,7 +300,18 @@ export const tokens: issueTemplateData = {
             relatedsc: ["2.1.1"],
             issues: "This content is not operable using a screen reader.",
             requirement: "Ensure that all content can be operated using a screen reader."
+        },
+        functionality: {
+            relatedsc: ["2.1.1"],
+            issues: "This functionality is not operable using a keyboard.",
+            requirement: "Ensure that all functionality of content can be operated using a keyboard.",
         }
+    },
+
+    draggin: {
+        relatedsc: ["2.5.7"],
+        issues: "This functionality is not operable using a pointer without dragging.",
+        requirement: "Ensure that functionality that requires dragging can be operated with a single pointer without dragging.",
     },
 
     bestpractice: {
@@ -317,7 +328,7 @@ export const tokens: issueTemplateData = {
     extra: {
         requirement: "In addition, while the following is not necessary for conformance, we recommend "
     },
-    
+
     sensory: {
         relatedsc: ["1.3.3"],
         issues: "This content relies solely on a sensory characteristic ($var$) to identify important content.",

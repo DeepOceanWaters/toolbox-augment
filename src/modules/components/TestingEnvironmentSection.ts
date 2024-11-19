@@ -5,7 +5,6 @@ import CustomButton from "./Button.js";
 import Component from "./Component.js";
 import Disclosure from "./Disclosure.js";
 import Fieldset from "./Fieldset.js";
-import SpanCustom from "./Span.js";
 import TextInput from "./TextInput.js";
 
 export default class TestingEnvironmentsSection extends Component {
