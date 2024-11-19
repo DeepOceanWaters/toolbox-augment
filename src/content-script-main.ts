@@ -32,7 +32,7 @@ export default function main() {
         const recommendationEditorId = 'editor2';
         const softwareUseId = 'software_used';
         const atId = 'assistive_tech';
-        
+
 
         let openIssueEditorCallbacks: ((type: EditorType) => void)[] = [];
 
@@ -60,7 +60,7 @@ export default function main() {
         function isLoaded() {
             // for new audits, this won't load until the user switches to advanced issue
             let isLoaded = true;
-            
+
             let pages: HTMLSelectElement | null = document.getElementById(pagesId) as HTMLSelectElement | null;
             let successCriteria: HTMLSelectElement | null = document.getElementById(scId) as HTMLSelectElement | null;
             let states: HTMLSelectElement | null = document.getElementById(statesId) as HTMLSelectElement | null;
@@ -77,29 +77,6 @@ export default function main() {
         }
 
         async function _main() {
-            testingSection = document.getElementById('software_used').parentElement.parentElement as HTMLDivElement;
-
-            chrome.runtime.onMessage.addListener(messageRouter);
-            let issueDescriptionLabel: HTMLLabelElement =
-                document.querySelector(`[for="${issueDescId}"]`) as HTMLLabelElement;
-
-            let issueDescription: HTMLTextAreaElement =
-                issueDescriptionLabel
-                    .parentElement!
-                    .children
-                    .item(1) as HTMLTextAreaElement;
-
-            issueDescription.id = issueDescId;
-            initCopyEventListeners();
-            injectAllStyles();
-            ({
-                pagesPartneredMultiselect: pagesPartneredMultiselect,
-                scPartneredMultiselect: scPartneredMultiselect,
-                statesPartneredMultiselect: statesPartneredMultiselect
-            } = await replaceMultiselects());
-            addIssueTemplateSearch();
-            setupTestingSoftwareSection();
-            initSettings();
             // setup post issue editor opening callback
             let addIssue = document.querySelector('button[title="Add Issue"]');
             addIssue.parentElement.addEventListener('click', (e) => {
@@ -122,6 +99,48 @@ export default function main() {
                     callback(issueEditorType);
                 }
             });
+            // rest
+            testingSection = document.getElementById('software_used').parentElement.parentElement as HTMLDivElement;
+
+            chrome.runtime.onMessage.addListener(messageRouter);
+            repairIssueDescription();
+            initCopyEventListeners();
+            injectAllStyles();
+            ({
+                pagesPartneredMultiselect: pagesPartneredMultiselect,
+                scPartneredMultiselect: scPartneredMultiselect,
+                statesPartneredMultiselect: statesPartneredMultiselect
+            } = await replaceMultiselects());
+            addIssueTemplateSearch();
+            hideSuccessCriteriaDescription();
+            repositionStatusPriorityEffort();
+            // tbd
+            setupTestingSoftwareSection();
+            initSettings();
+        }
+
+        function repairIssueDescription() {
+            let issueDescriptionLabel: HTMLLabelElement =
+                document.querySelector(`[for="${issueDescId}"]`) as HTMLLabelElement;
+
+            let issueDescription: HTMLTextAreaElement =
+                issueDescriptionLabel
+                    .parentElement!
+                    .children
+                    .item(1) as HTMLTextAreaElement;
+
+            issueDescription.id = issueDescId;
+        }
+
+        function hideSuccessCriteriaDescription() {
+            let editor = document.getElementById('editor1');
+            editor.parentElement.style.display = 'none';
+        }
+
+        function repositionStatusPriorityEffort() {
+            let status = document.getElementById('status');
+            let column = status.parentElement.parentElement;
+            column.parentElement.append(column);
         }
 
         function injectAllStyles() {
@@ -278,15 +297,15 @@ export default function main() {
                 );
             oldSettingsSection.style.display = 'none';
             let settings = [];
-            for(let type in settingsByType) {
-                for(let settingName of type) {
+            for (let type in settingsByType) {
+                for (let settingName of type) {
                     let setting = type[settingName];
                     let environment = Settings.fromSettings(setting, setting.type);
                 }
             }
         }
 
-        
+
 
         async function addIssueTemplateSearch(): Promise<void> {
             /**
@@ -537,8 +556,8 @@ export default function main() {
                     }
                     return false;
                 });
-                    
-                for(let combo of currentCombos) {
+
+                for (let combo of currentCombos) {
                     combo.update();
                 }
             }
