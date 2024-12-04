@@ -8,7 +8,10 @@ import FilterableMultiselect from "./modules/components/FilterableMultiselect.js
 import CheckboxGroup from "./modules/components/CheckboxGroup.js";
 import Fieldset from "./modules/components/Fieldset.js";
 import TestingSoftwareCombo from "./modules/components/TestingSoftwareCombo.js";
-import Settings from "./modules/AuditSettings.js";
+import Settings, { StorageType, TestingEnvironment } from "./modules/AuditSettings.js";
+import BasicSelect from "./modules/components/BasicSelect.js";
+import Checkbox from "./modules/components/Checkbox.js";
+import PartneredCheckboxGroup from "./modules/components/PartneredMultiselect.js";
 
 enum EditorType {
     ADD,
@@ -68,7 +71,7 @@ export default function main() {
             let at: HTMLSelectElement | null = document.getElementById(softwareUseId) as HTMLSelectElement | null;
 
             const selectIsLoaded = (select: HTMLSelectElement) => !!(select && select.options.length > 0);
-            isLoaded &&= selectIsLoaded(pages);
+            isLoaded &&= !!pages;
             isLoaded &&= selectIsLoaded(successCriteria);
             isLoaded &&= selectIsLoaded(states);
             isLoaded &&= selectIsLoaded(software);
@@ -308,16 +311,16 @@ export default function main() {
                     oldSettingsSection
                 );
             oldSettingsSection.style.display = 'none';
+
             let settings = [];
             for (let type in settingsByType) {
                 for (let settingName of type) {
                     let setting = type[settingName];
                     let environment = Settings.fromSettings(setting, setting.type);
+                    settings.push(environment);
                 }
             }
         }
-
-
 
         async function addIssueTemplateSearch(): Promise<void> {
             /**
@@ -432,6 +435,71 @@ export default function main() {
             // reset.textContent = 'reset issue';
         }
 
+        async function addCurrentPage(pagesPartneredMultiselect: FilterableMultiselect) {
+            let pages = pagesPartneredMultiselect.checkboxGroup.originalItems;
+            let form = document.getElementById(pagesId)!.closest('form') as HTMLFormElement;
+            let topRow = form.children.item(0) as HTMLDivElement;
+            let input = topRow.children.item(0).querySelector('input');
+
+            let currentPage = new BasicSelect('Current Page', ['No Current Page', ...pages.map(c => c.textLabel.textContent)]);
+            currentPage.select.options.item(0).selected = true;
+            currentPage.select.classList.add(
+                ...[...input.classList].filter(c => c !== 'appearance-none')
+            );
+
+            const setPage = () => {
+                if (currentPage.select.selectedIndex > 0) {
+                    let curPageName = currentPage.select.options.item(currentPage.select.selectedIndex).textContent;
+                    let curCheckbox = pages.find(c => includesCaseInsensitive(c.textLabel.textContent, curPageName));
+                    curCheckbox.input.click();
+                    let showOnlyCheckbox = pagesPartneredMultiselect.showOnlyCheckbox.input;
+                    showOnlyCheckbox.click();
+                    if (!showOnlyCheckbox.checked) showOnlyCheckbox.click();
+                }
+            } 
+
+            currentPage.select.addEventListener('change', (e) => {
+                setPage();
+            });
+
+            let nextButton = document.createElement('button');
+            nextButton.setAttribute('tabindex', '-1');
+            nextButton.setAttribute('aria-describedby', currentPage.select.id);
+            nextButton.textContent = 'Next Page';
+            nextButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                selectNextOption(currentPage.select);
+                setPage();
+            });
+
+            openIssueEditorCallbacks.push((type: EditorType) => {
+                if (type !== EditorType.ADD) return;
+                setPage();
+            });
+
+            topRow.append(
+                currentPage.component,
+                nextButton
+            );
+        }
+
+        /**
+         * 
+         * @param select 
+         */
+        function selectNextOption(select: HTMLSelectElement) {
+            let curOptionIndex = select.selectedIndex;
+            if (curOptionIndex === -1) {
+                select.options.item(0).selected = true;
+                curOptionIndex = 0;
+            }
+            let options = select.options;
+            let curOption = options.item(curOptionIndex);
+            curOption.selected = false;
+            let nextOption = options.item(++curOptionIndex % options.length);
+            nextOption.selected = true;
+        }
+
 
         async function replaceMultiselects(): Promise<{
             pagesPartneredMultiselect: FilterableMultiselect,
@@ -464,8 +532,10 @@ export default function main() {
              */
             // insertbefore select
             let pagesPartneredMultiselect = createPartneredMultiselect(pagesId);
+            pagesPartneredMultiselect.update();
             // replace success criteria multiselect
             let scPartneredMultiselect = createPartneredMultiselect(scId);
+            scPartneredMultiselect.update();
             scPartneredMultiselect.checkboxGroup.originalItems.sort(
                 (a, b) => {
                     let regex = /(\d+)\.(\d+)\.(\d+)/i;
@@ -485,6 +555,7 @@ export default function main() {
             scPartneredMultiselect.update();
             // replace states multiselect
             let statesPartneredMultiselect = createPartneredMultiselect(statesId);
+            statesPartneredMultiselect.update();
             // add success criteria description updater
             // sometimes the sc descriptions does not update properly when selecting an sc. 
             // this makes sure that it updates properly - both when selecting and unselecting.

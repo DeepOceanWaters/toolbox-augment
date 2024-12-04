@@ -54,7 +54,7 @@ export default class FilterableMultiselect extends Component {
     }
 
     private createShowOnly(): void {
-        this.showOnlyCheckbox = new Checkbox('Only Selected ' + this.checkboxGroup.legend.textContent);
+        this.showOnlyCheckbox = new Checkbox('Sort By Selected ' + this.checkboxGroup.legend.textContent);
         let mutator =
             (checkboxes: Checkbox[]) => checkboxes.sort((a, b) => {
                 if (a.input.checked === b.input.checked) return 0;
