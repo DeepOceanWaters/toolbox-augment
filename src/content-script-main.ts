@@ -99,6 +99,7 @@ export default function main() {
                     callback(issueEditorType);
                 }
             });
+            
             // rest
             testingSection = document.getElementById('software_used').parentElement.parentElement as HTMLDivElement;
 
@@ -117,6 +118,17 @@ export default function main() {
             // tbd
             setupTestingSoftwareSection();
             initSettings();
+
+            // setup opening callback
+            openIssueEditorCallbacks.push((type) => {
+                if (type !== EditorType.ADD) return;
+                let lastCheckedPage = pagesPartneredMultiselect.checkboxGroup['lastChecked'];
+                if (lastCheckedPage) {
+                    pagesPartneredMultiselect.checkboxGroup.items.forEach(i => i.component.classList.remove('current'));
+                    lastCheckedPage.component.scrollIntoView({block: 'start'});
+                    lastCheckedPage.component.classList.add('current');
+                }
+            });
         }
 
         function repairIssueDescription() {
@@ -134,7 +146,7 @@ export default function main() {
 
         function hideSuccessCriteriaDescription() {
             let editor = document.getElementById('editor1');
-            editor.parentElement.style.display = 'none';
+            editor.parentElement.classList.add('sr-only');
         }
 
         function repositionStatusPriorityEffort() {
@@ -433,6 +445,9 @@ export default function main() {
                     filterableMultiselect.component,
                     multiselect
                 );
+                filterableMultiselect.checkboxGroup.component.addEventListener('change', (e) => {
+                    filterableMultiselect.checkboxGroup['lastChecked'] = filterableMultiselect.checkboxGroup.items.find(c => c.input === e.target);
+                });
                 return filterableMultiselect;
             }
 

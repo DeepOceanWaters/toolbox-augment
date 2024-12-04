@@ -40,3 +40,7 @@ td[data-key="issue_number"]::before {
 td[data-key="issue_number"] span {
         display: none;
     }
+
+.checkboxes-container .current {
+    text-decoration: underline;
+}
