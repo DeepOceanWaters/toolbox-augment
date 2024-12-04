@@ -80,30 +80,6 @@ export default function main() {
         }
 
         async function _main() {
-            testingSection = document.getElementById('software_used').parentElement.parentElement as HTMLDivElement;
-
-            chrome.runtime.onMessage.addListener(messageRouter);
-            let issueDescriptionLabel: HTMLLabelElement =
-                document.querySelector(`[for="${issueDescId}"]`) as HTMLLabelElement;
-
-            let issueDescription: HTMLTextAreaElement =
-                issueDescriptionLabel
-                    .parentElement!
-                    .children
-                    .item(1) as HTMLTextAreaElement;
-
-            issueDescription.id = issueDescId;
-            initCopyEventListeners();
-            injectAllStyles();
-            ({
-                pagesPartneredMultiselect: pagesPartneredMultiselect,
-                scPartneredMultiselect: scPartneredMultiselect,
-                statesPartneredMultiselect: statesPartneredMultiselect
-            } = await replaceMultiselects());
-            addIssueTemplateSearch();
-            addCurrentPage(pagesPartneredMultiselect);
-            setupTestingSoftwareSection();
-            //initSettings();
             // setup post issue editor opening callback
             let addIssue = document.querySelector('button[title="Add Issue"]');
             addIssue.parentElement.addEventListener('click', (e) => {
@@ -126,6 +102,60 @@ export default function main() {
                     callback(issueEditorType);
                 }
             });
+            
+            // rest
+            testingSection = document.getElementById('software_used').parentElement.parentElement as HTMLDivElement;
+
+            chrome.runtime.onMessage.addListener(messageRouter);
+            repairIssueDescription();
+            initCopyEventListeners();
+            injectAllStyles();
+            ({
+                pagesPartneredMultiselect: pagesPartneredMultiselect,
+                scPartneredMultiselect: scPartneredMultiselect,
+                statesPartneredMultiselect: statesPartneredMultiselect
+            } = await replaceMultiselects());
+            addIssueTemplateSearch();
+            hideSuccessCriteriaDescription();
+            repositionStatusPriorityEffort();
+            // tbd
+            setupTestingSoftwareSection();
+            initSettings();
+
+            // setup opening callback
+            openIssueEditorCallbacks.push((type) => {
+                if (type !== EditorType.ADD) return;
+                let lastCheckedPage = pagesPartneredMultiselect.checkboxGroup['lastChecked'];
+                if (lastCheckedPage) {
+                    pagesPartneredMultiselect.checkboxGroup.items.forEach(i => i.component.classList.remove('current'));
+                    lastCheckedPage.component.scrollIntoView({block: 'start'});
+                    lastCheckedPage.component.classList.add('current');
+                }
+            });
+        }
+
+        function repairIssueDescription() {
+            let issueDescriptionLabel: HTMLLabelElement =
+                document.querySelector(`[for="${issueDescId}"]`) as HTMLLabelElement;
+
+            let issueDescription: HTMLTextAreaElement =
+                issueDescriptionLabel
+                    .parentElement!
+                    .children
+                    .item(1) as HTMLTextAreaElement;
+
+            issueDescription.id = issueDescId;
+        }
+
+        function hideSuccessCriteriaDescription() {
+            let editor = document.getElementById('editor1');
+            editor.parentElement.classList.add('sr-only');
+        }
+
+        function repositionStatusPriorityEffort() {
+            let status = document.getElementById('status');
+            let column = status.parentElement.parentElement;
+            column.parentElement.append(column);
         }
 
         function injectAllStyles() {
@@ -291,7 +321,6 @@ export default function main() {
                 }
             }
         }
-
 
         async function addIssueTemplateSearch(): Promise<void> {
             /**
@@ -484,6 +513,9 @@ export default function main() {
                     filterableMultiselect.component,
                     multiselect
                 );
+                filterableMultiselect.checkboxGroup.component.addEventListener('change', (e) => {
+                    filterableMultiselect.checkboxGroup['lastChecked'] = filterableMultiselect.checkboxGroup.items.find(c => c.input === e.target);
+                });
                 return filterableMultiselect;
             }
 
