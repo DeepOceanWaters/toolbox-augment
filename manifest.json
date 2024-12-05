@@ -23,6 +23,7 @@
                 "https://app.a11ytoolbox.io/audits/*"
             ],
             "js": [
+                
                 "out/content-script.js"
             ]
         }
@@ -35,7 +36,8 @@
         {
             "resources": [
                 "out/*",
-                "css/*"
+                "css/*",
+                "node_modules/xlsx.mjs"
             ],
             "matches": [
                 "<all_urls>"

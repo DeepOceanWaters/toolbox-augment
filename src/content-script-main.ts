@@ -13,6 +13,10 @@ import BasicSelect from "./modules/components/BasicSelect.js";
 import Checkbox from "./modules/components/Checkbox.js";
 import PartneredCheckboxGroup from "./modules/components/PartneredMultiselect.js";
 
+//import Papa from '../node_modules/papaparse/papaparse';
+import XLSX from '../external_libraries/xlsx.mjs';
+import InputLabelPair from "./modules/components/InputLabelPair.js";
+
 enum EditorType {
     ADD,
     EDIT,
@@ -26,6 +30,7 @@ export default function main() {
         let issueToCopy;
         let recommendationToCopy;
         let chromeVersion;
+        let previousAudit;
 
         const pagesId = 'pages';
         const scId = 'success_criteria';
@@ -102,7 +107,7 @@ export default function main() {
                     callback(issueEditorType);
                 }
             });
-            
+
             // rest
             testingSection = document.getElementById('software_used').parentElement.parentElement as HTMLDivElement;
 
@@ -118,6 +123,7 @@ export default function main() {
             addIssueTemplateSearch();
             hideSuccessCriteriaDescription();
             repositionStatusPriorityEffort();
+            addPreviousAuditUpload();
             // tbd
             setupTestingSoftwareSection();
             initSettings();
@@ -128,10 +134,86 @@ export default function main() {
                 let lastCheckedPage = pagesPartneredMultiselect.checkboxGroup['lastChecked'];
                 if (lastCheckedPage) {
                     pagesPartneredMultiselect.checkboxGroup.items.forEach(i => i.component.classList.remove('current'));
-                    lastCheckedPage.component.scrollIntoView({block: 'start'});
+                    lastCheckedPage.component.scrollIntoView({ block: 'start' });
                     lastCheckedPage.component.classList.add('current');
                 }
             });
+        }
+
+        function addPreviousAuditUpload() {
+            let toolbar = document.getElementById('toolbar');
+            let upload = new InputLabelPair();
+            upload.input.setAttribute('type', 'file');
+            upload.component.append(upload.label, upload.input);
+            upload.label.textContent = 'uplaod previous audit';
+            toolbar.parentElement.append(upload.component);
+            upload.input.addEventListener('change', (e) => {
+                parsePreviousAudit(upload.input.files[0]);
+            });
+        }
+
+        async function parsePreviousAudit(file: File) {
+            /*
+            Papa.parse(file, { config: {
+                complete: (results: {data: string[][]}) => {
+                    previousAudit = results.data;
+                }
+            }});*/
+            let fileArray = await file.arrayBuffer();
+            let workbook = XLSX.read(fileArray, { dense: true });
+            previousAudit = workbook.Sheets[workbook.SheetNames[0]]["!data"];
+            setupIssueDescription();
+            openIssueEditorCallbacks.push((type) => {
+                if (type !== EditorType.EDIT) return;
+                let issue = findCurrentIssue();
+                if (issue) {
+                    //let UIIDs = [...document.querySelectorAll('[data-key="issue_number"]')].map(n => n.querySelector('span > span').textContent);
+                    let issueDescription = document.getElementById(issueDescId) as HTMLTextAreaElement;
+                    let issueDescriptionColNum = previousAudit[0].findIndex(c => includesCaseInsensitive(c.w, 'issue description'));
+                    issueDescription.value = issue[issueDescriptionColNum]["v"];
+                }
+            });
+        }
+
+        function setupIssueDescription() {
+            let UIIDs = [...document.querySelectorAll('[data-key="issue_number"]')].map(n => n.querySelector('span > span'));
+            let issueDescriptionColNum = previousAudit[0].findIndex(c => includesCaseInsensitive(c.w, 'issue description'));
+            for(const UIID of UIIDs) {
+                let row = previousAudit.find(r => r.some(c => includesCaseInsensitive(c.w, UIID.textContent)));
+                if (row) {
+                    let htmlRow = UIID.closest('tr');
+                    let issueDesc = htmlRow.querySelector('[data-key="issue_description"] span span');
+                    issueDesc.textContent = row[issueDescriptionColNum].v;
+                }
+            }
+        }
+
+        function findRow(value: any, columnName: string) {
+            let colIndex = previousAudit[0].findIndex(c => includesCaseInsensitive(c.w, columnName));
+            if (colIndex === -1) {
+                throw new Error('could not find column');
+            }
+            let out = previousAudit.find(r => r.some(c => c.v === value));
+            return out;
+        }
+
+        function findCurrentIssue() {
+            let currentIssue: {w, t, v}[] | null;
+            let issueDescription = document.getElementById(issueDescId) as HTMLTextAreaElement;
+            if (issueDescription.value === '') {
+                let issueTarget = document.getElementById('target') as HTMLInputElement;
+                let recommendationEditor = document.getElementById(recommendationEditorId);
+                let recommendation = recommendationEditor.textContent;
+                currentIssue = previousAudit.find(row => {
+                    return row.find(c => c && includesCaseInsensitive(c.w, issueTarget.value))
+                        || row.find(c => c && includesCaseInsensitive(c.w, recommendation));
+                });
+            }
+            return currentIssue;
+        }
+
+        function updateIssueDescription() {
+
         }
 
         function repairIssueDescription() {
@@ -456,7 +538,7 @@ export default function main() {
                     showOnlyCheckbox.click();
                     if (!showOnlyCheckbox.checked) showOnlyCheckbox.click();
                 }
-            } 
+            }
 
             currentPage.select.addEventListener('change', (e) => {
                 setPage();
