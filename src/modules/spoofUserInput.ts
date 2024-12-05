@@ -159,3 +159,10 @@ export async function getNextResource(): Promise<HTMLInputElement> {
     }
     return new Promise((resolve) => resolver(resolve));
 }
+
+export function spoofClickTableRow(row: HTMLTableRowElement) {
+    let event = new Event('mousedown', { bubbles: true}); 
+    row.dispatchEvent(event); 
+    event = new Event('mouseup', {bubbles: true}); 
+    row.dispatchEvent(event);
+}

@@ -1,5 +1,5 @@
 import includesCaseInsensitive from "./modules/includesCaseInsensitive.js";
-import { getNextResource, setQuillEditorText, spoofOptionSelected, spoofUpdateTextareaValue } from "./modules/spoofUserInput.js";
+import { getNextResource, setQuillEditorText, spoofOptionSelected, spoofUpdateTextareaValue, spoofClickTableRow } from "./modules/spoofUserInput.js";
 import { getPossibleTokens, getRecommendation } from "./modules/replaceTokens.js";
 import Combobox from "./modules/components/Combobox.js";
 import { successCriteria } from "./data/successCriteria.js";
@@ -12,8 +12,6 @@ import Settings, { StorageType, TestingEnvironment } from "./modules/AuditSettin
 import BasicSelect from "./modules/components/BasicSelect.js";
 import Checkbox from "./modules/components/Checkbox.js";
 import PartneredCheckboxGroup from "./modules/components/PartneredMultiselect.js";
-
-//import Papa from '../node_modules/papaparse/papaparse';
 import XLSX from '../external_libraries/xlsx.mjs';
 import InputLabelPair from "./modules/components/InputLabelPair.js";
 
@@ -163,29 +161,47 @@ export default function main() {
             let workbook = XLSX.read(fileArray, { dense: true });
             previousAudit = workbook.Sheets[workbook.SheetNames[0]]["!data"];
             setupIssueDescription();
-            openIssueEditorCallbacks.push((type) => {
+            openIssueEditorCallbacks.push(async (type) => {
                 if (type !== EditorType.EDIT) return;
+                await wait(1);
                 let issue = findCurrentIssue();
                 if (issue) {
                     //let UIIDs = [...document.querySelectorAll('[data-key="issue_number"]')].map(n => n.querySelector('span > span').textContent);
                     let issueDescription = document.getElementById(issueDescId) as HTMLTextAreaElement;
                     let issueDescriptionColNum = previousAudit[0].findIndex(c => includesCaseInsensitive(c.w, 'issue description'));
-                    issueDescription.value = issue[issueDescriptionColNum]["v"];
+                    spoofUpdateTextareaValue(issueDescription, issue[issueDescriptionColNum]["v"]);
                 }
             });
         }
 
-        function setupIssueDescription() {
+        async function setupIssueDescription() {
             let UIIDs = [...document.querySelectorAll('[data-key="issue_number"]')].map(n => n.querySelector('span > span'));
             let issueDescriptionColNum = previousAudit[0].findIndex(c => includesCaseInsensitive(c.w, 'issue description'));
-            for(const UIID of UIIDs) {
+            for (const UIID of UIIDs) {
                 let row = previousAudit.find(r => r.some(c => includesCaseInsensitive(c.w, UIID.textContent)));
                 if (row) {
                     let htmlRow = UIID.closest('tr');
                     let issueDesc = htmlRow.querySelector('[data-key="issue_description"] span span');
                     issueDesc.textContent = row[issueDescriptionColNum].v;
+                    spoofClickTableRow(htmlRow);
+                    await wait(1);
+                    let edit = document.querySelector('button[title="Edit Issue"]') as HTMLButtonElement;
+                    edit.click();
+                    await wait(1);
+                    let description = document.getElementById(issueDescId) as HTMLTextAreaElement;
+                    let saveBtn = [...description.closest('[role="dialog"]').querySelectorAll('button')]
+                        .find(b => b.textContent.includes('Save'));
+                    saveBtn.click();
+                    let count = 0;
+                    while(count++ < 3 && htmlRow.classList.contains('selected')) spoofClickTableRow(htmlRow);
+                    
+                    await wait(1);
                 }
             }
+        }
+
+        function wait(time) {
+            return new Promise((resolve) => setTimeout(() => resolve(true), time));
         }
 
         function findRow(value: any, columnName: string) {
@@ -198,7 +214,7 @@ export default function main() {
         }
 
         function findCurrentIssue() {
-            let currentIssue: {w, t, v}[] | null;
+            let currentIssue: { w, t, v }[] | null;
             let issueDescription = document.getElementById(issueDescId) as HTMLTextAreaElement;
             if (issueDescription.value === '') {
                 let issueTarget = document.getElementById('target') as HTMLInputElement;
