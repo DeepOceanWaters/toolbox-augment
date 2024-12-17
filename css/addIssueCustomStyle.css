@@ -35,3 +35,7 @@ tbody tr[data-scrolled-to-row] td {
     border-top: 4px solid black;
     border-bottom: 4px solid black;
 }
+
+textarea.target {
+    
+}

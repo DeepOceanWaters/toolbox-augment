@@ -37,7 +37,7 @@
             "resources": [
                 "out/*",
                 "css/*",
-                "node_modules/xlsx.mjs"
+                "external_libraries/xlsx.mjs"
             ],
             "matches": [
                 "<all_urls>"
