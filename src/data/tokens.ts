@@ -87,6 +87,14 @@ export const tokens: issueTemplateData = {
             relatedsc: ["3.2.1"],
             requirement: "Ensure that moving focus does not cause a change of context."
         },
+        oninput: {
+            focusMoves: {
+                relatedsc: ["3.2.2"],
+                issues: "When setting the state/value of this component, focus automatically moves to another component.",
+                requirement: "Ensure that when the state/value of a component is set by the user, focus remains on the component unless the user has been notified of the behavior.",
+                recommendation: ""
+            }
+        },
         hidden: {
             relatedsc: ["2.4.3"],
             issues: "Visually hidden content receives focus.",

@@ -119,6 +119,7 @@ export default function main() {
                 statesPartneredMultiselect: statesPartneredMultiselect
             } = await replaceMultiselects());
             addIssueTemplateSearch();
+            addExpandTargetElementButton();
             hideSuccessCriteriaDescription();
             repositionStatusPriorityEffort();
             addPreviousAuditUpload();
@@ -136,6 +137,36 @@ export default function main() {
                     lastCheckedPage.component.classList.add('current');
                 }
             });
+        }
+
+        function addExpandTargetElementButton() {
+            let target = document.getElementById('target') as HTMLInputElement;
+            let targetTextarea = document.createElement('textarea');
+            targetTextarea.classList.add('target');
+            let targetStyle = window.getComputedStyle(target);
+            targetTextarea.style.width = targetStyle.width;
+            targetTextarea.value = target.value;
+            targetTextarea.classList.add(...target.classList);
+            targetTextarea.addEventListener('input', (e) => {
+                spoofUpdateTextareaValue(target, targetTextarea.value, true);
+            });
+            target.parentElement.insertBefore(targetTextarea, target);
+            target.style.display = 'none';
+            openIssueEditorCallbacks.push((type) => {
+                targetTextarea.value = target.value;
+            });
+            /*
+            let expandBtn = document.createElement('button');
+            expandBtn.setAttribute('aria-pressed', 'true');
+            expandBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                let pressed = expandBtn.getAttribute('aria-pressed') === 'true';
+                expandBtn.setAttribute('aria-pressed', String(!pressed));
+            });
+            target.addEventListener('input', (e) => {
+
+            });*/
         }
 
         function addPreviousAuditUpload() {
@@ -193,8 +224,8 @@ export default function main() {
                         .find(b => b.textContent.includes('Save'));
                     saveBtn.click();
                     let count = 0;
-                    while(count++ < 3 && htmlRow.classList.contains('selected')) spoofClickTableRow(htmlRow);
-                    
+                    while (count++ < 3 && htmlRow.classList.contains('selected')) spoofClickTableRow(htmlRow);
+
                     await wait(1);
                 }
             }
@@ -226,10 +257,6 @@ export default function main() {
                 });
             }
             return currentIssue;
-        }
-
-        function updateIssueDescription() {
-
         }
 
         function repairIssueDescription() {
@@ -420,6 +447,10 @@ export default function main() {
             }
         }
 
+        function addResetIssue() {
+
+        }
+
         async function addIssueTemplateSearch(): Promise<void> {
             /**
              * form[form]:
@@ -529,8 +560,23 @@ export default function main() {
             issueTemplateContainer.classList.add('combobox-widget');
 
             // reset issues
-            // let reset = document.createElement('button');
-            // reset.textContent = 'reset issue';
+            let resetBtn = document.createElement('button');
+            resetBtn.textContent = 'Reset Issue';
+            resetIssueContainer.appendChild(resetBtn);
+            resetBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                for (let pm of [scPartneredMultiselect, pagesPartneredMultiselect, statesPartneredMultiselect]) {
+                    pm.checkboxGroup.originalItems.forEach(c => { if (c.input.checked) c.input.click(); });
+                    if (pm.showOnlyCheckbox.input.checked) pm.showOnlyCheckbox.input.click();
+                    pm.checkboxGroup.update();
+                }
+                let issueDescription = document.getElementById(issueDescId) as HTMLTextAreaElement;
+                spoofUpdateTextareaValue(issueDescription, '', true);
+                let recommendation = document.getElementById(recommendationEditorId);
+                setQuillEditorText(recommendation, [''], true);
+            });
+
         }
 
         async function addCurrentPage(pagesPartneredMultiselect: FilterableMultiselect) {

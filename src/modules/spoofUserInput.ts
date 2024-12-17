@@ -13,8 +13,8 @@ export function spoofOptionSelected(select: HTMLSelectElement, optionToToggle: H
 }
 
 /**
- * Spoofs changing the value of a textarea element such that Vue elements will
- * properly update to the value.
+ * Changes the value of a textarea element in a way that ensures that Vue sees
+ * and registers the updated value. Using just "textarea.value = 'blah'" does not work.
  * @param {HTMLTextAreaElement} textarea 
  * @param {String} value 
  */
@@ -29,32 +29,37 @@ export function spoofUpdateTextareaValue(textarea: HTMLTextAreaElement | HTMLInp
 
 
 /**
- * Sets the value of the passed quill editor. Replaces current value.
+ * Sets the value of the passed quill editor. Default appends the value.
  * @param {HTMLDivElement} quillEditor [class="ql-editor"] quill editor
  * @param {String|HTMLElement} value value to add to quill editor
  * @param {Boolean} replace should replace current value?
  * @returns {Promise<Boolean>} returns true if successful, false otherwise. Promise resolves when focus can be moved again. Focus must be on the ql-editor for the paste event to succeed.
  */
-export function setQuillEditorText(quillEditor: HTMLElement, paragraphs: string[], replace: boolean = true): Promise<void> {
+export function setQuillEditorText(quillEditor: HTMLElement, paragraphs: string[], replace: boolean = false): Promise<void> {
     let currentlyFocused = document.activeElement as HTMLElement;
     let emptyChild = quillEditor.children.item(0);
     if (emptyChild?.innerHTML === '<br>') emptyChild.innerHTML = '&nbsp';
     let values: string[] = [];
-    let foundRealValue = false;
-    for (let i = 0; i < quillEditor.children.length; i++) {
-        let child = quillEditor.children.item(i);
-        let tag = child!.tagName.toLowerCase();
-        let isNewline = !foundRealValue && tag === 'div' && (child!.innerHTML === '<br>' || child!.innerHTML === '&nbsp;');
-        if (!isNewline) {
-            values.push(child!.innerHTML);
-            foundRealValue = true;
+    if (!replace) {
+        let foundRealValue = false;
+        for (let i = 0; i < quillEditor.children.length; i++) {
+            let child = quillEditor.children.item(i);
+            let tag = child!.tagName.toLowerCase();
+            let isNewline = !foundRealValue && tag === 'div' && (child!.innerHTML === '<br>' || child!.innerHTML === '&nbsp;');
+            if (!isNewline) {
+                values.push(child!.innerHTML);
+                foundRealValue = true;
+            }
         }
-
+        [...quillEditor.children].forEach(c => c.remove());
+        values = unsplit(values, '<br>').map(group => group.join('<br>'));
+        if (values.length === 1 && values[0] === '') {
+            values = [];
+        }
     }
-    [...quillEditor.children].forEach(c => c.remove());
-    values = unsplit(values, '<br>').map(group => group.join('<br>'));
-    if (values.length === 1 && values[0] === '') {
-        values = [];
+    else {
+        quillEditor.children.item(0).innerHTML = '';
+
     }
     values.push(...paragraphs);
     let clipboard = quillEditor.parentElement!.querySelector('.ql-clipboard');
@@ -90,8 +95,8 @@ function unsplit(arr: string[], unsplitter: string): string[][] {
 type Resolver = (resolve: Function) => void;
 
 export async function getNextTestingSoftware(
-    text: string, 
-    len: number = null, 
+    text: string,
+    len: number = null,
     numAttempts: number = 0
 ): Promise<[HTMLInputElement, HTMLButtonElement] | null> {
     numAttempts++;
@@ -99,9 +104,9 @@ export async function getNextTestingSoftware(
     let inputs = label.querySelectorAll('input');
 
     if (len === null) {
-        let addCombo = 
+        let addCombo =
             [...label.parentElement.parentElement.querySelectorAll('button')]
-            .find(btn => btn.textContent === 'Add Combo');
+                .find(btn => btn.textContent === 'Add Combo');
         addCombo.click();
         len = [...inputs].length;
     }
@@ -152,17 +157,17 @@ export async function getNextResource(): Promise<HTMLInputElement> {
         }
         let addResource: HTMLButtonElement =
             resources
-            .item(0)
-            .parentElement
-            .querySelector(':scope > button');
+                .item(0)
+                .parentElement
+                .querySelector(':scope > button');
         addResource.click();
     }
     return new Promise((resolve) => resolver(resolve));
 }
 
 export function spoofClickTableRow(row: HTMLTableRowElement) {
-    let event = new Event('mousedown', { bubbles: true}); 
-    row.dispatchEvent(event); 
-    event = new Event('mouseup', {bubbles: true}); 
+    let event = new Event('mousedown', { bubbles: true });
+    row.dispatchEvent(event);
+    event = new Event('mouseup', { bubbles: true });
     row.dispatchEvent(event);
 }
