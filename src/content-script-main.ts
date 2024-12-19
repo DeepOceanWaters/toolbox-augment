@@ -142,6 +142,7 @@ export default function main() {
         function addExpandTargetElementButton() {
             let target = document.getElementById('target') as HTMLInputElement;
             let targetTextarea = document.createElement('textarea');
+            targetTextarea.id = 'target-custom';
             targetTextarea.classList.add('target');
             let targetStyle = window.getComputedStyle(target);
             targetTextarea.style.width = targetStyle.width;
@@ -155,18 +156,9 @@ export default function main() {
             openIssueEditorCallbacks.push((type) => {
                 targetTextarea.value = target.value;
             });
-            /*
-            let expandBtn = document.createElement('button');
-            expandBtn.setAttribute('aria-pressed', 'true');
-            expandBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                let pressed = expandBtn.getAttribute('aria-pressed') === 'true';
-                expandBtn.setAttribute('aria-pressed', String(!pressed));
-            });
-            target.addEventListener('input', (e) => {
 
-            });*/
+            let targetLabel = document.querySelector('[for="target"]') as HTMLLabelElement;
+            targetLabel.htmlFor = targetTextarea.id;
         }
 
         function addPreviousAuditUpload() {

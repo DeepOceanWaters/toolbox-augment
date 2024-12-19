@@ -22,7 +22,7 @@ function descontructTokenString(tokenString: string): [string[], string[]] {
 }
 
 
-export function getRecommendation(token: string): {text: string, template: issueTemplate} {
+export function getRecommendation(token: string): {text: string, template: issueTemplate, name: string} {
     let [possibleTokens, args] = descontructTokenString(token);
     let tokenObj = tokens;
     let outputValue: string = "";
@@ -32,7 +32,7 @@ export function getRecommendation(token: string): {text: string, template: issue
         }
         if (!(aToken in tokenObj)) {
             alert(`token not found (${token})`);
-            return { text: '', template: defaultTemplate};
+            return { text: '', template: defaultTemplate, name: 'null'};
         }
         if (aToken === 'resources') {
             let listOfResources = tokenObj["resources"];
@@ -77,7 +77,8 @@ export function getRecommendation(token: string): {text: string, template: issue
             relatedsc: tokenObj["relatedsc"],
             resources: tokenObj["resources"],
             arguments: args
-        }
+        },
+        name: token
     };
 }
 
