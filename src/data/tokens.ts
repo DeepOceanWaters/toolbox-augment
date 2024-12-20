@@ -1,6 +1,34 @@
 import { relative } from "path"
 import { Recoverable } from "repl"
 
+export enum variableType {
+    NUMBER,
+    STRING,
+    BOOLEAN,
+    EXCLUSIVEOPTIONSET, // group of radio buttons
+    INCLUSIVEOPTIONSET // group of checkboxes
+}
+
+export enum postProcessing {
+    TEXTCONTRAST,
+    NONTEXTCONTRAST,
+    FOCUSCONTRAST
+}
+
+export type variable = {
+    name: string,
+    type: variableType,
+    options: [string]
+}
+
+export type numberVariable = {
+
+}
+
+export type variables = {
+    [x: symbol | string]: variable
+}
+
 export type issueTemplate = {
     issue: string,
     requirement: string,
@@ -191,7 +219,7 @@ export const tokens: issueTemplateData = {
         relatedsc: ["4.1.2"],
         issues: "This component does not have an accessible name.",
         requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
-        recommendation: "We recommend either:\n- Adding a visually hidden SPAN element with text content that describes the purpose of this component\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute",
+        recommendation: "To provide an accessible name, we recommend either:\n- Adding a visually hidden SPAN element with text content that describes the purpose of this component\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute",
         graphic: {
             relatedsc: ["4.1.2", "1.1.1"],
             issues: "This non-context content labels an interactive component, but it does not have a text alternative that describes the purpose/function of this component.",
@@ -218,6 +246,13 @@ export const tokens: issueTemplateData = {
         },
         warning: {
             recommendation: "We recommend using either ARIA-LABELLEDBY or a visually hidden SPAN as opposed to ARIA-LABEL as automatic translation services typically do not update attributes such as ARIA-LABEL."
+        },
+        iframe: {
+            relatedsc: ["4.1.2"],
+            issues: "This IFRAME does not have a TITLE attribute.",
+            requirement: "Ensure that IFRAMEs are given a TITLE attribute that describes its purpose.",
+            recommendation: "",
+            postProcessing: postProcessing,
         }
     },
 
@@ -598,6 +633,38 @@ export const tokens: issueTemplateData = {
         issues: "This combobox is improperly constructed.",
         requirement: "Ensure that COMBOBOX widgets are properly constructed.",
         recommendation: "Ensure that COMBOBOXes are implemented properly.\n\nWe recommend adding to the INPUT element:\n- ROLE=COMBOBOX\n- ARIA-EXPANDED (TRUE when the list of autocomplete values is visible)\n- ARIA-CONTROLS targeting the associated LISTBOX\n- ARIA-AUTOCOMPLETE=LIST\n\nWe recommend adding to the list of autocomplete values:\n- ROLE=LISTBOX\n- ARIA-LABEL (or something similar)\n- Descendant options should have ROLE=OPTION"
+    },
+
+    contrast: {
+        text: {
+            relatedsc: [""],
+            issues: "",
+            requirement: "Ensure that the contrast ratio meets or exceeds the ratio 3:1 for interactable components or parts of graphical objects required to understand the content.",
+            recommendation: "",
+            postProcessing: postProcessing.TEXTCONTRAST,
+        },
+        nonText: {
+            relatedsc: ["1.4.11"],
+            issues: "",
+            requirement: "Ensure that the contrast ratio meets or exceeds the ratio 3:1 for interactable components or parts of graphical objects required to understand the content.",
+            recommendation: "",
+            postProcessing: postProcessing.NONTEXTCONTRAST,
+            focus: {
+                relatedsc: ["1.4.11"],
+                issues: "",
+                requirement: "Ensure that the contrast ratio meets or exceeds the ratio 3:1 for interactable components or parts of graphical objects required to understand the content.",
+                recommendation: "",
+                postProcessing: postProcessing.FOCUSCONTRAST,
+            }
+        }
+    },
+
+    template: {
+        relatedsc: [""],
+        issues: "",
+        requirement: "",
+        recommendation: "",
+        postProcessing: postProcessing,
     }
 
 }
