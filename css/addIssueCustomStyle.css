@@ -36,6 +36,7 @@ tbody tr[data-scrolled-to-row] td {
     border-bottom: 4px solid black;
 }
 
-textarea.target {
-    
+.multiselect-group label span {
+    word-wrap: break-word;
+    max-width: 250px;
 }

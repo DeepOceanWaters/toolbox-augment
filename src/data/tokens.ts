@@ -35,6 +35,7 @@ export type issueTemplate = {
     recommendation: string,
     relatedsc: string[],
     resources: string[],
+    notes: string | null,
     arguments: string[]
 } & {
     [x: symbol]: issueTemplate
@@ -133,7 +134,8 @@ export const tokens: issueTemplateData = {
             relatedsc: ["2.4.3", "2.1.1"],
             issues: "This ANCHOR element is not focusable and does not have an appropriate role as it does not have an HREF attribute. Note that ANCHOR elements without an HREF attribute have a role of GENERIC and are not focusable.",
             requirement: "Ensure that interactive anchor elements have an HREF attribute, or are given an appropriate role and can be operated using a keyboard.",
-            recommendation: "We recommend giving this ANCHOR element the HREF attribute. Otherwise we recommend giving it a ROLE of LINK, and TABINDEX=0."
+            recommendation: "We recommend giving this ANCHOR element the HREF attribute. Otherwise we recommend giving it a ROLE of LINK, and TABINDEX=0.",
+            notes: "If the ANCHOR element has an event listener (such as click, or keydown) the browser and/or AT may use heuristics and apply a ROLE of LINK to the element - regardless of what the HTML Standard document states."
         },
         manage: {
             open: {
@@ -635,27 +637,34 @@ export const tokens: issueTemplateData = {
         recommendation: "Ensure that COMBOBOXes are implemented properly.\n\nWe recommend adding to the INPUT element:\n- ROLE=COMBOBOX\n- ARIA-EXPANDED (TRUE when the list of autocomplete values is visible)\n- ARIA-CONTROLS targeting the associated LISTBOX\n- ARIA-AUTOCOMPLETE=LIST\n\nWe recommend adding to the list of autocomplete values:\n- ROLE=LISTBOX\n- ARIA-LABEL (or something similar)\n- Descendant options should have ROLE=OPTION"
     },
 
-    contrast: {
+    colorContrast: {
         text: {
-            relatedsc: [""],
-            issues: "",
-            requirement: "Ensure that the contrast ratio meets or exceeds the ratio 3:1 for interactable components or parts of graphical objects required to understand the content.",
+            relatedsc: ["1.4.3"],
+            issues: "Insufficient text color contrast ratio.",
+            requirement: "Ensure that normal text has at least a 4.5:1 color contrast against its background color, and that large-scale text has at least a 3:1 color contrast ratio against its background color.",
             recommendation: "",
             postProcessing: postProcessing.TEXTCONTRAST,
         },
         nonText: {
             relatedsc: ["1.4.11"],
-            issues: "",
+            issues: "Insufficient non-text color contrast ratio.",
             requirement: "Ensure that the contrast ratio meets or exceeds the ratio 3:1 for interactable components or parts of graphical objects required to understand the content.",
             recommendation: "",
             postProcessing: postProcessing.NONTEXTCONTRAST,
             focus: {
                 relatedsc: ["1.4.11"],
-                issues: "",
+                issues: "Insufficient focus indicator color contrast ratio.",
                 requirement: "Ensure that the contrast ratio meets or exceeds the ratio 3:1 for interactable components or parts of graphical objects required to understand the content.",
-                recommendation: "",
+                recommendation: "We recommend using a solid outline with a width of at least 2px, that also contrasts well with its adjacent colors (at least a 3:1 color contrast ratio).",
                 postProcessing: postProcessing.FOCUSCONTRAST,
             }
+        },
+        useOfColor: {
+            relatedsc: ["1.4.1"],
+            issues: "The only difference between these two ($var$ and $var2$) is a change in color as they do not change form, and these colors have an insufficient color contrast ratio (less than 3:1) when compared to each other.",
+            requirement: "Ensure that color is not the only means of distinguishing visual elements. \n\nColor is not considered the only means of distinguishing visual elements if:\n- there is a change in form (text underline, outline, increased border size)\n- or if the color contrast between the two visual elements or states is 3:1 or higher",
+            recommendation: "We recommend changing the form of one of these. Here are some examples of changes in form:\n- Bolding text\n- changing a solid color to a pattern\n- Underlining text\n- changing the thickness of the border .\nNote that if a change in form is used, the change in form must still adhere to 1.4.11 Non-text Contrast which requires non-text content have a 3:1 color contrast ratio when compared to adjacent colors.",
+            postProcessing: postProcessing,
         }
     },
 
