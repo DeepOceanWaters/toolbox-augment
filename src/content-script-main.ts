@@ -14,6 +14,7 @@ import Checkbox from "./modules/components/Checkbox.js";
 import PartneredCheckboxGroup from "./modules/components/PartneredMultiselect.js";
 import XLSX from '../external_libraries/xlsx.mjs';
 import InputLabelPair from "./modules/components/InputLabelPair.js";
+import wait, { waitUntil } from "./modules/wait.js";
 
 enum EditorType {
     ADD,
@@ -123,9 +124,6 @@ export default function main() {
             hideSuccessCriteriaDescription();
             repositionStatusPriorityEffort();
             addPreviousAuditUpload();
-            // tbd
-            setupTestingSoftwareSection();
-            initSettings();
 
             // setup opening callback
             openIssueEditorCallbacks.push((type) => {
@@ -139,6 +137,12 @@ export default function main() {
             });
         }
 
+        /**
+         * Replaces the INPUT type=text with a TEXTAREA. Sometimes the target 
+         * description is long (I incorporate how to find the target into the 
+         * name - CB). A TEXTAREA allows long names to wrap and allows users
+         * to view the entire name. 
+         */
         function addExpandTargetElementButton() {
             let target = document.getElementById('target') as HTMLInputElement;
             let targetTextarea = document.createElement('textarea');
@@ -161,6 +165,12 @@ export default function main() {
             targetLabel.htmlFor = targetTextarea.id;
         }
 
+        /**
+         * Allows users to upload the previous audit to add the issue 
+         * description that is always missing to each issue.
+         * Currently only updates the first page of issues. Can run 
+         * again on page 2 and it should work.
+         */
         function addPreviousAuditUpload() {
             let toolbar = document.getElementById('toolbar');
             let upload = new InputLabelPair();
@@ -173,20 +183,20 @@ export default function main() {
             });
         }
 
+        /**
+         * Part of addPreviousAuditUpload()
+         */
         async function parsePreviousAudit(file: File) {
-            /*
-            Papa.parse(file, { config: {
-                complete: (results: {data: string[][]}) => {
-                    previousAudit = results.data;
-                }
-            }});*/
             let fileArray = await file.arrayBuffer();
             let workbook = XLSX.read(fileArray, { dense: true });
             previousAudit = workbook.Sheets[workbook.SheetNames[0]]["!data"];
             setupIssueDescription();
             openIssueEditorCallbacks.push(async (type) => {
                 if (type !== EditorType.EDIT) return;
-                await wait(1);
+                let editorOpen = await waitUntil(issueDialogIsOpen);
+                if (!editorOpen) {
+                    throw new Error(`couldn't open editor`);
+                }
                 let issue = findCurrentIssue();
                 if (issue) {
                     //let UIIDs = [...document.querySelectorAll('[data-key="issue_number"]')].map(n => n.querySelector('span > span').textContent);
@@ -205,27 +215,42 @@ export default function main() {
                 if (row) {
                     let htmlRow = UIID.closest('tr');
                     let issueDesc = htmlRow.querySelector('[data-key="issue_description"] span span');
-                    issueDesc.textContent = row[issueDescriptionColNum].v;
-                    spoofClickTableRow(htmlRow);
-                    await wait(1);
-                    let edit = document.querySelector('button[title="Edit Issue"]') as HTMLButtonElement;
+                    // issueDesc.textContent = row[issueDescriptionColNum].v;
+                    await spoofClickTableRow(htmlRow, (row: HTMLTableRowElement) => row.classList.contains('selected'));
+                    let edit = await getEditIssue();
                     edit.click();
-                    await wait(1);
+                    
                     let description = document.getElementById(issueDescId) as HTMLTextAreaElement;
+                    await waitUntil(() => issueDialogIsOpen);
+                    spoofUpdateTextareaValue(description, row[issueDescriptionColNum].v, true);
                     let saveBtn = [...description.closest('[role="dialog"]').querySelectorAll('button')]
                         .find(b => b.textContent.includes('Save'));
                     saveBtn.click();
-                    let count = 0;
-                    while (count++ < 3 && htmlRow.classList.contains('selected')) spoofClickTableRow(htmlRow);
-
-                    await wait(1);
+                    await spoofClickTableRow(htmlRow, (row: HTMLTableRowElement) => !row.classList.contains('selected'));
                 }
             }
         }
 
-        function wait(time) {
-            return new Promise((resolve) => setTimeout(() => resolve(true), time));
+        function issueDialogIsOpen() {
+            let description = document.getElementById(issueDescId) as HTMLTextAreaElement;
+            return description.closest('[role="dialog"]').getBoundingClientRect().width > 0;
         }
+
+        async function getEditIssue() {
+            let count = 0;
+            let edit;
+            while(!edit && count++ < 50) {
+                edit = document.querySelector('button[title="Edit Issue"]') as HTMLButtonElement;
+                await wait(1);
+            }
+            if (!edit) {
+                let selectedRows = [...document.querySelectorAll('tr.selected')];
+                throw new Error(`Edit Issue is not showing up. ${selectedRows}`);
+            }
+            return edit;
+        }
+
+        
 
         function findRow(value: any, columnName: string) {
             let colIndex = previousAudit[0].findIndex(c => includesCaseInsensitive(c.w, columnName));
@@ -244,8 +269,7 @@ export default function main() {
                 let recommendationEditor = document.getElementById(recommendationEditorId);
                 let recommendation = recommendationEditor.textContent;
                 currentIssue = previousAudit.find(row => {
-                    return row.find(c => c && includesCaseInsensitive(c.w, issueTarget.value))
-                        || row.find(c => c && includesCaseInsensitive(c.w, recommendation));
+                    return row.find(c => c && includesCaseInsensitive(c.w, issueTarget.value));
                 });
             }
             return currentIssue;
@@ -520,6 +544,7 @@ export default function main() {
                         _prepare(template.recommendation)
                     )
                 }
+                
                 //recommendationParagraphs.filter(a => a);
 
                 let recommendationQuillEditor =
@@ -531,6 +556,11 @@ export default function main() {
                 await setQuillEditorText(recommendationQuillEditor, [], false);
                 combobox.toggleListbox(false);
 
+                if (template.notes) {
+                    let auditorNotes = document.getElementById('auditor_notes') as HTMLTextAreaElement;
+                    spoofUpdateTextareaValue(auditorNotes, template.notes);
+                }
+
 
                 // add default resources
                 for (const resource of template.resources || []) {
@@ -539,12 +569,13 @@ export default function main() {
                 }
 
                 // set testing software automatically if previously set
+                /*
                 let at = document.getElementById('assistive_tech') as HTMLInputElement;
                 if (at.value) {
                     let dialogBtns = [...at.closest('[role="dialog"]').querySelectorAll('button')];
                     let addCombo = dialogBtns.find(btn => btn.textContent === 'Add Combo');
                     addCombo.click();
-                }
+                }*/
             });
             issueTemplateContainer.append(
                 combobox.component

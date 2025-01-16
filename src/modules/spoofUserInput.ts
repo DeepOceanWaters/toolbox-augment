@@ -1,3 +1,4 @@
+import wait from "./wait.js";
 
 export function spoofOptionSelected(select: HTMLSelectElement, optionToToggle: HTMLOptionElement, selected: boolean): void {
     if (typeof selected === 'boolean') {
@@ -165,9 +166,19 @@ export async function getNextResource(): Promise<HTMLInputElement> {
     return new Promise((resolve) => resolver(resolve));
 }
 
-export function spoofClickTableRow(row: HTMLTableRowElement) {
+function _spoofClickTableRow(row: HTMLTableRowElement) {
     let event = new Event('mousedown', { bubbles: true });
     row.dispatchEvent(event);
     event = new Event('mouseup', { bubbles: true });
     row.dispatchEvent(event);
+}
+
+export async function spoofClickTableRow(row: HTMLTableRowElement, callback) {
+    let count = 0;
+    let out = false;
+    while (!(out = callback(row)) && count++ < 50) {
+        _spoofClickTableRow(row);
+        await wait(1);
+    }
+    return out;
 }
