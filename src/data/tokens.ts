@@ -1,6 +1,14 @@
 import { relative } from "path"
 import { Recoverable } from "repl"
 
+export enum states {
+    FOCUSED,
+    HOVERED,
+    REFLOW,
+    ZOOMED,
+    TEXTSPACING
+}
+
 export enum variableType {
     NUMBER,
     STRING,
@@ -35,6 +43,8 @@ export type issueTemplate = {
     recommendation: string,
     relatedsc: string[],
     resources: string[],
+    states?: states[],
+    notes?: string,
     arguments: string[]
 } & {
     [x: symbol]: issueTemplate
@@ -133,7 +143,8 @@ export const tokens: issueTemplateData = {
             relatedsc: ["2.4.3", "2.1.1"],
             issues: "This ANCHOR element is not focusable and does not have an appropriate role as it does not have an HREF attribute. Note that ANCHOR elements without an HREF attribute have a role of GENERIC and are not focusable.",
             requirement: "Ensure that interactive anchor elements have an HREF attribute, or are given an appropriate role and can be operated using a keyboard.",
-            recommendation: "We recommend giving this ANCHOR element the HREF attribute. Otherwise we recommend giving it a ROLE of LINK, and TABINDEX=0."
+            recommendation: "We recommend giving this ANCHOR element the HREF attribute. Otherwise we recommend giving it a ROLE of LINK, and TABINDEX=0.",
+            notes: "If the ANCHOR element has an event listener (such as click, or keydown) the browser and/or AT may use heuristics and apply a ROLE of LINK to the element - regardless of what the HTML Standard document states. It still won't be focusable, but screen readers may read it's role as a link."
         },
         manage: {
             open: {
@@ -311,16 +322,41 @@ export const tokens: issueTemplateData = {
     },
 
     reflow: {
-        relatedsc: ["1.4.10"],
-        requirement: "Ensure that there is no loss of content or functionality when the viewport is set as described in the 1.4.10 Reflow Success Criterion (320 CSS Pixels width by 256 CSS Pixels height)."
+        lossOfContent: {
+            relatedsc: ["1.4.10"],
+            issues: "There is a loss of content (CONTENT) at this viewport size.",
+            requirement: "Ensure that there is no loss of content or functionality when the viewport is set as described in the 1.4.10 Reflow Success Criterion (320 CSS Pixels width by 256 CSS Pixels height).",
+            recommendation: "",
+            resources: [""],
+            notes: "If content moves but is still available, it is not considered a loss of content or functionality. Auditors are recommened to search for the content in other areas if it seems to disappear at the reflow viewport size.",
+            states: [states.REFLOW],
+            postProcessing: postProcessing,
+        },
+        scrollTwoDimensions: {
+            relatedsc: ["1.4.10"],
+            issues: "This content requires scrolling in two dimensions.",
+            requirement: "Ensure that non-exempt content does not require scrolling in two dimensions when the viewport is set as described in the 1.4.10 Reflow Success Criterion (320 CSS Pixels width by 256 CSS Pixels height).",
+            recommendation: "Non-exempt content should reflow into a single column (vertical scroll) or row (horizontal scroll). Exempt content can scroll both vertically and horizontally, but it cannot cause other, non-exempt content from scrolling in two dimensions.\n\nExempt content includes content that requires 2 dimensions to convey, such as an image or a data table.",
+            resources: [""],
+            states: [states.REFLOW],
+            notes: "We define scrolling in two dimensions as the a single container scrolling in two dimensions. If one container only scrolls horizontally, and a ancestor container only scrolls vertically, then neither container scrolls in two dimensions. If content is exempt (such as tables, images) then only that content can be scrollable in two dimensions - it does not allow an ancestor container to scroll in two dimensions. It also does not allow related content to scroll with it. For example, an image with a caption: the image can scroll in two dimensions, the caption must reflow and cannot scroll with the image.\n\nNote that if content is scrollable and does not contain an interactive element, the container should be placed in focus order, given a REGION role and accessible name similar to \"[Table name], scrollable\".",
+        }
     },
 
     table: {
         sortableColumnHeader: {
             relatedsc: ["4.1.2"],
-            issues: "Columnheaders are not interactive roles, but this one is being used to change the sorted state of the associated column.",
+            issues: "COLUMNHEADER (TH) is not an interactive role, but this one is being used to change the sorted state of the column.",
             requirement: "Ensure that columnheaders are not used to control the sorted state of table columns.",
-            recommendation: "We recommend adding a descendant BUTTON element, wrapping the columnheader text. Note that when the ARIA-SORT attribute on a COLUMNHEADER is updated while the user is focusing a BUTTON in the COLUMNHEADER they will be notified of the change."
+            recommendation: "We recommend adding a descendant BUTTON element, wrapping the columnheader text.\n\nNote that when the ARIA-SORT attribute on a COLUMNHEADER is updated while the user is focusing a BUTTON in the COLUMNHEADER they will be notified of the change.",
+            resources: ["https://www.w3.org/WAI/ARIA/apg/patterns/table/examples/sortable-table/"]
+        },
+        interactiveRow: {
+            relatedsc: ["4.1.2"],
+            issues: "The ROW (TR) role is not an interactive role, but these ROWs are focusable and interactive.",
+            requirement: "Ensure that ROWs (TR) are not used for keyboard interaction.",
+            recommendation: "We recommend using a native HTML BUTTON element for the keyboard interaction. We recommend picking a column that best represents that functionality, and either wrapping the text in each cell in BUTTON, or adding a BUTTON that provides that functionality.\n\nNote: while we don't recommend making the ROW (TR) clickable (has a click event), it is not a failure as long as the functionality of clicking the ROW is on an element with an interactive ROLE.",
+            resources: ["https://codepen.io/colinjbr/pen/emOKzbP"]
         }
     },
 
@@ -434,7 +470,16 @@ export const tokens: issueTemplateData = {
             relatedsc: ["1.1.1"],
             issues: "This non-text content has a text alternative, but it does not adequately describe the non-text content.",
             requirement: "Ensure that non-text content has a text alternative that adequately describes the content in context. If the non-text content is decorative, it should be implemented in a way such that AT can ignore it.",
-            recommendation: ""
+            recommendation: "",
+            doesNotIncludeText: {
+                relatedsc: ["1.1.1"],
+                issues: "This image has text in it, but this text is not present in the text alternative word-for-word.",
+                requirement: "Ensure that when an image has important text in it, it is present in the text alternative word-for-word.",
+                recommendation: "",
+                resources: [""],
+                notes: "Word-for-word does not require the each sentence or word necessarily be in an exact order. For example, if the image has the text \"Contact us for a quote.\" and \"Terms and conditions apply.\", they do not necessarily need to follow the visual order if the order is not important. Both would still need to be present. Here's an example of when the order would be important \"Step 1 prepare ingredients\" and \"Step 2 mix ingredients in bowl\" - The order is important.",
+                states: [],
+            }
         },
         decorative: {
             relatedsc: ["1.1.1"],
@@ -503,7 +548,13 @@ export const tokens: issueTemplateData = {
             relatedsc: ["4.1.3"],
             issues: "This status message is not implemented in a way such that AT is notifying users of the message.",
             requirement: "Ensure that status messages are implemented in a way such that AT can notify users of the message.",
-            recommendation: "We recommend adding a live region and updating this live region with the text of the status message.\n\nLive regions can be created by adding the ARIA-LIVE attribute with a value of either POLITE or ASSERTIVE to an element. The following ROLES have an implicit ARIA-LIVE attribute value:\n- ROLE=STATUS (implicit ARIA-LIVE value of POLITE)\n- ROLE=ALERT (implicit ARIA-LIVE value of ASSERTIVE)\n\nNote that users agents need time to register live regions before they can be used. As such, we recommend that all live regions are added to the DOM as soon as the page loads. If the live region is added dynamically, then a delay will need to be implemented before any change is made to that live region to ensure that it has been registered by all user agents and works as intended."
+            recommendation: "We recommend adding a live region and updating this live region with the text of the status message.\n\nLive regions can be created by adding the ARIA-LIVE attribute with a value of either POLITE or ASSERTIVE to an element. The following ROLES have an implicit ARIA-LIVE attribute value:\n- ROLE=STATUS (implicit ARIA-LIVE value of POLITE)\n- ROLE=ALERT (implicit ARIA-LIVE value of ASSERTIVE)\n\nNote that users agents need time to register live regions before they can be used. As such, we recommend that all live regions are added to the DOM as soon as the page loads. If the live region is added dynamically, then a delay will need to be implemented before any change is made to that live region to ensure that it has been registered by all user agents and works as intended.",
+            inline: {
+                relatedsc: ["4.1.3"],
+                issues: "This error message is not implemented in a way such that AT is notifying users of the message.",
+                requirement: "Ensure that error messages are implemented in a way such that AT can notify users of the message.",
+                recommendation: "Since this error message appears inline either when editing or when focus is moved away, we recommend using ARIA-DESCRIBEDBY on the form field, targeting the error message. While content with an interactive role is focused, if the content targeted by ARIA-DESCRIBEDBY is updated, AT will treat the ",
+            }
         },
         loading: {
             relatedsc: ["4.1.3"],
@@ -635,27 +686,34 @@ export const tokens: issueTemplateData = {
         recommendation: "Ensure that COMBOBOXes are implemented properly.\n\nWe recommend adding to the INPUT element:\n- ROLE=COMBOBOX\n- ARIA-EXPANDED (TRUE when the list of autocomplete values is visible)\n- ARIA-CONTROLS targeting the associated LISTBOX\n- ARIA-AUTOCOMPLETE=LIST\n\nWe recommend adding to the list of autocomplete values:\n- ROLE=LISTBOX\n- ARIA-LABEL (or something similar)\n- Descendant options should have ROLE=OPTION"
     },
 
-    contrast: {
+    colorContrast: {
         text: {
-            relatedsc: [""],
-            issues: "",
-            requirement: "Ensure that the contrast ratio meets or exceeds the ratio 3:1 for interactable components or parts of graphical objects required to understand the content.",
+            relatedsc: ["1.4.3"],
+            issues: "Insufficient text color contrast ratio.",
+            requirement: "Ensure that normal text has at least a 4.5:1 color contrast against its background color, and that large-scale text has at least a 3:1 color contrast ratio against its background color.",
             recommendation: "",
             postProcessing: postProcessing.TEXTCONTRAST,
         },
         nonText: {
             relatedsc: ["1.4.11"],
-            issues: "",
+            issues: "Insufficient non-text color contrast ratio.",
             requirement: "Ensure that the contrast ratio meets or exceeds the ratio 3:1 for interactable components or parts of graphical objects required to understand the content.",
             recommendation: "",
             postProcessing: postProcessing.NONTEXTCONTRAST,
             focus: {
                 relatedsc: ["1.4.11"],
-                issues: "",
+                issues: "Insufficient focus indicator color contrast ratio.",
                 requirement: "Ensure that the contrast ratio meets or exceeds the ratio 3:1 for interactable components or parts of graphical objects required to understand the content.",
-                recommendation: "",
+                recommendation: "We recommend using a solid outline with a width of at least 2px, that also contrasts well with its adjacent colors (at least a 3:1 color contrast ratio).",
                 postProcessing: postProcessing.FOCUSCONTRAST,
             }
+        },
+        useOfColor: {
+            relatedsc: ["1.4.1"],
+            issues: "The only difference between these two ($var$ and $var2$) is a change in color as they do not change form, and these colors have an insufficient color contrast ratio (less than 3:1) when compared to each other.",
+            requirement: "Ensure that color is not the only means of distinguishing visual elements. \n\nColor is not considered the only means of distinguishing visual elements if:\n- there is a change in form (text underline, outline, increased border size)\n- or if the color contrast between the two visual elements or states is 3:1 or higher",
+            recommendation: "We recommend changing the form of one of these. Here are some examples of changes in form:\n- Bolding text\n- changing a solid color to a pattern\n- Underlining text\n- changing the thickness of the border .\nNote that if a change in form is used, the change in form must still adhere to 1.4.11 Non-text Contrast which requires non-text content have a 3:1 color contrast ratio when compared to adjacent colors.",
+            postProcessing: postProcessing,
         }
     },
 
@@ -664,6 +722,9 @@ export const tokens: issueTemplateData = {
         issues: "",
         requirement: "",
         recommendation: "",
+        resources: [""],
+        notes: "",
+        states: [],
         postProcessing: postProcessing,
     }
 

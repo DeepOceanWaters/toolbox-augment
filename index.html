@@ -5,48 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ability Auditor Helper</title>
-    <script src="main.js" defer></script>
 </head>
 
 <body>
-    <details>
-        <summary>Add issue(s) to component</summary>
-        <fieldset>
-            <legend>Component type</legend>
-            <input type="radio" name="component-type" id="new-component">
-            <label for="new-component">New</label>
-            <input type="radio" name="component-type" id="existing-component">
-            <label for="existing-component">Existing</label>
-        </fieldset>
-        <div id="existing-component-pair" class="field-pair">
-            <label for="component-id">Existing Component</label>
-            <select name="" id="component-id"></select>
-        </div>
-        <div id="new-component-pair" class="field-pair">
-            <label for="component-name">New Component Name</label>
-            <input type="text" id="component-name">
-        </div>
-        <div class="field-pair">
-            <label for="issue-numbers">Issue Numbers</label>
-            <input type="text" id="issue-numbers">
-        </div>
-        <br>
-        <button id="add-component-submit" type="submit">Add issues to component</button>
-    </details>
-
-    <h2>Components and issues</h2>
-    <div id="component-issues-list">
-        No components added yet.
-    </div>
-
-    <button id="test">test messages</button>
-
-    <details>
-        <summary>log</summary>
-        <ul id="log">
-
-        </ul>
-    </details>
+    
 </body>
 
 </html>

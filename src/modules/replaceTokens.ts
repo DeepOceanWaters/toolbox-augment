@@ -76,6 +76,7 @@ export function getRecommendation(token: string): {text: string, template: issue
             recommendation: replaceVariables(tokenObj["recommendation"], args),
             relatedsc: tokenObj["relatedsc"],
             resources: tokenObj["resources"],
+            notes: tokenObj["notes"] || "",
             arguments: args
         },
         name: token
