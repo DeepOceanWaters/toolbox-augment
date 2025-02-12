@@ -494,7 +494,18 @@ export const tokens: issueTemplateData = {
             relatedsc: ["2.4.4"],
             issues: "The purpose of this link is ambiguous.",
             requirement: "Ensure that the purpose of each link is unambiguous.",
-            recommendation: "We recommend adding the ARIA-DESCRIBEDBY attribute to provide context."
+            recommendation: "We recommend adding the ARIA-DESCRIBEDBY attribute to provide context.",
+
+            pagination: {
+                relatedsc: ["2.4.4"],
+                issues: "The purpose of this link is ambiguous.",
+                requirement: "Ensure that the purpose of each link is unambiguous.",
+                recommendation: 'We recommend either:\n- wrapping the pagination links in a NAV element and adding the attribute ARIA-LABEL="Pagination"\n- OR Ensure each link has an accessible name that describes its purpose (e.g. "Page 1" instead of "1"). This can be doen by either adding visually hidden SPAN element example: <a href="..."><span class="visually=hidden>Page</span>1</a> or by using ARIA-LABEL example: <a href="..." aria-label="Page 1">1</a>',
+                resources: [""],
+                notes: "",
+                states: [],
+                postProcessing: postProcessing,
+            }
         },
     },
 
@@ -713,6 +724,50 @@ export const tokens: issueTemplateData = {
             issues: "The only difference between these two ($var$ and $var2$) is a change in color as they do not change form, and these colors have an insufficient color contrast ratio (less than 3:1) when compared to each other.",
             requirement: "Ensure that color is not the only means of distinguishing visual elements. \n\nColor is not considered the only means of distinguishing visual elements if:\n- there is a change in form (text underline, outline, increased border size)\n- or if the color contrast between the two visual elements or states is 3:1 or higher",
             recommendation: "We recommend changing the form of one of these. Here are some examples of changes in form:\n- Bolding text\n- changing a solid color to a pattern\n- Underlining text\n- changing the thickness of the border .\nNote that if a change in form is used, the change in form must still adhere to 1.4.11 Non-text Contrast which requires non-text content have a 3:1 color contrast ratio when compared to adjacent colors.",
+            postProcessing: postProcessing,
+        },
+        imageBackground: {
+            text: {
+                relatedsc: ["1.4.3"],
+                issues: "This text has insufficient color contrast against its background image.",
+                requirement: "Ensure that enough text has sufficient color contrast against adjacent colors.",
+                recommendation: "If you know the image this text will be place against, and the image does not change, then you may be able to change the text color.\n\nIf you do not know the image this text will be placed against, then we recommend adding a solid background color that contrasts well with the current text color (a translucent background may be acceptable, but requires more extensive testing to ensure the text does not lose contrast, see the Codepen link in the Resources section for more information).",
+                resources: ["https://codepen.io/colinjbr/pen/rNQGVeE"],
+                notes: `Only enough of this content needs to contrast well. For example a link labeled "See Big Ben on Google Maps", only "Big Ben" and "Google Maps" would need good contrast as users will likely be able to understand that this link shows you Big Ben on Google Maps. Lets take the same example, but this time let's say that "See Big" does not contrast well, then all users could see is "Ben on Google Maps" which does not adequately indicate the purpose of the link.`,
+                states: [],
+                postProcessing: postProcessing,
+            },
+            nonText: {
+                relatedsc: ["1.4.11"],
+                issues: "This non-text content has insufficient color contrast against its background image.",
+                requirement: "Ensure that non-text content is placed against an image, it has a 3:1 against enough of the image such that users can identify the non-text content.",
+                recommendation: "If you know the image this non-text content will be place against, and the image does not change, then you may be able to change one or more colors of the non-text content.\n\nIf you do not know the image this non-text content will be placed against, then we recommend adding a solid background color that contrasts well with the current color (a translucent background may be acceptable, but requires more extensive testing to ensure the text does not lose contrast, see the Codepen link in the Resources section for more information).",
+                resources: ["https://codepen.io/colinjbr/pen/rNQGVeE"],
+                notes: `Similar to the text version, only enough of the non-text content needs to be visible/contrast well. For example, let's an image gallery has arrows icons for next ("->") and previous ("<-"). If the dashes ("-") did not have good contrast, but the carets ("<" and ">") did have good contrast, this would pass as the carets are generally enough for users to understand the purpose of the content.`,
+                states: [],
+                postProcessing: postProcessing,
+            }
+        }
+    },
+
+    errorPrevention: {
+        relatedsc: [""],
+        issues: "",
+        requirement: "",
+        recommendation: "",
+        resources: [""],
+        notes: "",
+        states: [],
+        postProcessing: postProcessing,
+
+        delete: {
+            relatedsc: ["3.3.4"],
+            issues: "This content can be deleted, but there is no confirmation, no way to reverse the deletion.",
+            requirement: "Ensure that when user controllable data can be deleted, either users must confirm the deletion action, or there is a simple way to reverse the action such as an undo button.",
+            recommendation: "We recommend using a confirmation modal dialog.",
+            resources: [""],
+            notes: "",
+            states: [],
             postProcessing: postProcessing,
         }
     },
