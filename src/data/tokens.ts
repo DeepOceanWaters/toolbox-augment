@@ -176,7 +176,7 @@ export const tokens: issueTemplateData = {
                     relatedsc: ["2.4.3"],
                     issues: "Focus is not restricted within this modal dialog.",
                     requirement: "Ensure that modal dialogs restrict focus and screen readers within themselves.",
-                    recommendation: "Typically, modal content restricts focus using JavaScript, where: \n- when moving focus forward while on the last element in the modal content, focus moves to the first focusable element in the modal content\n- when moving focus backwards while on the first element in the modal content, focus moves to the last focusable element in the modal content.\n\nTo restrict screen readers the dialog must have the following attributes:\n- ROLE=DIALOG\n- ARIA-MODAL=TRUE\n- while not necessary, we also recommend giving the DIALOG a name, this can be done by adding the attributes ARIA-LABEL or ARIA-LABELLEDBY "
+                    recommendation: "Typically, modal content restricts focus using JavaScript, where: \n- when moving focus forward while on the last element in the modal content, focus moves to the first focusable element in the modal content\n- when moving focus backwards while on the first element in the modal content, focus moves to the last focusable element in the modal content.\n\nTo restrict screen readers the dialog element must have a ROLE of DIALOG. While not necessary for conformance, we also recommend adding the following attributes:\n- ARIA-MODAL=TRUE\n- ARIA-LABEL or ARIA-LABELLEDBY to provide a name"
                 }
             }
         },
