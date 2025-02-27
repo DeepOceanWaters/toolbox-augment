@@ -267,6 +267,19 @@ export const tokens: issueTemplateData = {
         }
     },
 
+    badOrder: {
+        beforeHeading: {
+            relatedsc: ["1.3.1"],
+            issues: "This content comes before a HEADING element but is related to the HEADING element.",
+            requirement: "Ensure relationships between content is exposed to AT.",
+            recommendation: "We recommend placing this content after the HEADING element in programmatic reading order (DOM order typically). The CSS property FLEX-DIRECTION with ROW-REVERSE or COLUMN-REVERSE can provide the same visual format while retaining the correct programmatic reading order.",
+            resources: ["https://codepen.io/colinjbr/pen/ZYEBwPz"],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
+        }
+    },
+
     role: {
         relatedsc: ["4.1.2"],
         issues: "This component is interactive but does not have an appropriate role.",
@@ -330,7 +343,28 @@ export const tokens: issueTemplateData = {
             resources: [""],
             notes: "If content moves but is still available, it is not considered a loss of content or functionality. Auditors are recommened to search for the content in other areas if it seems to disappear at the reflow viewport size.",
             states: [states.REFLOW],
-            postProcessing: postProcessing,
+
+            cutoff: {
+                relatedsc: ["1.4.10"],
+                issues: "This content is cutoff at this viewport size, resuling in a loss of content.",
+                requirement: "Ensure that there is no loss of content or functionality when the viewport is set as described in the 1.4.10 Reflow Success Criterion (320 CSS Pixels width by 256 CSS Pixels height).",
+                recommendation: "",
+                resources: [""],
+                notes: "If content moves but is still available, it is not considered a loss of content or functionality. Auditors are recommened to search for the content in other areas if it seems to disappear at the reflow viewport size.",
+                states: [states.REFLOW],
+
+                isExemptScrollingAllowed: {
+                    relatedsc: ["1.4.10"],
+                    issues: "This content is cutoff at this viewport size, resulting in a loss of content.",
+                    requirement: "Ensure that there is no loss of content or functionality when the viewport is set as described in the 1.4.10 Reflow Success Criterion (320 CSS Pixels width by 256 CSS Pixels height).",
+                    recommendation: "This content is exempt from the two-dimension scrolling restriction. As such we recommend making this content scrollable in two dimensions.\nIf it does not contain any interactive elements, the scrollable region will need to be made keyboard operable. We recommend wrapping this content in an element with the following properties:\n- ROLE=REGION\n- TABINDEX=0\n- ARIA-LABEL or ARIA-LABELLEDBY to provide an accessible name that describes the region\n\nNote that while exempt content can scroll both vertically and horizontally, it cannot cause other non-exempt content from scrolling in two dimensions.",
+                    resources: [""],
+                    notes: "",
+                    states: [states.REFLOW],
+                }
+            },
+
+
         },
         scrollTwoDimensions: {
             relatedsc: ["1.4.10"],
