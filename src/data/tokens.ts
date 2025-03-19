@@ -157,7 +157,7 @@ export const tokens: issueTemplateData = {
                 relatedsc: ["2.4.3"],
                 issues: "When this content is removed, focus is not managed.",
                 requirement: "Ensure that when content in focus is removed, focus is managed and placed somewhere logical.",
-                recommendation: ""
+                recommendation: "",
             },
             replace: {
                 relatedsc: ["2.4.3"],
@@ -178,6 +178,16 @@ export const tokens: issueTemplateData = {
                     requirement: "Ensure that modal dialogs restrict focus and screen readers within themselves.",
                     recommendation: "Typically, modal content restricts focus using JavaScript, where: \n- when moving focus forward while on the last element in the modal content, focus moves to the first focusable element in the modal content\n- when moving focus backwards while on the first element in the modal content, focus moves to the last focusable element in the modal content.\n\nTo restrict screen readers the dialog element must have a ROLE of DIALOG. While not necessary for conformance, we also recommend adding the following attributes:\n- ARIA-MODAL=TRUE\n- ARIA-LABEL or ARIA-LABELLEDBY to provide a name"
                 }
+            },
+            collapseDialog: {
+                relatedsc: ["2.4.3"],
+                issues: "When this DIALOG is collapsed, focus is not managed.",
+                requirement: "Ensure that when a dialog is collapsed/removed focus is placed on the component that opened it. If the component is no longer available focus should still be managed and placed somewhere logical.",
+                recommendation: "",
+                resources: [""],
+                notes: "",
+                states: [],
+                postProcessing: postProcessing,
             }
         },
         visible: {
@@ -231,11 +241,13 @@ export const tokens: issueTemplateData = {
         issues: "This component does not have an accessible name.",
         requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
         recommendation: "To provide an accessible name, we recommend either:\n- Adding a visually hidden SPAN element with text content that describes the purpose of this component\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute",
+        resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"],
         graphic: {
             relatedsc: ["4.1.2", "1.1.1"],
             issues: "This non-context content labels an interactive component, but it does not have a text alternative that describes the purpose/function of this component.",
             requirement: "Ensure that when non-text content labels an interactive component, it has a text alternative that describes the function/purpose of that component.",
-            recommendation: "We recommend either:\n- updating the ALT attribute to describe the components purpose\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute on the interactive component"
+            recommendation: "We recommend either:\n- updating the ALT attribute to describe the components purpose\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute on the interactive component",
+            resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"]
         },
         htmlLabelAllowed: {
             relatedsc: ["4.1.2"],
@@ -253,7 +265,8 @@ export const tokens: issueTemplateData = {
             relatedsc: ["2.4.6"],
             issues: "This component does not have a label that describes its purpose/function.",
             requirement: "Ensure that interactive components have a label/accessible name that describes their purpose/function.",
-            recommendation: ""
+            recommendation: "",
+            resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"],
         },
         warning: {
             recommendation: "We recommend using either ARIA-LABELLEDBY or a visually hidden SPAN as opposed to ARIA-LABEL as automatic translation services typically do not update attributes such as ARIA-LABEL."
@@ -396,7 +409,13 @@ export const tokens: issueTemplateData = {
 
     resize: {
         relatedsc: ["1.4.4"],
-        requirement: "Ensure that there is no loss of content or functionality when zoomed in up to 200%."
+        issues: "There is a loss of content.",
+        requirement: "Ensure that there is no loss of content or functionality when zoomed in up to 200%.",
+        recommendation: "",
+        resources: [""],
+        notes: "",
+        states: [],
+        postProcessing: postProcessing,
     },
 
     keyboard: {
@@ -451,23 +470,39 @@ export const tokens: issueTemplateData = {
 
     info: {
         relatedsc: ["1.3.1"],
+        list: {
+            relatedsc: ["1.3.1"],
+            issues: "This content presents/acts as a list, but not semantically.",
+            requirement: "Ensure that content visually presented as a list is also semantically presented as a list.",
+            recommendation: "We recommend using a UL.",
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
+        },
         role: {
             relatedsc: ["1.3.1"],
-            issues: "This text presents as and acts as a $var$, but is not programmatically determinable as such.",
+            issues: "This text presents/acts as a $var$, but not semantically.",
             recommendation: "We recommend converting this text into a $var$.",
-            requirement: "Ensure that structure/relationships conveyed by presentation can be programmatically determined."
+            requirement: "Ensure that visual structure/relationships are also programmatic."
         },
         structure: {
             relatedsc: ["1.3.1"],
-            requirement: "Ensure that structure conveyed through presentation can be programmatically determined or is available in text."
+            requirement: "Ensure that visual structure is also programmatic."
         },
         info: {
             relatedsc: ["1.3.1"],
-            requirement: "Ensure that information conveyed through presentation can be programmatically determined or is available in text."
+            requirement: "Ensure that visual information is also available to AT."
         },
         relationship: {
             relatedsc: ["1.3.1"],
-            requirement: "Ensure that relationships conveyed through presentation can be programmatically determined or is available in text."
+            issues: "This content presents/acts as a list, but is not one semantically.",
+            requirement: "Ensure that visually related content is also related programmatically.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [],
+            
         },
         hidden: {
             relatedsc: ["1.3.1"],
@@ -475,7 +510,7 @@ export const tokens: issueTemplateData = {
             requirement: "Ensure that when content is meant to be hidden from all users, it is also hidden from AT.",
             recommendation: "Content can be hidden from AT by adding ARIA-HIDDEN=TRUE. ARIA-HIDDEN=TRUE will hide the element and all its descendants from AT."
         },
-        requirement: "Ensure that structure, relationships, and information conveyed through presentation can be programmatically determined or is available in text."
+        requirement: "Ensure that visual structure, relationships, and information is reflected semantically and available to AT."
     },
 
     consistent: {
@@ -489,11 +524,26 @@ export const tokens: issueTemplateData = {
 
     labelinname: {
         relatedsc: ["2.5.3"],
-        issues: "The text that visually labels this component is not present in its accessible name word-for-word.",
+        issues: `The text that visually labels this component is not present in its accessible name word-for-word.\n\nVisual Label: ""\nAccessible Name: ""`,
         requirement: "Ensure that when text visually labels an interactive component, that component's accessible name includes that text word-for-word.",
+        recommendation: "Please see the Resources section for ways to set the accessible name.",
+        resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"],
+        notes: "",
+        states: [],
+        postProcessing: postProcessing,
     },
 
     image: {
+        chart: {
+            relatedsc: ["1.1.1"],
+            issues: "This chart is a complex graphic that does not have an adequate text alternative.",
+            requirement: "Ensure that complex graphics have an adequate text alternative.",
+            recommendation: `Complex graphics often require extra effort to provide an adequate text alternative. Some charts are used to provide an overview of general trends. Other charts provide a visualization of a data table, and the data is what is being presented.\n\nFor most charts we recommend:\n- give the chart a text alternative that describes the general trends users would see (e.g. "chart of temperature throughout the day. temperature remains low around 30f until 1pm where it heats up to 45f and remains until around 9pm where it drops back to 30f where it remains. See Temperature table below for more information.")\n- if data is also presented then provide a data table of the data (e.g. table with column 1 is hour of day, column two is temperature, example: [hour][temperature]/[12am][29f]/[1am][31f]/.../[1pm][45f]/.../[9pm][30f])`,
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
+        },
         noalt: {
             relatedsc: ["1.1.1"],
             issues: "This non-text content does not have a text alternative.",
@@ -535,7 +585,7 @@ export const tokens: issueTemplateData = {
                 issues: "The purpose of this link is ambiguous.",
                 requirement: "Ensure that the purpose of each link is unambiguous.",
                 recommendation: 'We recommend either:\n- wrapping the pagination links in a NAV element and adding the attribute ARIA-LABEL="Pagination"\n- OR Ensure each link has an accessible name that describes its purpose (e.g. "Page 1" instead of "1"). This can be doen by either adding visually hidden SPAN element example: <a href="..."><span class="visually=hidden>Page</span>1</a> or by using ARIA-LABEL example: <a href="..." aria-label="Page 1">1</a>',
-                resources: [""],
+                resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"],
                 notes: "",
                 states: [],
                 postProcessing: postProcessing,
@@ -551,7 +601,7 @@ export const tokens: issueTemplateData = {
     heading: {
         relatedsc: ["1.3.1"],
         requirement: "Ensure that text that presents as, and acts as a heading is programmatically determinable as such.",
-        issues: "This text presents as and acts as a HEADING, but is not programmatically determinable as such.",
+        issues: "This text presents/acts as a HEADING, but is not programmatically determinable as such.",
         recommendation: "We recommend converting this text into a HEADING element of the appropriate level.",
         empty: {
             relatedsc: ["1.3.1"],
@@ -615,6 +665,16 @@ export const tokens: issueTemplateData = {
             issues: "This content appears on hover/focus, but can't be dismissed without moving the pointer/focus.",
             requirement: "Ensure that when content appears on hover/focus, that content can be dismissed without moving the pointer or focus.",
             recommendation: "We recommend either:\n- allow users to dismiss this content by pressing the Escape key\n- AND/OR allow users to dismiss this content by pressing the Control key"
+        },
+        hover: {
+            relatedsc: ["1.4.13"],
+            issues: "This content appears on hover but users cannot hover their pointer over the content without it disappearing.",
+            requirement: "Ensure that users can hover the entire content without it disappearing.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
         }
     },
 
@@ -623,7 +683,27 @@ export const tokens: issueTemplateData = {
         recommendation: "We recommend adding a list of errors at the top of the form where:\n- each list item identifies the form field in error with a link to the form field, and notes the error\n- focus is shifted onto the list of errors on form submission\nIf this is a long form, we recommend (in addition to the above) adding inline errors to each form field in error and associating that error with the form field as an accessible description.",
         resources: [
             "https://webaim.org/techniques/formvalidation/#form"
-        ]
+        ],
+        valueChange: {
+            relatedsc: ["3.3.1"],
+            issues: "When users input an out-of-bounds value, the value is automatically set to conform, but users are not notified.",
+            requirement: "Ensure that when user's input does not conform to the field's requirements (e.g. below minimum, above maximum) and its value is automatically set to conform, an error message is presented in text describing the error and notifying users that the value has been automatically set to conform.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
+        },
+        inlineNotAssociated: {
+            relatedsc: ["1.3.1"],
+            issues: "These inline error messages are visually related to the form field, but not programmatically.",
+            requirement: "Ensure form fields and their inline error messages are programmatically associated.",
+            recommendation: "We recommend adding ARIA-DESCRIBEDBY to the form field targeting the error message.",
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
+        }
     },
 
     video: {
