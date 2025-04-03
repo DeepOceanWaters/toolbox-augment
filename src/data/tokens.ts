@@ -9,6 +9,19 @@ export enum states {
     TEXTSPACING
 }
 
+export enum status {
+    NEW,
+    RESOLVED,
+    PARTLYRESOLVED,
+    REMAINS,
+    REGRESSION,
+    BESTPRACTICE,
+    THIRDPARTYPROBLEM,
+    RESOLVEDBYREMOVAL,
+    USABILITYPROBLEM,
+    DUPLICATE
+}
+
 export enum variableType {
     NUMBER,
     STRING,
@@ -44,6 +57,7 @@ export type issueTemplate = {
     relatedsc: string[],
     resources: string[],
     states?: states[],
+    status?: status[],
     notes?: string,
     arguments: string[]
 } & {
@@ -90,8 +104,8 @@ export const tokens: issueTemplateData = {
 
     state: {
         relatedsc: ["4.1.2"],
-        requirement: "Ensure that when users can set the state of an interactive component, that state can be set and determined programmatically.",
-        issues: "The state ($var$) of this component is not programmatically determinable.",
+        issues: "The state of this component is not programmatically determinable.\n\nState: ",
+        requirement: "Ensure that the state of interactive components is programmatically determinable, and implemented in a way that AT notifies users of changes to the state.",
         update: {
             relatedsc: ["4.1.2"],
             issues: "The state ($var$) of this component is not properly updated."
@@ -102,22 +116,46 @@ export const tokens: issueTemplateData = {
             requirement: "Ensure that when users can set the state of an interactive component, that state can be set and determined programmatically.",
             recommendation: "",
             defaultVar: ""
+        },
+        nameAndAttribute: {
+            relatedsc: ["4.1.2"],
+            issues: "The state of this component is reflected both by changing it's name, and programmatically using an attribute.\n\nState: \nName Changes: \nAttribute: ",
+            requirement: "",
+            recommendation: "We recommend choosing to either change the name OR use an attribute to convey the state change - using both may be confusing for users. Please see the resource column for some examples.",
+            resources: ["https://codepen.io/colinjbr/pen/ExOPZWb"],
+            notes: "",
+            states: [],
+            status: [status.USABILITYPROBLEM],
+            postProcessing: postProcessing,
         }
     },
 
-    textspacing: {
-        recommendation: ""
-            + "{"
-            + " line-height: 1.5 !important;"
-            + " letter-spacing: 0.12em !important;"
-            + " word-spacing: 0.16em !important;"
-            + "}"
-            + ""
-            + "p{"
-            + " margin-bottom: 2em !important;"
-            + "}",
-        issues: "",
-        requirement: "",
+    textSpacing: {
+        content: {
+            relatedsc: ["1.4.12"],
+            issues: "There is a loss of content when the text spacing properties are set as described in the 1.4.12 SC.",
+            requirement: "Ensure there is no loss of content when these text spacing properties are set.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [states.TEXTSPACING],
+            postProcessing: postProcessing,
+        },
+
+        addCssRule: {
+            recommendation: ""
+                + "{"
+                + " line-height: 1.5 !important;"
+                + " letter-spacing: 0.12em !important;"
+                + " word-spacing: 0.16em !important;"
+                + "}"
+                + ""
+                + "p{"
+                + " margin-bottom: 2em !important;"
+                + "}",
+            issues: "",
+            requirement: "",
+        }
     },
 
     focus: {
@@ -141,10 +179,10 @@ export const tokens: issueTemplateData = {
         },
         href: {
             relatedsc: ["2.4.3", "2.1.1"],
-            issues: "This ANCHOR element is not focusable and does not have an appropriate role as it does not have an HREF attribute. Note that ANCHOR elements without an HREF attribute have a role of GENERIC and are not focusable.",
-            requirement: "Ensure that interactive anchor elements have an HREF attribute, or are given an appropriate role and can be operated using a keyboard.",
-            recommendation: "We recommend giving this ANCHOR element the HREF attribute. Otherwise we recommend giving it a ROLE of LINK, and TABINDEX=0.",
-            notes: "If the ANCHOR element has an event listener (such as click, or keydown) the browser and/or AT may use heuristics and apply a ROLE of LINK to the element - regardless of what the HTML Standard document states. It still won't be focusable, but screen readers may read it's role as a link."
+            issues: "This ANCHOR element is not focusable as it does not have an HREF attribute or TABINDEX=0.\n\nNote: If the ANCHOR element has an event listener (such as click, or keydown) the browser and/or AT may use heuristics and apply a ROLE of LINK to the element - regardless of what the HTML Standard document states. It still won't be focusable, but screen readers may read it's role as a link.",
+            requirement: "Ensure that interactive anchor elements have an HREF attribute, or, in the absence.",
+            recommendation: "We recommend giving this ANCHOR element the HREF attribute. Alternatively, it can be given an appropriate ROLE, TABINDEX=0, and keyboard event handlers.",
+            notes: "If the ANCHOR element has an event listener (such as click, or keydown) the browser and/or AT may use heuristics and apply a ROLE of LINK to the element - regardless of what the HTML Standard document states. It still won't be focusable, but screen readers may read it's role as a link. With no event listener, and no href attribute, the anchor element will typically have a generic role."
         },
         manage: {
             open: {
@@ -253,7 +291,7 @@ export const tokens: issueTemplateData = {
             relatedsc: ["4.1.2"],
             issues: "This component does not have an accessible name.",
             requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
-            recommendation: "We recommend adding a native HTML LABEL element and associating it with this component using the FOR attribute.\n\nAlternatively, an accessible name can be given by adding either the ARIA-LABEL or ARIA-LABELLEDBY attribute on the component.",
+            recommendation: "We recommend adding a native HTML LABEL element and explicitly associating it with this component using the FOR attribute. LABEL elements can also be implicitly associated to an INPUT if the INPUT is a descendant of the LABEL.\n\nAlternatively, an accessible name can be given by adding either the ARIA-LABEL or ARIA-LABELLEDBY attribute on the component - Note that the accessible name of the component MUST include the visible label word-for-word.",
             improperAssociation: {
                 relatedsc: ["4.1.2"],
                 issues: "This component does not have an accessible name. Currently the component has an associated LABEL element, but the association is broken.",
@@ -324,7 +362,7 @@ export const tokens: issueTemplateData = {
         requirement: "Ensure that interactive components related to user input have a visible label at all times.",
         placeholder: {
             relatedsc: ["3.3.2"],
-            issues: "This component is labeled by its placeholder text, but this text disappears when the form field has a non-empty value.",
+            issues: "This text field does not have a persistently visible label - The placeholder text acts as a visible label, but when the field has a non-empty value this placeholder text disappears, leaving it without a visible label.",
             requirement: "Ensure that form fields' label is always visible while the form field is visible.",
             recommendation: "We recommend adding a LABEL element, and associating it with the component using its FOR attribute."
         },
@@ -454,7 +492,16 @@ export const tokens: issueTemplateData = {
     },
 
     usability: {
-        requirement: "Note that this is a usability problem, and not necessary for conformance."
+        relatedsc: [""],
+        issues: "Note that this is a usability problem, and not necessary for conformance.",
+        requirement: "Note that this is a usability problem, and not necessary for conformance.",
+        recommendation: "",
+        resources: [""],
+        notes: "",
+        states: [],
+        status: [status.USABILITYPROBLEM],
+        postProcessing: postProcessing,
+
     },
 
     extra: {
@@ -502,7 +549,7 @@ export const tokens: issueTemplateData = {
             resources: [""],
             notes: "",
             states: [],
-            
+
         },
         hidden: {
             relatedsc: ["1.3.1"],
@@ -548,7 +595,8 @@ export const tokens: issueTemplateData = {
             relatedsc: ["1.1.1"],
             issues: "This non-text content does not have a text alternative.",
             requirement: "Ensure that non-text content has a text alternative that adequately describes the content in context.",
-            recommendation: "We recommend giving this IMG element an ALT attribute."
+            recommendation: "We recommend giving this IMG element an ALT attribute.",
+            resources: ["https://www.scottohara.me/blog/2019/05/22/contextual-images-svgs-and-a11y.html"],
         },
         badalt: {
             relatedsc: ["1.1.1"],
@@ -570,6 +618,17 @@ export const tokens: issueTemplateData = {
             issues: "This non-text content has a text alternative, but it is decorative.",
             requirement: "Ensure that decorative non-text content is implemented in a way such that AT can ignore it.",
             recommendation: "For IMG elements, we recommend setting the ALT attribute to be empty.\nFor SVG elements we recommend adding ARIA-HIDDEN=TRUE."
+        },
+        svgAltRecommendation: {
+            relatedsc: [""],
+            issues: "",
+            requirement: "",
+            recommendation: "To provide a text alternative to an SVG we recommend:\n- add ROLE=IMG\n- add the TITLE element as a descendant of the SVG, it's text contents will act as the text alternative",
+            resources: ["https://www.scottohara.me/blog/2019/05/22/contextual-images-svgs-and-a11y.html"],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
         }
     },
 
@@ -584,7 +643,7 @@ export const tokens: issueTemplateData = {
                 relatedsc: ["2.4.4"],
                 issues: "The purpose of this link is ambiguous.",
                 requirement: "Ensure that the purpose of each link is unambiguous.",
-                recommendation: 'We recommend either:\n- wrapping the pagination links in a NAV element and adding the attribute ARIA-LABEL="Pagination"\n- OR Ensure each link has an accessible name that describes its purpose (e.g. "Page 1" instead of "1"). This can be doen by either adding visually hidden SPAN element example: <a href="..."><span class="visually=hidden>Page</span>1</a> or by using ARIA-LABEL example: <a href="..." aria-label="Page 1">1</a>',
+                recommendation: 'We recommend either:\n- wrapping the pagination links in a NAV element and adding the attribute ARIA-LABEL="Pagination"\n- OR Ensure each link has an accessible name that describes its purpose (e.g. "Page 1" instead of "1").',
                 resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"],
                 notes: "",
                 states: [],
@@ -886,6 +945,21 @@ export const tokens: issueTemplateData = {
         }
     },
 
+    browseModeExplanation: {
+        relatedsc: ["2.1.1"],
+        issues: "Because this content does not have an appropriate role, and requires the use of arrow keys to navigate, screen reader users using NVDA or JAWS will likely have a difficult time operating the content. This is because these two screen readers automatically switch between two modes of operation (Browse Mode and Focus Mode) depending on the role of the element currently focused (or the role of an ancestor element).\n\n- Browse mode will intercept and consume most key presses including arrow keys, meaning the webpage does not see them.\n- Forms mode on the other hand does not intercept or consume most key presses.\n\nHere are some examples of roles that cause NVDA to switch into Focus Mode (including examples of native html elements with that role):\n- textbox: input type=text;\n- combobox: select;\n- slider: input type=range;\n- menu: (no native element);\n- radio: input type=radio;\n- tab: (no native element)\n\nIf NVDA does not think Focus Mode is needed, it will switch back to Browse Mode.",
+        requirement: "",
+        recommendation: "Since this content requires the use of arrow keys, we recommend using a role that would automatically switch NVDA/JAWS into Focus Mode.",
+        resources: [
+            "https://download.nvaccess.org/releases/2024.4.2/documentation/userGuide.html#BrowseMode", 
+            "https://www.w3.org/TR/wai-aria-1.2/#widget_roles"
+        ],
+        notes: "",
+        states: [states],
+        status: [status],
+        postProcessing: postProcessing,
+    },
+
     template: {
         relatedsc: [""],
         issues: "",
@@ -893,7 +967,8 @@ export const tokens: issueTemplateData = {
         recommendation: "",
         resources: [""],
         notes: "",
-        states: [],
+        states: [states],
+        status: [status],
         postProcessing: postProcessing,
     }
 
