@@ -3,7 +3,7 @@ import { getNextResource, setQuillEditorText, spoofOptionSelected, spoofUpdateTe
 import { getPossibleTokens, getRecommendation } from "./modules/replaceTokens.js";
 import Combobox from "./modules/components/Combobox.js";
 import { successCriteria } from "./data/successCriteria.js";
-import { issueTemplate } from "./data/tokens.js";
+import { issueTemplate, state2names, states } from "./data/tokens.js";
 import FilterableMultiselect from "./modules/components/FilterableMultiselect.js";
 import CheckboxGroup from "./modules/components/CheckboxGroup.js";
 import Fieldset from "./modules/components/Fieldset.js";
@@ -561,6 +561,10 @@ export default function main() {
                     spoofUpdateTextareaValue(auditorNotes, template.notes);
                 }
 
+                if (template.states) {
+                    setState(template.states);
+                }
+
 
                 // add default resources
                 for (const resource of template.resources || []) {
@@ -600,6 +604,30 @@ export default function main() {
                 setQuillEditorText(recommendation, [''], true);
             });
 
+        }
+
+        async function setState(states: states[]) {
+            let stateNames = states.map(s => state2names(s)).flat();
+            // find states
+            let stateCheckboxes = 
+                statesPartneredMultiselect
+                .checkboxGroup
+                .items
+                .filter(c => stateNames.includes(c.textLabel.textContent));
+            // click them
+            stateCheckboxes.forEach(
+                c => {
+                    if (!c.input.checked) c.input.click();
+                }
+            );
+            // sort by selected
+            statesPartneredMultiselect.showOnlyCheckbox.input.click();
+            // if previously checked, we just unchecked it, so we're checking it again
+            // we do this instead of leaving it checked as unchecking and rechecking 
+            // automatically updates the sorting of the checkboxes
+            if (!statesPartneredMultiselect.showOnlyCheckbox.input.checked) {
+                statesPartneredMultiselect.showOnlyCheckbox.input.click();
+            }
         }
 
         async function addCurrentPage(pagesPartneredMultiselect: FilterableMultiselect) {

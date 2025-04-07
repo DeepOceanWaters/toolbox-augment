@@ -9,6 +9,29 @@ export enum states {
     TEXTSPACING
 }
 
+export function state2names(state: states) {
+    let names = []
+    switch(state) {
+        case states.FOCUSED: 
+            names.push('content state: focused');
+            break;
+        case states.HOVERED:
+            names.push('content state: hovered');
+            break;
+        case states.REFLOW:
+            names.push('viewport width set to equivalent of 320 CSS pixels');
+            names.push('viewport height set to equivalent of 256 CSS pixels');
+            break;
+        case states.ZOOMED:
+            names.push('zoomed (200%)');
+            break;
+        case states.TEXTSPACING:
+            names.push('text space increased to 1.4.12 specification');
+            break;
+    }
+    return names;
+}
+
 export enum status {
     NEW,
     RESOLVED,
