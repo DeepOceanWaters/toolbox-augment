@@ -4,10 +4,10 @@ label[for="audit_status"],
 #pages,
 #success_criteria,
 #audit_status {
-    display: none!important;
+    display: none !important;
 }
 
-label[for="pages"] + label {
+label[for="pages"]+label {
     display: none;
 }
 
@@ -23,23 +23,20 @@ table {
     counter-reset: issue_table;
 }
 
-html:has([aria-label="pagination"] li + li + li [aria-current]) table {
-    counter-set: issue_table 100;
-}
-
-html:has([aria-label="pagination"] li + li + li + li [aria-current]) table {
-    counter-set: issue_table 200;
+html table {
+    counter-set: issue_table 0;
 }
 
 
 td[data-key="issue_number"]::before {
     counter-increment: issue_table;
-    content: counter(issue_table);
-    
+    content: counter(issue_table, decimal-leading-zero);
+
 }
+
 td[data-key="issue_number"] span {
-        display: none;
-    }
+    display: none;
+}
 
 .checkboxes-container .current {
     text-decoration: underline;
