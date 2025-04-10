@@ -32,7 +32,7 @@ export default class PartneredCheckboxGroup extends CheckboxGroup {
 
     private getAssociatedCheckbox(option: HTMLOptionElement): CheckboxWidget | never {
         for (let checkbox of this.items) {
-            if (includesCaseInsensitive(option.textContent, checkbox.textLabel.textContent)) {
+            if (option.textContent === checkbox.textLabel.textContent) {
                 return checkbox;
             }
         }

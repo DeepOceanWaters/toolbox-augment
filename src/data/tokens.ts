@@ -9,6 +9,42 @@ export enum states {
     TEXTSPACING
 }
 
+export function state2names(state: states) {
+    let names = []
+    switch (state) {
+        case states.FOCUSED:
+            names.push('content state: focused');
+            break;
+        case states.HOVERED:
+            names.push('content state: hovered');
+            break;
+        case states.REFLOW:
+            names.push('viewport width set to equivalent of 320 CSS pixels');
+            names.push('viewport height set to equivalent of 256 CSS pixels');
+            break;
+        case states.ZOOMED:
+            names.push('zoomed (200%)');
+            break;
+        case states.TEXTSPACING:
+            names.push('text space increased to 1.4.12 specification');
+            break;
+    }
+    return names;
+}
+
+export enum status {
+    NEW = 'New',
+    RESOLVED = 'Resolved',
+    PARTLYRESOLVED = 'Partly Resolved',
+    REMAINS = 'Remains',
+    REGRESSION = 'Regression',
+    BESTPRACTICE = 'Best Practice',
+    THIRDPARTYPROBLEM = 'Third party problem',
+    RESOLVEDBYREMOVAL = 'Resolved by removal',
+    USABILITYPROBLEM = 'Usability Problem',
+    DUPLICATE = 'Duplicate'
+}
+
 export enum variableType {
     NUMBER,
     STRING,
@@ -44,6 +80,7 @@ export type issueTemplate = {
     relatedsc: string[],
     resources: string[],
     states?: states[],
+    status?: status[],
     notes?: string,
     arguments: string[]
 } & {
@@ -90,8 +127,8 @@ export const tokens: issueTemplateData = {
 
     state: {
         relatedsc: ["4.1.2"],
-        requirement: "Ensure that when users can set the state of an interactive component, that state can be set and determined programmatically.",
-        issues: "The state ($var$) of this component is not programmatically determinable.",
+        issues: "The state of this component is not programmatically determinable.\n\nState: ",
+        requirement: "Ensure that the state of interactive components is programmatically determinable, and implemented in a way that AT notifies users of changes to the state.",
         update: {
             relatedsc: ["4.1.2"],
             issues: "The state ($var$) of this component is not properly updated."
@@ -102,22 +139,90 @@ export const tokens: issueTemplateData = {
             requirement: "Ensure that when users can set the state of an interactive component, that state can be set and determined programmatically.",
             recommendation: "",
             defaultVar: ""
+        },
+        nameAndAttribute: {
+            relatedsc: ["4.1.2"],
+            issues: "The state of this component is reflected both by changing it's name, and programmatically using an attribute.\n\nState: \nName Changes: \nAttribute: ",
+            requirement: "",
+            recommendation: "We recommend choosing to either change the name OR use an attribute to convey the state change - using both may be confusing for users. Please see the resource column for some examples.",
+            resources: ["https://codepen.io/colinjbr/pen/ExOPZWb"],
+            notes: "",
+            states: [],
+            status: [status.USABILITYPROBLEM],
+            postProcessing: postProcessing,
+        },
+        expand: {
+            relatedsc: ["4.1.2"],
+            issues: "This component's state is not programmatically determinable.\nState: expanded/collapsed",
+            requirement: "Ensure when a component controls the expanded/collapsed state of content, it has the ARIA-EXPANDED attribute.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+        },
+        current: {
+            relatedsc: ["1.3.1"],
+            issues: "This content is visually presented as the current item in its grouping, but this is not available to AT.",
+            requirement: "Ensure that information and states conveyed visually is available to AT.",
+            recommendation: "We recommend adding ARIA-CURRENT to the item that is visually styled as the current item. Please see the Values section in the resources link to find an appropriate value (true works if a more appropriate value can't be found).\n\nNote that ARIA-CURRENT is one of the few aria attributes that can be placed on an ancestor element and it will be conveyed when entering this content. For example, in a list of links (UL>LI>A[href]) ARIA-CURRENT could be placed on either ANCHOR element or the LI element and users will be notified when focus shifts onto the ANCHOR element.",
+            resources: ["https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-current#values"],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+        },
+        incorrect: {
+            relatedsc: ["1.3.1", "4.1.2"],
+            issues: "The programmatic state of this component does not match the visual state.\n\nState:",
+            requirement: "Ensure the programmatically determinable state of component's match their visually conveyed state.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+        },
+        doesntAnnouncedChange: {
+            relatedsc: ["4.1.2"],
+            issues: "The state is indicated by it's name, but when it changes AT does not announce the change.\n\nState Names: ",
+            requirement: "Ensure that when users change the state, AT announces this change in state.",
+            recommendation: "We recommend using a self-targeting ARIA-DESCRIBEDBY attribute. See #6 in the resources codepen for an example of this. The resource also explores other options for ensuring state is announced.",
+            resources: ["https://codepen.io/colinjbr/pen/ExOPZWb"],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
         }
     },
 
-    textspacing: {
-        recommendation: ""
-            + "{"
-            + " line-height: 1.5 !important;"
-            + " letter-spacing: 0.12em !important;"
-            + " word-spacing: 0.16em !important;"
-            + "}"
-            + ""
-            + "p{"
-            + " margin-bottom: 2em !important;"
-            + "}",
-        issues: "",
-        requirement: "",
+    textSpacing: {
+        content: {
+            relatedsc: ["1.4.12"],
+            issues: "There is a loss of content when the text spacing properties are set as described in the 1.4.12 SC.",
+            requirement: "Ensure there is no loss of content when these text spacing properties are set.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [states.TEXTSPACING],
+            postProcessing: postProcessing,
+        },
+
+        addCssRule: {
+            recommendation: ""
+                + "{"
+                + " line-height: 1.5 !important;"
+                + " letter-spacing: 0.12em !important;"
+                + " word-spacing: 0.16em !important;"
+                + "}"
+                + ""
+                + "p{"
+                + " margin-bottom: 2em !important;"
+                + "}",
+            issues: "",
+            requirement: "",
+        }
     },
 
     focus: {
@@ -141,10 +246,10 @@ export const tokens: issueTemplateData = {
         },
         href: {
             relatedsc: ["2.4.3", "2.1.1"],
-            issues: "This ANCHOR element is not focusable and does not have an appropriate role as it does not have an HREF attribute. Note that ANCHOR elements without an HREF attribute have a role of GENERIC and are not focusable.",
-            requirement: "Ensure that interactive anchor elements have an HREF attribute, or are given an appropriate role and can be operated using a keyboard.",
-            recommendation: "We recommend giving this ANCHOR element the HREF attribute. Otherwise we recommend giving it a ROLE of LINK, and TABINDEX=0.",
-            notes: "If the ANCHOR element has an event listener (such as click, or keydown) the browser and/or AT may use heuristics and apply a ROLE of LINK to the element - regardless of what the HTML Standard document states. It still won't be focusable, but screen readers may read it's role as a link."
+            issues: "This ANCHOR element is not focusable as it does not have an HREF attribute or TABINDEX=0.\n\nNote: If the ANCHOR element has an event listener (such as click, or keydown) the browser and/or AT may use heuristics and apply a ROLE of LINK to the element - regardless of what the HTML Standard document states. It still won't be focusable, but screen readers may read it's role as a link.",
+            requirement: "Ensure that interactive anchor elements have an HREF attribute, or, in the absence.",
+            recommendation: "We recommend giving this ANCHOR element the HREF attribute. Alternatively, it can be given an appropriate ROLE, TABINDEX=0, and keyboard event handlers.",
+            notes: "If the ANCHOR element has an event listener (such as click, or keydown) the browser and/or AT may use heuristics and apply a ROLE of LINK to the element - regardless of what the HTML Standard document states. It still won't be focusable, but screen readers may read it's role as a link. With no event listener, and no href attribute, the anchor element will typically have a generic role."
         },
         manage: {
             open: {
@@ -157,7 +262,7 @@ export const tokens: issueTemplateData = {
                 relatedsc: ["2.4.3"],
                 issues: "When this content is removed, focus is not managed.",
                 requirement: "Ensure that when content in focus is removed, focus is managed and placed somewhere logical.",
-                recommendation: ""
+                recommendation: "",
             },
             replace: {
                 relatedsc: ["2.4.3"],
@@ -176,8 +281,18 @@ export const tokens: issueTemplateData = {
                     relatedsc: ["2.4.3"],
                     issues: "Focus is not restricted within this modal dialog.",
                     requirement: "Ensure that modal dialogs restrict focus and screen readers within themselves.",
-                    recommendation: "Typically, modal content restricts focus using JavaScript, where: \n- when moving focus forward while on the last element in the modal content, focus moves to the first focusable element in the modal content\n- when moving focus backwards while on the first element in the modal content, focus moves to the last focusable element in the modal content.\n\nTo restrict screen readers the dialog must have the following attributes:\n- ROLE=DIALOG\n- ARIA-MODAL=TRUE\n- while not necessary, we also recommend giving the DIALOG a name, this can be done by adding the attributes ARIA-LABEL or ARIA-LABELLEDBY "
+                    recommendation: "Typically, modal content restricts focus using JavaScript, where: \n- when moving focus forward while on the last element in the modal content, focus moves to the first focusable element in the modal content\n- when moving focus backwards while on the first element in the modal content, focus moves to the last focusable element in the modal content.\n\nTo restrict screen readers the dialog element must have a ROLE of DIALOG. While not necessary for conformance, we also recommend adding the following attributes:\n- ARIA-MODAL=TRUE\n- ARIA-LABEL or ARIA-LABELLEDBY to provide a name"
                 }
+            },
+            collapseDialog: {
+                relatedsc: ["2.4.3"],
+                issues: "When this DIALOG is collapsed, focus is not managed.",
+                requirement: "Ensure that when a dialog is collapsed/removed focus is placed on the component that opened it. If the component is no longer available focus should still be managed and placed somewhere logical.",
+                recommendation: "",
+                resources: [""],
+                notes: "",
+                states: [],
+                postProcessing: postProcessing,
             }
         },
         visible: {
@@ -196,7 +311,7 @@ export const tokens: issueTemplateData = {
             requirement: "Ensure that each component only takes one tab stop.",
             recommendation: "We recommend removing the non-interactive element that wraps this component from focus order - this can be done by removing the TABINDEX attribute or setting TABINDEX=-1.",
             interactive: {
-                relatedsc: ["2.4.3", "4.1.3"],
+                relatedsc: ["2.4.3"],
                 issues: "This component is nested inside another interactive component, this causes two tab stops for the same component, and makes the role of the component ambiguous.",
                 requirement: "Ensure that interactive components are not nested, and that each component only takes one tab stop.",
                 recommendation: "We recommend removing one of the interactive elements."
@@ -231,29 +346,43 @@ export const tokens: issueTemplateData = {
         issues: "This component does not have an accessible name.",
         requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
         recommendation: "To provide an accessible name, we recommend either:\n- Adding a visually hidden SPAN element with text content that describes the purpose of this component\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute",
+        resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"],
         graphic: {
             relatedsc: ["4.1.2", "1.1.1"],
             issues: "This non-context content labels an interactive component, but it does not have a text alternative that describes the purpose/function of this component.",
             requirement: "Ensure that when non-text content labels an interactive component, it has a text alternative that describes the function/purpose of that component.",
-            recommendation: "We recommend either:\n- updating the ALT attribute to describe the components purpose\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute on the interactive component"
+            recommendation: "We recommend either:\n- updating the ALT attribute to describe the components purpose\n- Using the ARIA-LABEL or ARIA-LABELLEDBY attribute on the interactive component",
+            resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"]
         },
         htmlLabelAllowed: {
             relatedsc: ["4.1.2"],
             issues: "This component does not have an accessible name.",
             requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
-            recommendation: "We recommend adding a native HTML LABEL element and associating it with this component using the FOR attribute.\n\nAlternatively, an accessible name can be given by adding either the ARIA-LABEL or ARIA-LABELLEDBY attribute on the component.",
+            recommendation: "We recommend adding a native HTML LABEL element and explicitly associating it with this component using the FOR attribute. LABEL elements can also be implicitly associated to an INPUT if the INPUT is a descendant of the LABEL.\n\nAlternatively, an accessible name can be given by adding either the ARIA-LABEL or ARIA-LABELLEDBY attribute on the component - Note that the accessible name of the component MUST include the visible label word-for-word.",
             improperAssociation: {
                 relatedsc: ["4.1.2"],
                 issues: "This component does not have an accessible name. Currently the component has an associated LABEL element, but the association is broken.",
                 requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
-                recommendation: "To ensure that LABEL elements are properly associated with a form field:\n- if the LABEL element is hidden, ensure that it is only visually hidden.\n- LABEL elements are associated with the first element found with the ID value in the FOR attribute.",
+                recommendation: "To ensure that LABEL elements are properly associated with a form field:\n- if the LABEL element is hidden, ensure that it is only visually hidden.\n- LABEL elements are associated with the first element found with the ID value in the FOR attribute.\n- if the LABEL element is implicitly associated (input is nested in label element) ensure that  it does not have an empty FOR attribute",
+                multipleIDs: {
+                    relatedsc: ["4.1.2"],
+                    issues: "This component does not have an accessible name. Currently the component has an associated LABEL element, but the association is broken as there are multiple elements on the page with the same ID value. Note that LABEL element's will try to associated with the first element it finds with this ID value.\n\nID Value:",
+                    requirement: "Ensure that there are not duplicate IDs on the page so that LABEL's are properly associated with their respective form field.",
+                    recommendation: "",
+                    resources: [""],
+                    notes: "",
+                    states: [states],
+                    status: [status],
+                    postProcessing: postProcessing,
+                }
             }
         },
         badlabel: {
             relatedsc: ["2.4.6"],
             issues: "This component does not have a label that describes its purpose/function.",
             requirement: "Ensure that interactive components have a label/accessible name that describes their purpose/function.",
-            recommendation: ""
+            recommendation: "",
+            resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"],
         },
         warning: {
             recommendation: "We recommend using either ARIA-LABELLEDBY or a visually hidden SPAN as opposed to ARIA-LABEL as automatic translation services typically do not update attributes such as ARIA-LABEL."
@@ -263,6 +392,19 @@ export const tokens: issueTemplateData = {
             issues: "This IFRAME does not have a TITLE attribute.",
             requirement: "Ensure that IFRAMEs are given a TITLE attribute that describes its purpose.",
             recommendation: "",
+            postProcessing: postProcessing,
+        }
+    },
+
+    badOrder: {
+        beforeHeading: {
+            relatedsc: ["1.3.1"],
+            issues: "This content comes before a HEADING element but is related to the HEADING element.",
+            requirement: "Ensure relationships between content is exposed to AT.",
+            recommendation: "We recommend placing this content after the HEADING element in programmatic reading order (DOM order typically). The CSS property FLEX-DIRECTION with ROW-REVERSE or COLUMN-REVERSE can provide the same visual format while retaining the correct programmatic reading order.",
+            resources: ["https://codepen.io/colinjbr/pen/ZYEBwPz"],
+            notes: "",
+            states: [],
             postProcessing: postProcessing,
         }
     },
@@ -298,15 +440,30 @@ export const tokens: issueTemplateData = {
         requirement: "Ensure that interactive components related to user input have a visible label at all times.",
         placeholder: {
             relatedsc: ["3.3.2"],
-            issues: "This component is labeled by its placeholder text, but this text disappears when the form field has a non-empty value.",
+            issues: "This text field does not have a persistently visible label - The placeholder text acts as a visible label, but when the field has a non-empty value this placeholder text disappears, leaving it without a visible label.",
             requirement: "Ensure that form fields' label is always visible while the form field is visible.",
             recommendation: "We recommend adding a LABEL element, and associating it with the component using its FOR attribute."
         },
         nonPersistent: {
             relatedsc: ["3.3.2"],
-            issues: "This component does not have a persistent label.",
-            requirement: "Ensure that form fields have a persistent label. Persistent labels should remain visible even when the user has entered information into the form field.",
-            recommendation: ""
+            issues: "This component's placeholder text provides instructions, but when it has a non-empty value those instructions disappear.",
+            requirement: "Ensure that instructions are presented to all users and that an input's placeholder text is not used to present instructions.",
+            recommendation: "We recommend providing instructions in text near the input and programmatically associating it using ARIA-DESCRIBEDBY."
+        }
+    },
+
+    placeholder: {
+        label: {
+            relatedsc: ["3.3.2"],
+            issues: "This text field does not have a persistently visible label - The placeholder text acts as a visible label, but when the field has a non-empty value this placeholder text disappears, leaving it without a visible label.",
+            requirement: "Ensure that form fields' label is always visible while the form field is visible.",
+            recommendation: "We recommend adding a LABEL element, and associating it with the component using its FOR attribute.",
+        },
+        instructions: {
+            relatedsc: ["3.3.2"],
+            issues: "This text field does not have a persistently visible label - The placeholder text acts as a visible label, but when the field has a non-empty value this placeholder text disappears, leaving it without a visible label.",
+            requirement: "Ensure that form fields' label is always visible while the form field is visible.",
+            recommendation: "We recommend adding a LABEL element, and associating it with the component using its FOR attribute.",
         }
     },
 
@@ -330,13 +487,34 @@ export const tokens: issueTemplateData = {
             resources: [""],
             notes: "If content moves but is still available, it is not considered a loss of content or functionality. Auditors are recommened to search for the content in other areas if it seems to disappear at the reflow viewport size.",
             states: [states.REFLOW],
-            postProcessing: postProcessing,
+
+            cutoff: {
+                relatedsc: ["1.4.10"],
+                issues: "This content is cutoff at this viewport size, resuling in a loss of content.",
+                requirement: "Ensure that there is no loss of content or functionality when the viewport is set as described in the 1.4.10 Reflow Success Criterion (320 CSS Pixels width by 256 CSS Pixels height).",
+                recommendation: "",
+                resources: [""],
+                notes: "If content moves but is still available, it is not considered a loss of content or functionality. Auditors are recommened to search for the content in other areas if it seems to disappear at the reflow viewport size.",
+                states: [states.REFLOW],
+
+                isExemptScrollingAllowed: {
+                    relatedsc: ["1.4.10"],
+                    issues: "This content is cutoff at this viewport size, resulting in a loss of content.",
+                    requirement: "Ensure that there is no loss of content or functionality when the viewport is set as described in the 1.4.10 Reflow Success Criterion (320 CSS Pixels width by 256 CSS Pixels height).",
+                    recommendation: "This content is exempt from the two-dimension scrolling restriction. As such we recommend making this content scrollable in two dimensions.\nIf it does not contain any interactive elements, the scrollable region will need to be made keyboard operable. We recommend wrapping this content in an element with the following properties:\n- ROLE=REGION\n- TABINDEX=0\n- ARIA-LABEL or ARIA-LABELLEDBY to provide an accessible name that describes the region\n\nNote that while exempt content can scroll both vertically and horizontally, it cannot cause other non-exempt content from scrolling in two dimensions.",
+                    resources: [""],
+                    notes: "",
+                    states: [states.REFLOW],
+                }
+            },
+
+
         },
         scrollTwoDimensions: {
             relatedsc: ["1.4.10"],
             issues: "This content requires scrolling in two dimensions.",
             requirement: "Ensure that non-exempt content does not require scrolling in two dimensions when the viewport is set as described in the 1.4.10 Reflow Success Criterion (320 CSS Pixels width by 256 CSS Pixels height).",
-            recommendation: "Non-exempt content should reflow into a single column (vertical scroll) or row (horizontal scroll). Exempt content can scroll both vertically and horizontally, but it cannot cause other, non-exempt content from scrolling in two dimensions.\n\nExempt content includes content that requires 2 dimensions to convey, such as an image or a data table.",
+            recommendation: "Non-exempt content should reflow into a single column (vertical scroll) or row (horizontal scroll). Exempt content can scroll both vertically and horizontally, but it cannot cause other, non-exempt content to scroll in two dimensions.\n\nExempt content includes content that requires 2 dimensions to convey, such as an image or a data table.",
             resources: [""],
             states: [states.REFLOW],
             notes: "We define scrolling in two dimensions as the a single container scrolling in two dimensions. If one container only scrolls horizontally, and a ancestor container only scrolls vertically, then neither container scrolls in two dimensions. If content is exempt (such as tables, images) then only that content can be scrollable in two dimensions - it does not allow an ancestor container to scroll in two dimensions. It also does not allow related content to scroll with it. For example, an image with a caption: the image can scroll in two dimensions, the caption must reflow and cannot scroll with the image.\n\nNote that if content is scrollable and does not contain an interactive element, the container should be placed in focus order, given a REGION role and accessible name similar to \"[Table name], scrollable\".",
@@ -362,7 +540,13 @@ export const tokens: issueTemplateData = {
 
     resize: {
         relatedsc: ["1.4.4"],
-        requirement: "Ensure that there is no loss of content or functionality when zoomed in up to 200%."
+        issues: "There is a loss of content.",
+        requirement: "Ensure that there is no loss of content or functionality when zoomed in up to 200%.",
+        recommendation: "",
+        resources: [""],
+        notes: "",
+        states: [],
+        postProcessing: postProcessing,
     },
 
     keyboard: {
@@ -394,14 +578,38 @@ export const tokens: issueTemplateData = {
     },
 
     bestpractice: {
+        relatedsc: ["0.0.0"],
+        issues: "Note that this is a best practice, and not necessary for conformance.",
         requirement: "Note that this is a best practice, and not necessary for conformance.",
-        futureIssue: {
-            requirement: "Note that this is a best practice, and not necessary for conformance. However, we strongly recommend remediating this best practice issue as it has a heightened chance of becoming a full WCAG failure."
-        }
+        recommendation: "",
+        resources: [""],
+        notes: "",
+        states: [states],
+        status: [status.BESTPRACTICE],
+        postProcessing: postProcessing,
     },
 
     usability: {
-        requirement: "Note that this is a usability problem, and not necessary for conformance."
+        relatedsc: ["0.0.0"],
+        issues: "Note that this is a usability problem, and not necessary for conformance.",
+        requirement: "Note that this is a usability problem, and not necessary for conformance.",
+        recommendation: "",
+        resources: [""],
+        notes: "",
+        states: [],
+        status: [status.USABILITYPROBLEM],
+        postProcessing: postProcessing,
+        cannotFullyAudit: {
+            relatedsc: ["0.0.0"],
+            issues: "We are unable to fully audit this page.",
+            requirement: "We are unable to fully audit this page.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [],
+            status: [status.USABILITYPROBLEM],
+            postProcessing: postProcessing,
+        }
     },
 
     extra: {
@@ -417,23 +625,39 @@ export const tokens: issueTemplateData = {
 
     info: {
         relatedsc: ["1.3.1"],
+        list: {
+            relatedsc: ["1.3.1"],
+            issues: "This content presents/acts as a list, but not semantically.",
+            requirement: "Ensure that content visually presented as a list is also semantically presented as a list.",
+            recommendation: "We recommend using a UL.",
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
+        },
         role: {
             relatedsc: ["1.3.1"],
-            issues: "This text presents as and acts as a $var$, but is not programmatically determinable as such.",
+            issues: "This text presents/acts as a $var$, but not semantically.",
             recommendation: "We recommend converting this text into a $var$.",
-            requirement: "Ensure that structure/relationships conveyed by presentation can be programmatically determined."
+            requirement: "Ensure that visual structure/relationships are also programmatic."
         },
         structure: {
             relatedsc: ["1.3.1"],
-            requirement: "Ensure that structure conveyed through presentation can be programmatically determined or is available in text."
+            requirement: "Ensure that visual structure is also programmatic."
         },
         info: {
             relatedsc: ["1.3.1"],
-            requirement: "Ensure that information conveyed through presentation can be programmatically determined or is available in text."
+            requirement: "Ensure that visual information is also available to AT."
         },
         relationship: {
             relatedsc: ["1.3.1"],
-            requirement: "Ensure that relationships conveyed through presentation can be programmatically determined or is available in text."
+            issues: "This content presents/acts as a list, but is not one semantically.",
+            requirement: "Ensure that visually related content is also related programmatically.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [],
+
         },
         hidden: {
             relatedsc: ["1.3.1"],
@@ -441,7 +665,29 @@ export const tokens: issueTemplateData = {
             requirement: "Ensure that when content is meant to be hidden from all users, it is also hidden from AT.",
             recommendation: "Content can be hidden from AT by adding ARIA-HIDDEN=TRUE. ARIA-HIDDEN=TRUE will hide the element and all its descendants from AT."
         },
-        requirement: "Ensure that structure, relationships, and information conveyed through presentation can be programmatically determined or is available in text."
+        steps: {
+            relatedsc: ["1.3.1"],
+            issues: "This content visually conveys a structure/relationship, but this is not programmatically determinable.",
+            requirement: "Ensure that the structure/relationships of process steps can be programmatically determined.",
+            recommendation: "We recommend using a UL, and placing each step in their own LI, and adding ARIA-CURRENT=STEP to the LI element that contains the current step.",
+            resources: ["https://codepen.io/colinjbr/pen/qEBzyxO"],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+            currentStateNotExposed: {
+                relatedsc: [""],
+                issues: "",
+                requirement: "",
+                recommendation: "",
+                resources: [""],
+                notes: "",
+                states: [states],
+                status: [status],
+                postProcessing: postProcessing,
+            }
+        },
+        requirement: "Ensure that visual structure, relationships, and information is reflected semantically and available to AT."
     },
 
     consistent: {
@@ -455,16 +701,32 @@ export const tokens: issueTemplateData = {
 
     labelinname: {
         relatedsc: ["2.5.3"],
-        issues: "The text that visually labels this component is not present in its accessible name word-for-word.",
+        issues: `The text that visually labels this component is not present in its accessible name word-for-word.\n\nVisual Label: ""\nAccessible Name: ""`,
         requirement: "Ensure that when text visually labels an interactive component, that component's accessible name includes that text word-for-word.",
+        recommendation: "Please see the Resources section for ways to set the accessible name.",
+        resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"],
+        notes: "",
+        states: [],
+        postProcessing: postProcessing,
     },
 
     image: {
+        chart: {
+            relatedsc: ["1.1.1"],
+            issues: "This chart is a complex graphic that does not have an adequate text alternative.",
+            requirement: "Ensure that complex graphics have an adequate text alternative.",
+            recommendation: `Complex graphics often require extra effort to provide an adequate text alternative. Some charts are used to provide an overview of general trends. Other charts provide a visualization of a data table, and the data is what is being presented.\n\nFor most charts we recommend:\n- give the chart a text alternative that describes the general trends users would see (e.g. "chart of temperature throughout the day. temperature remains low around 30f until 1pm where it heats up to 45f and remains until around 9pm where it drops back to 30f where it remains. See Temperature table below for more information.")\n- if data is also presented then provide a data table of the data (e.g. table with column 1 is hour of day, column two is temperature, example: [hour][temperature]/[12am][29f]/[1am][31f]/.../[1pm][45f]/.../[9pm][30f])`,
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
+        },
         noalt: {
             relatedsc: ["1.1.1"],
             issues: "This non-text content does not have a text alternative.",
             requirement: "Ensure that non-text content has a text alternative that adequately describes the content in context.",
-            recommendation: "We recommend giving this IMG element an ALT attribute."
+            recommendation: "We recommend giving this IMG element an ALT attribute.",
+            resources: ["https://www.scottohara.me/blog/2019/05/22/contextual-images-svgs-and-a11y.html"],
         },
         badalt: {
             relatedsc: ["1.1.1"],
@@ -486,6 +748,17 @@ export const tokens: issueTemplateData = {
             issues: "This non-text content has a text alternative, but it is decorative.",
             requirement: "Ensure that decorative non-text content is implemented in a way such that AT can ignore it.",
             recommendation: "For IMG elements, we recommend setting the ALT attribute to be empty.\nFor SVG elements we recommend adding ARIA-HIDDEN=TRUE."
+        },
+        svgAltRecommendation: {
+            relatedsc: [""],
+            issues: "",
+            requirement: "",
+            recommendation: "To provide a text alternative to an SVG we recommend:\n- add ROLE=IMG\n- add the TITLE element as a descendant of the SVG, it's text contents will act as the text alternative",
+            resources: ["https://www.scottohara.me/blog/2019/05/22/contextual-images-svgs-and-a11y.html"],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
         }
     },
 
@@ -494,7 +767,18 @@ export const tokens: issueTemplateData = {
             relatedsc: ["2.4.4"],
             issues: "The purpose of this link is ambiguous.",
             requirement: "Ensure that the purpose of each link is unambiguous.",
-            recommendation: "We recommend adding the ARIA-DESCRIBEDBY attribute to provide context."
+            recommendation: "We recommend adding the ARIA-DESCRIBEDBY attribute to provide context.",
+
+            pagination: {
+                relatedsc: ["2.4.4"],
+                issues: "The purpose of this link is ambiguous.",
+                requirement: "Ensure that the purpose of each link is unambiguous.",
+                recommendation: 'We recommend either:\n- wrapping the pagination links in a NAV element and adding the attribute ARIA-LABEL="Pagination"\n- OR Ensure each link has an accessible name that describes its purpose (e.g. "Page 1" instead of "1").',
+                resources: ["https://codepen.io/colinjbr/pen/MYWEoLq"],
+                notes: "",
+                states: [],
+                postProcessing: postProcessing,
+            }
         },
     },
 
@@ -506,7 +790,7 @@ export const tokens: issueTemplateData = {
     heading: {
         relatedsc: ["1.3.1"],
         requirement: "Ensure that text that presents as, and acts as a heading is programmatically determinable as such.",
-        issues: "This text presents as and acts as a HEADING, but is not programmatically determinable as such.",
+        issues: "This text presents/acts as a HEADING, but is not programmatically determinable as such.",
         recommendation: "We recommend converting this text into a HEADING element of the appropriate level.",
         empty: {
             relatedsc: ["1.3.1"],
@@ -553,7 +837,7 @@ export const tokens: issueTemplateData = {
                 relatedsc: ["4.1.3"],
                 issues: "This error message is not implemented in a way such that AT is notifying users of the message.",
                 requirement: "Ensure that error messages are implemented in a way such that AT can notify users of the message.",
-                recommendation: "Since this error message appears inline either when editing or when focus is moved away, we recommend using ARIA-DESCRIBEDBY on the form field, targeting the error message. While content with an interactive role is focused, if the content targeted by ARIA-DESCRIBEDBY is updated, AT will treat the ",
+                recommendation: "Since this error message appears inline either when editing or when focus is moved away, we recommend using ARIA-DESCRIBEDBY on the form field, targeting the error message. While content with an interactive role is focused, if the content targeted by ARIA-DESCRIBEDBY is updated, AT will treat the content as a live region ",
             }
         },
         loading: {
@@ -570,6 +854,16 @@ export const tokens: issueTemplateData = {
             issues: "This content appears on hover/focus, but can't be dismissed without moving the pointer/focus.",
             requirement: "Ensure that when content appears on hover/focus, that content can be dismissed without moving the pointer or focus.",
             recommendation: "We recommend either:\n- allow users to dismiss this content by pressing the Escape key\n- AND/OR allow users to dismiss this content by pressing the Control key"
+        },
+        hover: {
+            relatedsc: ["1.4.13"],
+            issues: "This content appears on hover but users cannot hover their pointer over the content without it disappearing.",
+            requirement: "Ensure that users can hover the entire content without it disappearing.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
         }
     },
 
@@ -578,7 +872,27 @@ export const tokens: issueTemplateData = {
         recommendation: "We recommend adding a list of errors at the top of the form where:\n- each list item identifies the form field in error with a link to the form field, and notes the error\n- focus is shifted onto the list of errors on form submission\nIf this is a long form, we recommend (in addition to the above) adding inline errors to each form field in error and associating that error with the form field as an accessible description.",
         resources: [
             "https://webaim.org/techniques/formvalidation/#form"
-        ]
+        ],
+        valueChange: {
+            relatedsc: ["3.3.1"],
+            issues: "When users input an out-of-bounds value, the value is automatically set to conform, but users are not notified.",
+            requirement: "Ensure that when user's input does not conform to the field's requirements (e.g. below minimum, above maximum) and its value is automatically set to conform, an error message is presented in text describing the error and notifying users that the value has been automatically set to conform.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
+        },
+        inlineNotAssociated: {
+            relatedsc: ["1.3.1"],
+            issues: "These inline error messages are visually related to the form field, but not programmatically.",
+            requirement: "Ensure form fields and their inline error messages are programmatically associated.",
+            recommendation: "We recommend adding ARIA-DESCRIBEDBY to the form field targeting the error message.",
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
+        }
     },
 
     video: {
@@ -607,7 +921,18 @@ export const tokens: issueTemplateData = {
     grouping: {
         relatedsc: ["1.3.1"],
         issues: "This content is visually grouped, but this grouping",
-        recommendation: "We recommend either:\n- wrapping this content in a native HTML FIELDSET element, with a LEGEND element.\n- adding the attribute ROLE=GROUP to an element wrapping this content\nAdditionally, the GROUP will need an accessible name, which should be the same as the text that visually labels it."
+        recommendation: "We recommend either:\n- wrapping this content in a native HTML FIELDSET element, with a LEGEND element.\n- adding the attribute ROLE=GROUP to an element wrapping this content\nAdditionally, the GROUP will need an accessible name, which should be the same as the text that visually labels it.",
+        radioName: {
+            relatedsc: ["1.3.1"],
+            issues: "These radio buttons are visually grouped, but because the NAME attribute is not the same across each related radio button, the total count relayed by AT is off.",
+            requirement: "Ensure that related radio buttons all have the same NAME attribute.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+        }
     },
 
     form: {
@@ -666,17 +991,20 @@ export const tokens: issueTemplateData = {
             relatedsc: ["0.0.0"],
             issues: "This page did not have any relevant content. As such we were unable to fully audit the page.",
             requirement: "This page did not have any relevant content. As such we were unable to fully audit the page.",
-            recommendation: ""
+            recommendation: "",
+            status: [status.USABILITYPROBLEM]
         },
         '404': {
             relatedsc: ["0.0.0"],
             issues: "We were unable to connect to this page as it returns a 404 page not found.",
             requirement: "We were unable to connect to this page as it returns a 404 page not found.",
+            status: [status.USABILITYPROBLEM]
         },
         redirect: {
             relatedsc: ["0.0.0"],
             issues: "We were unable to connect to this page as it redirects to another page ($var$).",
             requirement: "We were unable to connect to this page as it redirects to another page ($var$).",
+            status: [status.USABILITYPROBLEM]
         }
     },
 
@@ -693,6 +1021,13 @@ export const tokens: issueTemplateData = {
             requirement: "Ensure that normal text has at least a 4.5:1 color contrast against its background color, and that large-scale text has at least a 3:1 color contrast ratio against its background color.",
             recommendation: "",
             postProcessing: postProcessing.TEXTCONTRAST,
+            disabledButFocusable: {
+                relatedsc: ["1.4.3"],
+                issues: "Insufficient text color contrast ratio.\n\nNote that for an item to be considered disabled, it cannot be focusable, and it's disabled state must be programmatically determinable. This component is still focusable, and as such is not considered disabled.",
+                requirement: "Ensure that normal text has at least a 4.5:1 color contrast against its background color, and that large-scale text has at least a 3:1 color contrast ratio against its background color.\n\nIf this content is made unfocusable it does not need to meet this requirement.",
+                recommendation: "",
+                postProcessing: postProcessing.TEXTCONTRAST,
+            }
         },
         nonText: {
             relatedsc: ["1.4.11"],
@@ -714,7 +1049,66 @@ export const tokens: issueTemplateData = {
             requirement: "Ensure that color is not the only means of distinguishing visual elements. \n\nColor is not considered the only means of distinguishing visual elements if:\n- there is a change in form (text underline, outline, increased border size)\n- or if the color contrast between the two visual elements or states is 3:1 or higher",
             recommendation: "We recommend changing the form of one of these. Here are some examples of changes in form:\n- Bolding text\n- changing a solid color to a pattern\n- Underlining text\n- changing the thickness of the border .\nNote that if a change in form is used, the change in form must still adhere to 1.4.11 Non-text Contrast which requires non-text content have a 3:1 color contrast ratio when compared to adjacent colors.",
             postProcessing: postProcessing,
+        },
+        imageBackground: {
+            text: {
+                relatedsc: ["1.4.3"],
+                issues: "This text has insufficient color contrast against its background image.",
+                requirement: "Ensure that enough text has sufficient color contrast against adjacent colors.",
+                recommendation: "If you know the image this text will be place against, and the image does not change, then you may be able to change the text color.\n\nIf you do not know the image this text will be placed against, then we recommend adding a solid background color that contrasts well with the current text color (a translucent background may be acceptable, but requires more extensive testing to ensure the text does not lose contrast, see the Codepen link in the Resources section for more information).",
+                resources: ["https://codepen.io/colinjbr/pen/rNQGVeE"],
+                notes: `Only enough of this content needs to contrast well. For example a link labeled "See Big Ben on Google Maps", only "Big Ben" and "Google Maps" would need good contrast as users will likely be able to understand that this link shows you Big Ben on Google Maps. Lets take the same example, but this time let's say that "See Big" does not contrast well, then all users could see is "Ben on Google Maps" which does not adequately indicate the purpose of the link.`,
+                states: [],
+                postProcessing: postProcessing,
+            },
+            nonText: {
+                relatedsc: ["1.4.11"],
+                issues: "This non-text content has insufficient color contrast against its background image.",
+                requirement: "Ensure that non-text content is placed against an image, it has a 3:1 against enough of the image such that users can identify the non-text content.",
+                recommendation: "If you know the image this non-text content will be place against, and the image does not change, then you may be able to change one or more colors of the non-text content.\n\nIf you do not know the image this non-text content will be placed against, then we recommend adding a solid background color that contrasts well with the current color (a translucent background may be acceptable, but requires more extensive testing to ensure the text does not lose contrast, see the Codepen link in the Resources section for more information).",
+                resources: ["https://codepen.io/colinjbr/pen/rNQGVeE"],
+                notes: `Similar to the text version, only enough of the non-text content needs to be visible/contrast well. For example, let's an image gallery has arrows icons for next ("->") and previous ("<-"). If the dashes ("-") did not have good contrast, but the carets ("<" and ">") did have good contrast, this would pass as the carets are generally enough for users to understand the purpose of the content.`,
+                states: [],
+                postProcessing: postProcessing,
+            }
         }
+    },
+
+    errorPrevention: {
+        relatedsc: [""],
+        issues: "",
+        requirement: "",
+        recommendation: "",
+        resources: [""],
+        notes: "",
+        states: [],
+        postProcessing: postProcessing,
+
+        delete: {
+            relatedsc: ["3.3.4"],
+            issues: "This content can be deleted, but there is no confirmation, no way to reverse the deletion.",
+            requirement: "Ensure that when user controllable data can be deleted, either users must confirm the deletion action, or there is a simple way to reverse the action such as an undo button.",
+            recommendation: "We recommend using a confirmation modal dialog.",
+            resources: [""],
+            notes: "",
+            states: [],
+            postProcessing: postProcessing,
+        }
+    },
+
+    browseModeExplanation: {
+        relatedsc: ["2.1.1"],
+        issues: "Because this content does not have an appropriate role, and requires the use of arrow keys to navigate, screen reader users using NVDA or JAWS will likely have a difficult time operating the content. This is because these two screen readers automatically switch between two modes of operation (Browse Mode and Focus Mode) depending on the role of the element currently focused (or the role of an ancestor element).\n\n- Browse mode will intercept and consume most key presses including arrow keys, meaning the webpage does not see them.\n- Forms mode on the other hand does not intercept or consume most key presses.\n\nHere are some examples of roles that cause NVDA to switch into Focus Mode (including examples of native html elements with that role):\n- textbox: input type=text;\n- combobox: select;\n- slider: input type=range;\n- menu: (no native element);\n- radio: input type=radio;\n- tab: (no native element)\n\nIf NVDA does not think Focus Mode is needed, it will switch back to Browse Mode.",
+        requirement: "",
+        recommendation: "Since this content requires the use of arrow keys, we recommend using a role that would automatically switch NVDA/JAWS into Focus Mode.",
+        resources: [
+            "https://download.nvaccess.org/releases/2024.4.2/documentation/userGuide.html#BrowseMode",
+            "https://www.w3.org/TR/wai-aria-1.2/#widget_roles"
+        ],
+        notes: "",
+        states: [states],
+        status: [status],
+        postProcessing: postProcessing,
     },
 
     template: {
@@ -724,7 +1118,8 @@ export const tokens: issueTemplateData = {
         recommendation: "",
         resources: [""],
         notes: "",
-        states: [],
+        states: [states],
+        status: [status],
         postProcessing: postProcessing,
     }
 

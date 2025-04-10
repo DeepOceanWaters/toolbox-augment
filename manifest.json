@@ -23,7 +23,6 @@
                 "https://app.a11ytoolbox.io/audits/*"
             ],
             "js": [
-                
                 "out/content-script.js"
             ]
         }
