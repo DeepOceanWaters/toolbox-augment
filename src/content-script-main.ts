@@ -3,7 +3,7 @@ import { getNextResource, setQuillEditorText, spoofOptionSelected, spoofUpdateTe
 import { getPossibleTokens, getRecommendation } from "./modules/replaceTokens.js";
 import Combobox from "./modules/components/Combobox.js";
 import { successCriteria } from "./data/successCriteria.js";
-import { issueTemplate, state2names, states } from "./data/tokens.js";
+import { issueTemplate, state2names, states, status } from "./data/tokens.js";
 import FilterableMultiselect from "./modules/components/FilterableMultiselect.js";
 import CheckboxGroup from "./modules/components/CheckboxGroup.js";
 import Fieldset from "./modules/components/Fieldset.js";
@@ -34,6 +34,7 @@ export default function main() {
         const pagesId = 'pages';
         const scId = 'success_criteria';
         const statesId = 'audit_status';
+        const statusId = 'status';
         const issueDescId = 'issue_description';
         const successCriteriaDescEditorId = 'editor1';
         const recommendationEditorId = 'editor2';
@@ -565,6 +566,10 @@ export default function main() {
                     setState(template.states);
                 }
 
+                if (template.status) {
+                    setStatus(template.status);
+                }
+
 
                 // add default resources
                 for (const resource of template.resources || []) {
@@ -628,6 +633,13 @@ export default function main() {
             if (!statesPartneredMultiselect.showOnlyCheckbox.input.checked) {
                 statesPartneredMultiselect.showOnlyCheckbox.input.click();
             }
+        }
+
+        async function setStatus(status: status[]) {
+            let statusEl = document.getElementById(statusId) as HTMLSelectElement;
+            let selectedStatuses = [...statusEl.options]
+                .filter(o => (status as string[]).includes(o.textContent));
+            selectedStatuses.forEach(o => spoofOptionSelected(statusEl, o, true));
         }
 
         async function addCurrentPage(pagesPartneredMultiselect: FilterableMultiselect) {

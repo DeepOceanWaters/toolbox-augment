@@ -11,8 +11,8 @@ export enum states {
 
 export function state2names(state: states) {
     let names = []
-    switch(state) {
-        case states.FOCUSED: 
+    switch (state) {
+        case states.FOCUSED:
             names.push('content state: focused');
             break;
         case states.HOVERED:
@@ -33,16 +33,16 @@ export function state2names(state: states) {
 }
 
 export enum status {
-    NEW,
-    RESOLVED,
-    PARTLYRESOLVED,
-    REMAINS,
-    REGRESSION,
-    BESTPRACTICE,
-    THIRDPARTYPROBLEM,
-    RESOLVEDBYREMOVAL,
-    USABILITYPROBLEM,
-    DUPLICATE
+    NEW = 'New',
+    RESOLVED = 'Resolved',
+    PARTLYRESOLVED = 'Partly Resolved',
+    REMAINS = 'Remains',
+    REGRESSION = 'Regression',
+    BESTPRACTICE = 'Best Practice',
+    THIRDPARTYPROBLEM = 'Third party problem',
+    RESOLVEDBYREMOVAL = 'Resolved by removal',
+    USABILITYPROBLEM = 'Usability Problem',
+    DUPLICATE = 'Duplicate'
 }
 
 export enum variableType {
@@ -149,6 +149,50 @@ export const tokens: issueTemplateData = {
             notes: "",
             states: [],
             status: [status.USABILITYPROBLEM],
+            postProcessing: postProcessing,
+        },
+        expand: {
+            relatedsc: ["4.1.2"],
+            issues: "This component's state is not programmatically determinable.\nState: expanded/collapsed",
+            requirement: "Ensure when a component controls the expanded/collapsed state of content, it has the ARIA-EXPANDED attribute.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+        },
+        current: {
+            relatedsc: ["1.3.1"],
+            issues: "This content is visually presented as the current item in its grouping, but this is not available to AT.",
+            requirement: "Ensure that information and states conveyed visually is available to AT.",
+            recommendation: "We recommend adding ARIA-CURRENT to the item that is visually styled as the current item. Please see the Values section in the resources link to find an appropriate value (true works if a more appropriate value can't be found).\n\nNote that ARIA-CURRENT is one of the few aria attributes that can be placed on an ancestor element and it will be conveyed when entering this content. For example, in a list of links (UL>LI>A[href]) ARIA-CURRENT could be placed on either ANCHOR element or the LI element and users will be notified when focus shifts onto the ANCHOR element.",
+            resources: ["https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Attributes/aria-current#values"],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+        },
+        incorrect: {
+            relatedsc: ["1.3.1", "4.1.2"],
+            issues: "The programmatic state of this component does not match the visual state.\n\nState:",
+            requirement: "Ensure the programmatically determinable state of component's match their visually conveyed state.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+        },
+        doesntAnnouncedChange: {
+            relatedsc: ["4.1.2"],
+            issues: "The state is indicated by it's name, but when it changes AT does not announce the change.\n\nState Names: ",
+            requirement: "Ensure that when users change the state, AT announces this change in state.",
+            recommendation: "We recommend using a self-targeting ARIA-DESCRIBEDBY attribute. See #6 in the resources codepen for an example of this. The resource also explores other options for ensuring state is announced.",
+            resources: ["https://codepen.io/colinjbr/pen/ExOPZWb"],
+            notes: "",
+            states: [states],
+            status: [status],
             postProcessing: postProcessing,
         }
     },
@@ -267,7 +311,7 @@ export const tokens: issueTemplateData = {
             requirement: "Ensure that each component only takes one tab stop.",
             recommendation: "We recommend removing the non-interactive element that wraps this component from focus order - this can be done by removing the TABINDEX attribute or setting TABINDEX=-1.",
             interactive: {
-                relatedsc: ["2.4.3", "4.1.3"],
+                relatedsc: ["2.4.3"],
                 issues: "This component is nested inside another interactive component, this causes two tab stops for the same component, and makes the role of the component ambiguous.",
                 requirement: "Ensure that interactive components are not nested, and that each component only takes one tab stop.",
                 recommendation: "We recommend removing one of the interactive elements."
@@ -319,7 +363,18 @@ export const tokens: issueTemplateData = {
                 relatedsc: ["4.1.2"],
                 issues: "This component does not have an accessible name. Currently the component has an associated LABEL element, but the association is broken.",
                 requirement: "Ensure that interactive components have an accessible name that describes their purpose.",
-                recommendation: "To ensure that LABEL elements are properly associated with a form field:\n- if the LABEL element is hidden, ensure that it is only visually hidden.\n- LABEL elements are associated with the first element found with the ID value in the FOR attribute.",
+                recommendation: "To ensure that LABEL elements are properly associated with a form field:\n- if the LABEL element is hidden, ensure that it is only visually hidden.\n- LABEL elements are associated with the first element found with the ID value in the FOR attribute.\n- if the LABEL element is implicitly associated (input is nested in label element) ensure that  it does not have an empty FOR attribute",
+                multipleIDs: {
+                    relatedsc: ["4.1.2"],
+                    issues: "This component does not have an accessible name. Currently the component has an associated LABEL element, but the association is broken as there are multiple elements on the page with the same ID value. Note that LABEL element's will try to associated with the first element it finds with this ID value.\n\nID Value:",
+                    requirement: "Ensure that there are not duplicate IDs on the page so that LABEL's are properly associated with their respective form field.",
+                    recommendation: "",
+                    resources: [""],
+                    notes: "",
+                    states: [states],
+                    status: [status],
+                    postProcessing: postProcessing,
+                }
             }
         },
         badlabel: {
@@ -391,9 +446,24 @@ export const tokens: issueTemplateData = {
         },
         nonPersistent: {
             relatedsc: ["3.3.2"],
-            issues: "This component does not have a persistent label.",
-            requirement: "Ensure that form fields have a persistent label. Persistent labels should remain visible even when the user has entered information into the form field.",
-            recommendation: ""
+            issues: "This component's placeholder text provides instructions, but when it has a non-empty value those instructions disappear.",
+            requirement: "Ensure that instructions are presented to all users and that an input's placeholder text is not used to present instructions.",
+            recommendation: "We recommend providing instructions in text near the input and programmatically associating it using ARIA-DESCRIBEDBY."
+        }
+    },
+
+    placeholder: {
+        label: {
+            relatedsc: ["3.3.2"],
+            issues: "This text field does not have a persistently visible label - The placeholder text acts as a visible label, but when the field has a non-empty value this placeholder text disappears, leaving it without a visible label.",
+            requirement: "Ensure that form fields' label is always visible while the form field is visible.",
+            recommendation: "We recommend adding a LABEL element, and associating it with the component using its FOR attribute.",
+        },
+        instructions: {
+            relatedsc: ["3.3.2"],
+            issues: "This text field does not have a persistently visible label - The placeholder text acts as a visible label, but when the field has a non-empty value this placeholder text disappears, leaving it without a visible label.",
+            requirement: "Ensure that form fields' label is always visible while the form field is visible.",
+            recommendation: "We recommend adding a LABEL element, and associating it with the component using its FOR attribute.",
         }
     },
 
@@ -508,14 +578,19 @@ export const tokens: issueTemplateData = {
     },
 
     bestpractice: {
+        relatedsc: ["0.0.0"],
+        issues: "Note that this is a best practice, and not necessary for conformance.",
         requirement: "Note that this is a best practice, and not necessary for conformance.",
-        futureIssue: {
-            requirement: "Note that this is a best practice, and not necessary for conformance. However, we strongly recommend remediating this best practice issue as it has a heightened chance of becoming a full WCAG failure."
-        }
+        recommendation: "",
+        resources: [""],
+        notes: "",
+        states: [states],
+        status: [status.BESTPRACTICE],
+        postProcessing: postProcessing,
     },
 
     usability: {
-        relatedsc: [""],
+        relatedsc: ["0.0.0"],
         issues: "Note that this is a usability problem, and not necessary for conformance.",
         requirement: "Note that this is a usability problem, and not necessary for conformance.",
         recommendation: "",
@@ -524,7 +599,17 @@ export const tokens: issueTemplateData = {
         states: [],
         status: [status.USABILITYPROBLEM],
         postProcessing: postProcessing,
-
+        cannotFullyAudit: {
+            relatedsc: ["0.0.0"],
+            issues: "We are unable to fully audit this page.",
+            requirement: "We are unable to fully audit this page.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [],
+            status: [status.USABILITYPROBLEM],
+            postProcessing: postProcessing,
+        }
     },
 
     extra: {
@@ -579,6 +664,28 @@ export const tokens: issueTemplateData = {
             issues: "Visually hidden content is still available to AT.",
             requirement: "Ensure that when content is meant to be hidden from all users, it is also hidden from AT.",
             recommendation: "Content can be hidden from AT by adding ARIA-HIDDEN=TRUE. ARIA-HIDDEN=TRUE will hide the element and all its descendants from AT."
+        },
+        steps: {
+            relatedsc: ["1.3.1"],
+            issues: "This content visually conveys a structure/relationship, but this is not programmatically determinable.",
+            requirement: "Ensure that the structure/relationships of process steps can be programmatically determined.",
+            recommendation: "We recommend using a UL, and placing each step in their own LI, and adding ARIA-CURRENT=STEP to the LI element that contains the current step.",
+            resources: ["https://codepen.io/colinjbr/pen/qEBzyxO"],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+            currentStateNotExposed: {
+                relatedsc: [""],
+                issues: "",
+                requirement: "",
+                recommendation: "",
+                resources: [""],
+                notes: "",
+                states: [states],
+                status: [status],
+                postProcessing: postProcessing,
+            }
         },
         requirement: "Ensure that visual structure, relationships, and information is reflected semantically and available to AT."
     },
@@ -730,7 +837,7 @@ export const tokens: issueTemplateData = {
                 relatedsc: ["4.1.3"],
                 issues: "This error message is not implemented in a way such that AT is notifying users of the message.",
                 requirement: "Ensure that error messages are implemented in a way such that AT can notify users of the message.",
-                recommendation: "Since this error message appears inline either when editing or when focus is moved away, we recommend using ARIA-DESCRIBEDBY on the form field, targeting the error message. While content with an interactive role is focused, if the content targeted by ARIA-DESCRIBEDBY is updated, AT will treat the ",
+                recommendation: "Since this error message appears inline either when editing or when focus is moved away, we recommend using ARIA-DESCRIBEDBY on the form field, targeting the error message. While content with an interactive role is focused, if the content targeted by ARIA-DESCRIBEDBY is updated, AT will treat the content as a live region ",
             }
         },
         loading: {
@@ -814,7 +921,18 @@ export const tokens: issueTemplateData = {
     grouping: {
         relatedsc: ["1.3.1"],
         issues: "This content is visually grouped, but this grouping",
-        recommendation: "We recommend either:\n- wrapping this content in a native HTML FIELDSET element, with a LEGEND element.\n- adding the attribute ROLE=GROUP to an element wrapping this content\nAdditionally, the GROUP will need an accessible name, which should be the same as the text that visually labels it."
+        recommendation: "We recommend either:\n- wrapping this content in a native HTML FIELDSET element, with a LEGEND element.\n- adding the attribute ROLE=GROUP to an element wrapping this content\nAdditionally, the GROUP will need an accessible name, which should be the same as the text that visually labels it.",
+        radioName: {
+            relatedsc: ["1.3.1"],
+            issues: "These radio buttons are visually grouped, but because the NAME attribute is not the same across each related radio button, the total count relayed by AT is off.",
+            requirement: "Ensure that related radio buttons all have the same NAME attribute.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+        }
     },
 
     form: {
@@ -873,17 +991,20 @@ export const tokens: issueTemplateData = {
             relatedsc: ["0.0.0"],
             issues: "This page did not have any relevant content. As such we were unable to fully audit the page.",
             requirement: "This page did not have any relevant content. As such we were unable to fully audit the page.",
-            recommendation: ""
+            recommendation: "",
+            status: [status.USABILITYPROBLEM]
         },
         '404': {
             relatedsc: ["0.0.0"],
             issues: "We were unable to connect to this page as it returns a 404 page not found.",
             requirement: "We were unable to connect to this page as it returns a 404 page not found.",
+            status: [status.USABILITYPROBLEM]
         },
         redirect: {
             relatedsc: ["0.0.0"],
             issues: "We were unable to connect to this page as it redirects to another page ($var$).",
             requirement: "We were unable to connect to this page as it redirects to another page ($var$).",
+            status: [status.USABILITYPROBLEM]
         }
     },
 
@@ -900,6 +1021,13 @@ export const tokens: issueTemplateData = {
             requirement: "Ensure that normal text has at least a 4.5:1 color contrast against its background color, and that large-scale text has at least a 3:1 color contrast ratio against its background color.",
             recommendation: "",
             postProcessing: postProcessing.TEXTCONTRAST,
+            disabledButFocusable: {
+                relatedsc: ["1.4.3"],
+                issues: "Insufficient text color contrast ratio.\n\nNote that for an item to be considered disabled, it cannot be focusable, and it's disabled state must be programmatically determinable. This component is still focusable, and as such is not considered disabled.",
+                requirement: "Ensure that normal text has at least a 4.5:1 color contrast against its background color, and that large-scale text has at least a 3:1 color contrast ratio against its background color.\n\nIf this content is made unfocusable it does not need to meet this requirement.",
+                recommendation: "",
+                postProcessing: postProcessing.TEXTCONTRAST,
+            }
         },
         nonText: {
             relatedsc: ["1.4.11"],
@@ -974,7 +1102,7 @@ export const tokens: issueTemplateData = {
         requirement: "",
         recommendation: "Since this content requires the use of arrow keys, we recommend using a role that would automatically switch NVDA/JAWS into Focus Mode.",
         resources: [
-            "https://download.nvaccess.org/releases/2024.4.2/documentation/userGuide.html#BrowseMode", 
+            "https://download.nvaccess.org/releases/2024.4.2/documentation/userGuide.html#BrowseMode",
             "https://www.w3.org/TR/wai-aria-1.2/#widget_roles"
         ],
         notes: "",
