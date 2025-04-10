@@ -5,16 +5,12 @@ import Combobox from "./modules/components/Combobox.js";
 import { successCriteria } from "./data/successCriteria.js";
 import { issueTemplate, state2names, states, status } from "./data/tokens.js";
 import FilterableMultiselect from "./modules/components/FilterableMultiselect.js";
-import CheckboxGroup from "./modules/components/CheckboxGroup.js";
-import Fieldset from "./modules/components/Fieldset.js";
 import TestingSoftwareCombo from "./modules/components/TestingSoftwareCombo.js";
-import Settings, { StorageType, TestingEnvironment } from "./modules/AuditSettings.js";
 import BasicSelect from "./modules/components/BasicSelect.js";
-import Checkbox from "./modules/components/Checkbox.js";
-import PartneredCheckboxGroup from "./modules/components/PartneredMultiselect.js";
 import XLSX from '../external_libraries/xlsx.mjs';
 import InputLabelPair from "./modules/components/InputLabelPair.js";
 import wait, { waitUntil } from "./modules/wait.js";
+import { count } from "console";
 
 enum EditorType {
     ADD,
@@ -113,7 +109,7 @@ export default function main() {
 
             chrome.runtime.onMessage.addListener(messageRouter);
             repairIssueDescription();
-            initCopyEventListeners();
+            // initCopyEventListeners();
             injectAllStyles();
             ({
                 pagesPartneredMultiselect: pagesPartneredMultiselect,
@@ -136,6 +132,8 @@ export default function main() {
                     lastCheckedPage.component.classList.add('current');
                 }
             });
+            document.querySelector('[aria-label="pagination"]').addEventListener('click', paginationChangeListener);
+            setIssueNumberCSSCounter(getCurrentPageNumber());
         }
 
         /**
@@ -440,32 +438,6 @@ export default function main() {
                     break;
             }
             return;
-        }
-
-        async function initSettings() {
-            let settingsByType = await Settings.getSettings();
-            let oldSettingsSection = document.querySelector('[for="browser_combos"]').closest('form > div') as HTMLDivElement;
-            let customSettingsSection = document.createElement('div');
-            oldSettingsSection
-                .parentElement
-                .insertBefore(
-                    customSettingsSection,
-                    oldSettingsSection
-                );
-            oldSettingsSection.style.display = 'none';
-
-            let settings = [];
-            for (let type in settingsByType) {
-                for (let settingName of type) {
-                    let setting = type[settingName];
-                    let environment = Settings.fromSettings(setting, setting.type);
-                    settings.push(environment);
-                }
-            }
-        }
-
-        function addResetIssue() {
-
         }
 
         async function addIssueTemplateSearch(): Promise<void> {
@@ -832,60 +804,6 @@ export default function main() {
             };
         }
 
-        function setupTestingSoftwareSection() {
-            let softwareUsed = document.getElementById('software_used') as HTMLSelectElement;
-            let softwareUsedLabel = document.querySelector(`[for="${softwareUsed.id}"]`);
-            let assistiveTech = document.getElementById('assistive_tech') as HTMLSelectElement;
-            let assistiveTechLabel = document.querySelector(`[for="${assistiveTech.id}"]`);
-
-            let testingSection = softwareUsed.parentElement.parentElement;
-            testingSection.hidden = true;
-
-            const resetTestingSoftware = (editorType: EditorType) => {
-                currentCombos = currentCombos.filter((combo, i) => {
-                    if (i === 0) return true;
-                    else {
-                        combo.component.remove();
-                    }
-                    return false;
-                });
-
-                for (let combo of currentCombos) {
-                    combo.update();
-                }
-            }
-            openIssueEditorCallbacks.push();
-        }
-
-        function addTestingSoftwareCombo() {/*
-            let softwareUsed = document.getElementById('software_used') as HTMLSelectElement;
-            let assistiveTech = document.getElementById('assistive_tech') as HTMLSelectElement;
-
-            let comboGroup = new TestingSoftwareCombo(
-                currentCombos.length,
-                [...softwareUsed.options].map(o => o.textContent),
-                [...assistiveTech.options].map(o => o.textContent)
-            );
-            currentCombos.push(comboGroup);
-            testingSection.append(comboGroup.component);*/
-        }
-
-        async function initCopyEventListeners() {
-            let issueDescriptionLabel = document.querySelector('[for="issue_description"]');
-            let issueDescription = issueDescriptionLabel.parentElement.querySelector('textarea');
-            let recommendation = document.getElementById('issue_recommendations');
-            issueDescription.addEventListener('click', (e) => {
-                if (!issueToCopy) return;
-                navigator.clipboard.writeText(issueToCopy);
-                issueToCopy = undefined;
-            });
-            recommendation.addEventListener('click', (e) => {
-                if (!recommendationToCopy) return;
-                navigator.clipboard.writeText(recommendationToCopy);
-                recommendationToCopy = undefined;
-            });
-        }
-
         function copyTextToClipboard(text) {
             let fakeInput = document.createElement('textarea');
             fakeInput.value = text;
@@ -903,5 +821,36 @@ export default function main() {
             return element;
         }
 
+        function getCurrentPageNumber() {
+            let pagination = document.querySelector('[aria-label="pagination"]');
+            let currentPage = pagination.querySelector('[aria-current="page"]');
+            return Number(currentPage.textContent);
+        }
+
+        function setIssueNumberCSSCounter(number: number) {
+            // Check if a style element with the specific id exists and remove it if it does
+            const existingStyle = document.getElementById('issue-number-css-counter');
+            if (existingStyle) {
+              existingStyle.parentNode.removeChild(existingStyle);
+            }
+          
+            // Create a new style element
+            const styleEl = document.createElement('style');
+            styleEl.id = 'issue-number-css-counter';
+
+            let counterStart = number - 1;
+            if (counterStart > 0) counterStart *= 100;
+          
+            // Append the CSS text to the style element
+            styleEl.append(`html table { counter-set: issue_table ${counterStart};`);
+          
+            // Append the style element to the document head
+            document.head.appendChild(styleEl);
+          }
+          
+          function paginationChangeListener(e) {
+            let number = e.target.textContent;
+            setIssueNumberCSSCounter(number);
+          }
     })();
 }
