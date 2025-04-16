@@ -1,36 +1,3 @@
-option:hover 
-{ 
-    background-color: #E8E8E8; 
-}
-
-select[multiple]:not(#essential_functionalities) 
-{ 
-    min-height: 200px; 
-}
-
-*:has(>select[multiple]:not(
-    #success_criteria, 
-    #essential_functionalities):hover) 
-{
-    position:relative;
-}
-
-select[multiple]:not(
-    #success_criteria, 
-    #essential_functionalities, 
-    [aria-label="Select recommendations"]):hover 
-{
-    min-height: 500px;
-    position: absolute;
-    background: white!important;
-    z-index: 1;
-}
-
-#pages option { 
-    border-top: 4px solid #666;
-    padding: 0.5rem 0.15rem;
-}
-
 tbody tr[data-scrolled-to-row] td {
     border-top: 4px solid black;
     border-bottom: 4px solid black;
