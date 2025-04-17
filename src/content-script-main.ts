@@ -137,6 +137,7 @@ export default function main() {
             setIssueNumberCSSCounter(getCurrentPageNumber());
             moveAuditComments();
             setSaveAsSticky();
+            setUpSaveAs();
         }
 
         /**
@@ -875,6 +876,44 @@ export default function main() {
             save.parentElement.style.position = 'sticky';
             save.parentElement.style.bottom = '0';
             save.parentElement.style.backgroundColor = 'white';
+        }
+
+        function setUpSaveAs() {
+            let auditorNotes = document.getElementById(auditorNotesID);
+            let dialog = auditorNotes.closest('[role="dialog"]');
+            let save = [...dialog.querySelectorAll('button')].find(b => b.textContent.trim() === 'Save');
+            let saveAsResolved = save.cloneNode() as HTMLButtonElement;
+            let saveAsPartlyResolved = save.cloneNode() as HTMLButtonElement;
+            let saveAsRemains = save.cloneNode() as HTMLButtonElement;
+
+            saveAsResolved.textContent = 'Save as Resolved';
+            saveAsPartlyResolved.textContent = 'Save as Partly Resolved';
+            saveAsRemains.textContent = 'Save as Remains';
+
+            saveAsResolved.classList.add('resolved','button');
+            saveAsPartlyResolved.classList.add('partly-resolved', 'button');
+            saveAsRemains.classList.add('remains', 'button');
+
+            save.parentElement.append(saveAsResolved, saveAsPartlyResolved, saveAsRemains);
+
+            let status = document.getElementById(statusId) as HTMLSelectElement;
+            saveAsResolved.addEventListener('click', (e) => {
+                let option = [...status.options].find(o => o.textContent === 'Resolved');
+                spoofOptionSelected(status, option, true);
+                save.click();
+            });
+
+            saveAsPartlyResolved.addEventListener('click', (e) => {
+                let option = [...status.options].find(o => o.textContent === 'Partly Resolved');
+                spoofOptionSelected(status, option, true);
+                save.click();
+            });
+
+            saveAsRemains.addEventListener('click', (e) => {
+                let option = [...status.options].find(o => o.textContent === 'Remains');
+                spoofOptionSelected(status, option, true);
+                save.click();
+            });
         }
     })();
 }
