@@ -7,3 +7,36 @@ tbody tr[data-scrolled-to-row] td {
     word-wrap: break-word;
     max-width: 250px;
 }
+
+.button.remains {
+    color: black;
+    background-color: var(--red-light);
+    border: 1px solid transparent;
+
+    &:hover {
+        background-color: var(--red-bright);
+        border-color: var(--red-medium);
+    }
+}
+
+.button.resolved {
+    color: black;
+    background-color: var(--green-light);
+    border: 1px solid transparent;
+
+    &:hover {
+        background-color: var(--green-bright);
+        border-color: var(--green-medium);
+    }
+}
+
+.button.partly-resolved {
+    color: black;
+    background-color: var(--yellow-light);
+    border: 1px solid transparent;
+
+    &:hover {
+        background-color: var(--yellow-bright);
+        border-color: var(--yellow-medium);
+    }
+}
