@@ -136,6 +136,7 @@ export default function main() {
             document.querySelector('[aria-label="pagination"]').addEventListener('click', paginationChangeListener);
             setIssueNumberCSSCounter(getCurrentPageNumber());
             moveAuditComments();
+            setSaveAsSticky();
         }
 
         /**
@@ -861,6 +862,19 @@ export default function main() {
             let index = [...commentsRow.parentElement.children].indexOf(commentsRow);
             let softwareUsedRow = commentsRow.parentElement.children.item(index - 2);
             softwareUsedRow.parentElement.insertBefore(commentsRow, softwareUsedRow);
+        }
+
+        function setSaveAsSticky() {
+            let auditorNotes = document.getElementById(auditorNotesID);
+            let dialog = auditorNotes.closest('[role="dialog"]');
+            let scrollElement = dialog.querySelector('.modal-main') as HTMLElement;
+            scrollElement.style.overflowY = 'scroll';
+            scrollElement.style.maxHeight = '98vh';
+            scrollElement.style.marginBottom = '2vh';
+            let save = [...dialog.querySelectorAll('button')].find(b => b.textContent.trim() === 'Save');
+            save.parentElement.style.position = 'sticky';
+            save.parentElement.style.bottom = '0';
+            save.parentElement.style.backgroundColor = 'white';
         }
     })();
 }
