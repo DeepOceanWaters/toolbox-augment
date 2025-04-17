@@ -36,6 +36,7 @@ export default function main() {
         const recommendationEditorId = 'editor2';
         const softwareUseId = 'software_used';
         const atId = 'assistive_tech';
+        const auditorNotesID = 'auditor_notes';
 
 
         let openIssueEditorCallbacks: ((type: EditorType) => void)[] = [];
@@ -134,6 +135,7 @@ export default function main() {
             });
             document.querySelector('[aria-label="pagination"]').addEventListener('click', paginationChangeListener);
             setIssueNumberCSSCounter(getCurrentPageNumber());
+            moveAuditComments();
         }
 
         /**
@@ -218,7 +220,7 @@ export default function main() {
                     await spoofClickTableRow(htmlRow, (row: HTMLTableRowElement) => row.classList.contains('selected'));
                     let edit = await getEditIssue();
                     edit.click();
-                    
+
                     let description = document.getElementById(issueDescId) as HTMLTextAreaElement;
                     await waitUntil(() => issueDialogIsOpen);
                     spoofUpdateTextareaValue(description, row[issueDescriptionColNum].v, true);
@@ -238,7 +240,7 @@ export default function main() {
         async function getEditIssue() {
             let count = 0;
             let edit;
-            while(!edit && count++ < 50) {
+            while (!edit && count++ < 50) {
                 edit = document.querySelector('button[title="Edit Issue"]') as HTMLButtonElement;
                 await wait(1);
             }
@@ -249,7 +251,7 @@ export default function main() {
             return edit;
         }
 
-        
+
 
         function findRow(value: any, columnName: string) {
             let colIndex = previousAudit[0].findIndex(c => includesCaseInsensitive(c.w, columnName));
@@ -517,7 +519,7 @@ export default function main() {
                         _prepare(template.recommendation)
                     )
                 }
-                
+
                 //recommendationParagraphs.filter(a => a);
 
                 let recommendationQuillEditor =
@@ -586,11 +588,11 @@ export default function main() {
         async function setState(states: states[]) {
             let stateNames = states.map(s => state2names(s)).flat();
             // find states
-            let stateCheckboxes = 
+            let stateCheckboxes =
                 statesPartneredMultiselect
-                .checkboxGroup
-                .items
-                .filter(c => stateNames.includes(c.textLabel.textContent));
+                    .checkboxGroup
+                    .items
+                    .filter(c => stateNames.includes(c.textLabel.textContent));
             // click them
             stateCheckboxes.forEach(
                 c => {
@@ -831,26 +833,34 @@ export default function main() {
             // Check if a style element with the specific id exists and remove it if it does
             const existingStyle = document.getElementById('issue-number-css-counter');
             if (existingStyle) {
-              existingStyle.parentNode.removeChild(existingStyle);
+                existingStyle.parentNode.removeChild(existingStyle);
             }
-          
+
             // Create a new style element
             const styleEl = document.createElement('style');
             styleEl.id = 'issue-number-css-counter';
 
             let counterStart = number - 1;
             if (counterStart > 0) counterStart *= 100;
-          
+
             // Append the CSS text to the style element
             styleEl.append(`html table { counter-set: issue_table ${counterStart};`);
-          
+
             // Append the style element to the document head
             document.head.appendChild(styleEl);
-          }
-          
-          function paginationChangeListener(e) {
+        }
+
+        function paginationChangeListener(e) {
             let number = e.target.textContent;
             setIssueNumberCSSCounter(number);
-          }
+        }
+
+        function moveAuditComments() {
+            let auditorNotes = document.getElementById(auditorNotesID);
+            let commentsRow = auditorNotes.parentElement.parentElement;
+            let index = [...commentsRow.parentElement.children].indexOf(commentsRow);
+            let softwareUsedRow = commentsRow.parentElement.children.item(index - 2);
+            softwareUsedRow.parentElement.insertBefore(commentsRow, softwareUsedRow);
+        }
     })();
 }
