@@ -40,3 +40,53 @@ tbody tr[data-scrolled-to-row] td {
         border-color: var(--yellow-medium);
     }
 }
+
+.file-input.zone {
+    min-width: 20rem;
+    width: 100%;
+    min-height: 20rem;
+    border: 2px dashed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+
+    &.file-hover {
+        border: solid;
+        border-color: var(--blue-light);
+        background-color: var(--blue-dark);
+        color: white;
+
+        label, input {
+            display: none;
+        }
+
+        &::before {
+            content: "Drop file to process!";
+        }
+    }
+
+    &.processing {
+        label, input {
+            display: none;
+        }
+
+        &::before {
+            content: "Processing file"
+        }
+    }
+}
+
+.bg-white:has(> .file-input) {
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.4rem;
+
+    [role="status"] {
+        font-size: 1.4rem;
+    }
+}
+

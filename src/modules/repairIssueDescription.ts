@@ -1,6 +1,6 @@
 import { EditorType } from "../content-script-main.js";
 import CustomButton from "./components/CustomButton.js";
-import FileInput from "./components/FileInput.js";
+import FileInput, { FileInputType } from "./components/FileInput.js";
 import LiveRegion, { LiveRegionRoles } from "./components/LiveRegion.js";
 import { spoofClickTableRow, spoofUpdateTextareaValue } from "./spoofUserInput.js";
 import { getIssueDialog, getTotalNumberIssues, ToolboxIDs } from "./toolboxIds.js";
@@ -37,12 +37,14 @@ function makeDialog(opener: HTMLButtonElement): HTMLDivElement {
     let addIssueDescriptionDialog = addDialog.cloneNode() as HTMLDivElement;
     addIssueDescriptionDialog.style.zIndex = '150';
     addDialog.parentElement.insertBefore(addIssueDescriptionDialog, addDialog);
-    let fileInput = new FileInput('Drag and Drop or Click to Upload Previous Audit');
+    let fileInput = new FileInput('Drag and Drop or Click to Upload Previous Audit', FileInputType.DROP);
     let liveRegion = new LiveRegion(LiveRegionRoles.STATUS);
 
     fileInput.input.addEventListener('change', (e) => {
         parsePreviousAudit(fileInput.input.files[0], liveRegion);
     });
+
+    fileInput.addDropCallback(() => parsePreviousAudit(fileInput.input.files[0], liveRegion));
 
     let instructions = 'Please upload a CSV file of the previous audit (Google Spreadsheet: file -> export -> CSV). When a file has been selected, the application will automatically begin to repair the issue description for this audit\'s issues.';
 
