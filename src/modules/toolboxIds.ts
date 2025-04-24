@@ -17,3 +17,20 @@ export function getIssueDialog(): HTMLDivElement {
     return states.closest('[role="dialog"]');
 }
 
+export function getTotalNumberIssues(): Number {
+    let toolbar = document.getElementById(ToolboxIDs.TOOLBAR);
+    let totalIssuesParent = 
+        toolbar
+        .children.item(0)
+        .children.item(0);
+    let totalIssuesSpan = 
+        totalIssuesParent
+        .children.item(
+            totalIssuesParent.children.length - 1
+        );
+    return Number(
+        totalIssuesSpan
+        .textContent
+        .replace(/\D/g, '')
+    );
+}

@@ -3,10 +3,11 @@ import CustomButton from "./components/CustomButton.js";
 import FileInput from "./components/FileInput.js";
 import LiveRegion, { LiveRegionRoles } from "./components/LiveRegion.js";
 import { spoofClickTableRow, spoofUpdateTextareaValue } from "./spoofUserInput.js";
-import { getIssueDialog, ToolboxIDs } from "./toolboxIds.js";
+import { getIssueDialog, getTotalNumberIssues, ToolboxIDs } from "./toolboxIds.js";
 import wait, { waitUntil } from "./wait.js";
 import XLSX from '../../external_libraries/xlsx.mjs'
 import { getAuditPages, getCurrentPage, getDeselectButton, getEditIssueButton, getFirstUUID, getIssuesTable, getSelectedIssueUUIDs } from "./auditPagination.js";
+import { error } from "console";
 
 export function addPreviousAuditIssueDescription() {
     let repairIssueDescription = addUploadIssues();
@@ -44,11 +45,11 @@ function makeDialog(opener: HTMLButtonElement): HTMLDivElement {
     });
 
     let instructions = 'Please upload a CSV file of the previous audit (Google Spreadsheet: file -> export -> CSV). When a file has been selected, the application will automatically begin to repair the issue description for this audit\'s issues.';
-    
-    let closeButton = 
+
+    let closeButton =
         addDialog
-        .querySelector('button[aria-label="Close add issue modal"]')
-        .cloneNode() as HTMLButtonElement;
+            .querySelector('button[aria-label="Close add issue modal"]')
+            .cloneNode() as HTMLButtonElement;
     closeButton.append('X');
 
     closeButton.addEventListener('click', () => {
@@ -97,7 +98,7 @@ async function parsePreviousAudit(file: File, liveRegion: LiveRegion) {
 
     // setup current page
     visitedUUIDs.push(
-        ...(await setupIssueDescription(previousAudit))
+        ...(await setupIssueDescription(previousAudit, visitedUUIDs, liveRegion))
     );
 
     // if more than one page, setup rest of pages
@@ -105,9 +106,9 @@ async function parsePreviousAudit(file: File, liveRegion: LiveRegion) {
     if (pages) {
         let startPage = getCurrentPage();
         for (let page of pages.filter(p => p !== startPage)) {
-            let selectedRows = 
+            let selectedRows =
                 [...getIssuesTable().querySelectorAll('tr.selected')] as HTMLTableRowElement[];
-            for(let row of selectedRows) {
+            for (let row of selectedRows) {
                 await spoofClickTableRow(row, () => !row.classList.contains('selected'));
             }
             page.click();
@@ -115,33 +116,9 @@ async function parsePreviousAudit(file: File, liveRegion: LiveRegion) {
                 () => !visitedUUIDs.map(span => span.textContent).includes(getFirstUUID()), 10
             );
             visitedUUIDs.push(
-                ...(await setupIssueDescription(previousAudit))
+                ...(await setupIssueDescription(previousAudit, visitedUUIDs, liveRegion))
             );
         }
-    }
-
-    let issuesRepaired = 0;
-
-    return async (type: EditorType) => {
-        if (type !== EditorType.EDIT) return;
-        let editorOpen = await waitUntil(issueDialogIsOpen);
-        if (!editorOpen) {
-            throw new Error(`couldn't open editor`);
-        }
-        let issue = getPreviousAuditIssue(previousAudit);
-        if (issue) {
-            let issueDescription =
-                document.getElementById(
-                    ToolboxIDs.ISSUE_DESCRIPTION
-                ) as HTMLTextAreaElement;
-            let issueDescriptionColNum =
-                previousAudit[0]
-                    .findIndex(c => c.w.toLowerCase() === 'issue description');
-            spoofUpdateTextareaValue(issueDescription, issue[issueDescriptionColNum]["v"]);
-        }
-        issuesRepaired++;
-        liveRegion.clearQueue();
-        liveRegion.queueMessage(`${issuesRepaired} issues repaired`);
     }
 }
 
@@ -158,18 +135,22 @@ function getPreviousAuditIssue(previousAudit) {
         if (UUIDs.length > 1) {
             throw new Error('multiple rows selected, cannot determine current issue');
         }
+        else if (UUIDs.length < 1) {
+            throw new Error('No audit Selected');
+        }
         currentIssue = previousAudit.find(row => row.find(cell => cell.w === UUIDs[0]));
     }
     return currentIssue;
 }
 
-async function setupIssueDescription(previousAudit) {
+async function setupIssueDescription(previousAudit, visitedUUIDs, liveRegion) {
     let UIIDs =
         [...document.querySelectorAll('[data-key="issue_number"]')]
             .map(n => n.querySelector('span > span'));
     let issueDescriptionColNum =
         previousAudit[0]
             .findIndex(c => c.w.toLowerCase() === 'issue description');
+    let issuesRepaired = 0;
     for (const UIID of UIIDs) {
         let row = previousAudit.find(
             r => r.some(c => c.w === UIID.textContent)
@@ -196,6 +177,24 @@ async function setupIssueDescription(previousAudit) {
                     .find(b => b.textContent.trim().toLowerCase() === 'save');
             saveBtn.click();
 
+            
+            // update live region
+
+            let issue = getPreviousAuditIssue(previousAudit);
+            if (issue) {
+                let issueDescription =
+                    document.getElementById(
+                        ToolboxIDs.ISSUE_DESCRIPTION
+                    ) as HTMLTextAreaElement;
+                let issueDescriptionColNum =
+                    previousAudit[0]
+                        .findIndex(c => c.w.toLowerCase() === 'issue description');
+                spoofUpdateTextareaValue(issueDescription, issue[issueDescriptionColNum]["v"]);
+            }
+            issuesRepaired++;
+            liveRegion.clearQueue();
+            liveRegion.queueMessage(`${issuesRepaired + visitedUUIDs.length}/${getTotalNumberIssues()} issues repaired`);
+            
             await spoofClickTableRow(
                 htmlRow,
                 (row: HTMLTableRowElement) => !row.classList.contains('selected')
