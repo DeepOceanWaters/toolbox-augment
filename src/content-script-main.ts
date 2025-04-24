@@ -7,12 +7,13 @@ import { issueTemplate, state2names, states, status } from "./data/tokens.js";
 import FilterableMultiselect from "./modules/components/FilterableMultiselect.js";
 import TestingSoftwareCombo from "./modules/components/TestingSoftwareCombo.js";
 import BasicSelect from "./modules/components/BasicSelect.js";
-import XLSX from '../external_libraries/xlsx.mjs';
 import InputLabelPair from "./modules/components/InputLabelPair.js";
 import wait, { waitUntil } from "./modules/wait.js";
 import { count } from "console";
+import { ToolboxIDs } from "./modules/toolboxIds.js";
+import { addPreviousAuditIssueDescription } from "./modules/repairIssueDescription.js";
 
-enum EditorType {
+export enum EditorType {
     ADD,
     EDIT,
     COPY
@@ -22,30 +23,9 @@ export default function main() {
     (async () => {
 
         let issueCustomStyle;
-        let issueToCopy;
-        let recommendationToCopy;
-        let chromeVersion;
         let previousAudit;
 
-        const pagesId = 'pages';
-        const scId = 'success_criteria';
-        const statesId = 'audit_status';
-        const statusId = 'status';
-        const issueDescId = 'issue_description';
-        const successCriteriaDescEditorId = 'editor1';
-        const recommendationEditorId = 'editor2';
-        const softwareUseId = 'software_used';
-        const atId = 'assistive_tech';
-        const auditorNotesID = 'auditor_notes';
-
-
         let openIssueEditorCallbacks: ((type: EditorType) => void)[] = [];
-
-        let testingSoftwareOptions: string[] = [];
-        let assistiveTechOptions: string[] = [];
-        let testingSection: HTMLDivElement;
-
-        let currentCombos: TestingSoftwareCombo[] = [];
 
         let pagesPartneredMultiselect: FilterableMultiselect;
         let scPartneredMultiselect: FilterableMultiselect;
@@ -66,11 +46,11 @@ export default function main() {
             // for new audits, this won't load until the user switches to advanced issue
             let isLoaded = true;
 
-            let pages: HTMLSelectElement | null = document.getElementById(pagesId) as HTMLSelectElement | null;
-            let successCriteria: HTMLSelectElement | null = document.getElementById(scId) as HTMLSelectElement | null;
-            let states: HTMLSelectElement | null = document.getElementById(statesId) as HTMLSelectElement | null;
-            let software: HTMLSelectElement | null = document.getElementById(softwareUseId) as HTMLSelectElement | null;
-            let at: HTMLSelectElement | null = document.getElementById(softwareUseId) as HTMLSelectElement | null;
+            let pages: HTMLSelectElement | null = document.getElementById(ToolboxIDs.PAGES) as HTMLSelectElement | null;
+            let successCriteria: HTMLSelectElement | null = document.getElementById(ToolboxIDs.SUCCESS_CRITERIA) as HTMLSelectElement | null;
+            let states: HTMLSelectElement | null = document.getElementById(ToolboxIDs.STATES) as HTMLSelectElement | null;
+            let software: HTMLSelectElement | null = document.getElementById(ToolboxIDs.SOFTWARE_USED) as HTMLSelectElement | null;
+            let at: HTMLSelectElement | null = document.getElementById(ToolboxIDs.SOFTWARE_USED) as HTMLSelectElement | null;
 
             const selectIsLoaded = (select: HTMLSelectElement) => !!(select && select.options.length > 0);
             isLoaded &&= !!pages;
@@ -105,9 +85,6 @@ export default function main() {
                 }
             });
 
-            // rest
-            testingSection = document.getElementById('software_used').parentElement.parentElement as HTMLDivElement;
-
             chrome.runtime.onMessage.addListener(messageRouter);
             repairIssueDescription();
             // initCopyEventListeners();
@@ -121,7 +98,7 @@ export default function main() {
             addExpandTargetElementButton();
             hideSuccessCriteriaDescription();
             repositionStatusPriorityEffort();
-            addPreviousAuditUpload();
+            addPreviousAuditIssueDescription();
 
             // setup opening callback
             openIssueEditorCallbacks.push((type) => {
@@ -168,93 +145,6 @@ export default function main() {
             targetLabel.htmlFor = targetTextarea.id;
         }
 
-        /**
-         * Allows users to upload the previous audit to add the issue 
-         * description that is always missing to each issue.
-         * Currently only updates the first page of issues. Can run 
-         * again on page 2 and it should work.
-         */
-        function addPreviousAuditUpload() {
-            let toolbar = document.getElementById('toolbar');
-            let upload = new InputLabelPair();
-            upload.input.setAttribute('type', 'file');
-            upload.component.append(upload.label, upload.input);
-            upload.label.textContent = 'uplaod previous audit';
-            toolbar.parentElement.append(upload.component);
-            upload.input.addEventListener('change', (e) => {
-                parsePreviousAudit(upload.input.files[0]);
-            });
-        }
-
-        /**
-         * Part of addPreviousAuditUpload()
-         */
-        async function parsePreviousAudit(file: File) {
-            let fileArray = await file.arrayBuffer();
-            let workbook = XLSX.read(fileArray, { dense: true });
-            previousAudit = workbook.Sheets[workbook.SheetNames[0]]["!data"];
-            setupIssueDescription();
-            openIssueEditorCallbacks.push(async (type) => {
-                if (type !== EditorType.EDIT) return;
-                let editorOpen = await waitUntil(issueDialogIsOpen);
-                if (!editorOpen) {
-                    throw new Error(`couldn't open editor`);
-                }
-                let issue = findCurrentIssue();
-                if (issue) {
-                    //let UIIDs = [...document.querySelectorAll('[data-key="issue_number"]')].map(n => n.querySelector('span > span').textContent);
-                    let issueDescription = document.getElementById(issueDescId) as HTMLTextAreaElement;
-                    let issueDescriptionColNum = previousAudit[0].findIndex(c => includesCaseInsensitive(c.w, 'issue description'));
-                    spoofUpdateTextareaValue(issueDescription, issue[issueDescriptionColNum]["v"]);
-                }
-            });
-        }
-
-        async function setupIssueDescription() {
-            let UIIDs = [...document.querySelectorAll('[data-key="issue_number"]')].map(n => n.querySelector('span > span'));
-            let issueDescriptionColNum = previousAudit[0].findIndex(c => includesCaseInsensitive(c.w, 'issue description'));
-            for (const UIID of UIIDs) {
-                let row = previousAudit.find(r => r.some(c => includesCaseInsensitive(c.w, UIID.textContent)));
-                if (row) {
-                    let htmlRow = UIID.closest('tr');
-                    let issueDesc = htmlRow.querySelector('[data-key="issue_description"] span span');
-                    // issueDesc.textContent = row[issueDescriptionColNum].v;
-                    await spoofClickTableRow(htmlRow, (row: HTMLTableRowElement) => row.classList.contains('selected'));
-                    let edit = await getEditIssue();
-                    edit.click();
-
-                    let description = document.getElementById(issueDescId) as HTMLTextAreaElement;
-                    await waitUntil(() => issueDialogIsOpen);
-                    spoofUpdateTextareaValue(description, row[issueDescriptionColNum].v, true);
-                    let saveBtn = [...description.closest('[role="dialog"]').querySelectorAll('button')]
-                        .find(b => b.textContent.includes('Save'));
-                    saveBtn.click();
-                    await spoofClickTableRow(htmlRow, (row: HTMLTableRowElement) => !row.classList.contains('selected'));
-                }
-            }
-        }
-
-        function issueDialogIsOpen() {
-            let description = document.getElementById(issueDescId) as HTMLTextAreaElement;
-            return description.closest('[role="dialog"]').getBoundingClientRect().width > 0;
-        }
-
-        async function getEditIssue() {
-            let count = 0;
-            let edit;
-            while (!edit && count++ < 50) {
-                edit = document.querySelector('button[title="Edit Issue"]') as HTMLButtonElement;
-                await wait(1);
-            }
-            if (!edit) {
-                let selectedRows = [...document.querySelectorAll('tr.selected')];
-                throw new Error(`Edit Issue is not showing up. ${selectedRows}`);
-            }
-            return edit;
-        }
-
-
-
         function findRow(value: any, columnName: string) {
             let colIndex = previousAudit[0].findIndex(c => includesCaseInsensitive(c.w, columnName));
             if (colIndex === -1) {
@@ -264,23 +154,11 @@ export default function main() {
             return out;
         }
 
-        function findCurrentIssue() {
-            let currentIssue: { w, t, v }[] | null;
-            let issueDescription = document.getElementById(issueDescId) as HTMLTextAreaElement;
-            if (issueDescription.value === '') {
-                let issueTarget = document.getElementById('target') as HTMLInputElement;
-                let recommendationEditor = document.getElementById(recommendationEditorId);
-                let recommendation = recommendationEditor.textContent;
-                currentIssue = previousAudit.find(row => {
-                    return row.find(c => c && includesCaseInsensitive(c.w, issueTarget.value));
-                });
-            }
-            return currentIssue;
-        }
+        
 
         function repairIssueDescription() {
             let issueDescriptionLabel: HTMLLabelElement =
-                document.querySelector(`[for="${issueDescId}"]`) as HTMLLabelElement;
+                document.querySelector(`[for="${ToolboxIDs.ISSUE_DESCRIPTION}"]`) as HTMLLabelElement;
 
             let issueDescription: HTMLTextAreaElement =
                 issueDescriptionLabel
@@ -288,7 +166,7 @@ export default function main() {
                     .children
                     .item(1) as HTMLTextAreaElement;
 
-            issueDescription.id = issueDescId;
+            issueDescription.id = ToolboxIDs.ISSUE_DESCRIPTION;
         }
 
         function hideSuccessCriteriaDescription() {
@@ -455,7 +333,7 @@ export default function main() {
              */
 
 
-            let form = document.getElementById(pagesId)!.closest('form') as HTMLFormElement;
+            let form = document.getElementById(ToolboxIDs.PAGES)!.closest('form') as HTMLFormElement;
             let topRow = form.children.item(0) as HTMLElement;
             topRow.style.alignItems = 'baseline';
             topRow.style.gap = '1rem';
@@ -501,7 +379,7 @@ export default function main() {
 
                 // set issue description
                 if (template.issue) {
-                    let issueDesc = document.getElementById(issueDescId) as HTMLTextAreaElement;
+                    let issueDesc = document.getElementById(ToolboxIDs.ISSUE_DESCRIPTION) as HTMLTextAreaElement;
                     spoofUpdateTextareaValue(issueDesc, template.issue);
                 }
 
@@ -526,7 +404,7 @@ export default function main() {
 
                 let recommendationQuillEditor =
                     document
-                        .getElementById(recommendationEditorId)
+                        .getElementById(ToolboxIDs.RECOMMENDATION_EDITOR)
                         .querySelector('.ql-editor') as HTMLElement;
                 await setQuillEditorText(recommendationQuillEditor, recommendationParagraphs, false);
                 // this gets rid of the extra newline when setting a template for the first time
@@ -579,9 +457,9 @@ export default function main() {
                     if (pm.showOnlyCheckbox.input.checked) pm.showOnlyCheckbox.input.click();
                     pm.checkboxGroup.update();
                 }
-                let issueDescription = document.getElementById(issueDescId) as HTMLTextAreaElement;
+                let issueDescription = document.getElementById(ToolboxIDs.ISSUE_DESCRIPTION) as HTMLTextAreaElement;
                 spoofUpdateTextareaValue(issueDescription, '', true);
-                let recommendation = document.getElementById(recommendationEditorId);
+                let recommendation = document.getElementById(ToolboxIDs.RECOMMENDATION_EDITOR);
                 setQuillEditorText(recommendation, [''], true);
             });
 
@@ -612,7 +490,7 @@ export default function main() {
         }
 
         async function setStatus(status: status[]) {
-            let statusEl = document.getElementById(statusId) as HTMLSelectElement;
+            let statusEl = document.getElementById(ToolboxIDs.STATUS) as HTMLSelectElement;
             let selectedStatuses = [...statusEl.options]
                 .filter(o => (status as string[]).includes(o.textContent));
             selectedStatuses.forEach(o => spoofOptionSelected(statusEl, o, true));
@@ -620,7 +498,7 @@ export default function main() {
 
         async function addCurrentPage(pagesPartneredMultiselect: FilterableMultiselect) {
             let pages = pagesPartneredMultiselect.checkboxGroup.originalItems;
-            let form = document.getElementById(pagesId)!.closest('form') as HTMLFormElement;
+            let form = document.getElementById(ToolboxIDs.PAGES)!.closest('form') as HTMLFormElement;
             let topRow = form.children.item(0) as HTMLDivElement;
             let input = topRow.children.item(0).querySelector('input');
 
@@ -714,10 +592,10 @@ export default function main() {
              *      select:
              */
             // insertbefore select
-            let pagesPartneredMultiselect = createPartneredMultiselect(pagesId);
+            let pagesPartneredMultiselect = createPartneredMultiselect(ToolboxIDs.PAGES);
             pagesPartneredMultiselect.update();
             // replace success criteria multiselect
-            let scPartneredMultiselect = createPartneredMultiselect(scId);
+            let scPartneredMultiselect = createPartneredMultiselect(ToolboxIDs.SUCCESS_CRITERIA);
             scPartneredMultiselect.update();
             scPartneredMultiselect.checkboxGroup.originalItems.sort(
                 (a, b) => {
@@ -737,14 +615,14 @@ export default function main() {
                 });
             scPartneredMultiselect.update();
             // replace states multiselect
-            let statesPartneredMultiselect = createPartneredMultiselect(statesId);
+            let statesPartneredMultiselect = createPartneredMultiselect(ToolboxIDs.STATES);
             statesPartneredMultiselect.update();
             // add success criteria description updater
             // sometimes the sc descriptions does not update properly when selecting an sc. 
             // this makes sure that it updates properly - both when selecting and unselecting.
             let successCriteriaDescEditor =
                 document
-                    .getElementById(successCriteriaDescEditorId)
+                    .getElementById(ToolboxIDs.SC_DESCRIPTION_EDITOR)
                     .querySelector('.ql-editor') as HTMLElement;
             scPartneredMultiselect
                 .checkboxGroup
@@ -858,7 +736,7 @@ export default function main() {
         }
 
         function moveAuditComments() {
-            let auditorNotes = document.getElementById(auditorNotesID);
+            let auditorNotes = document.getElementById(ToolboxIDs.AUDITOR_NOTES);
             let commentsRow = auditorNotes.parentElement.parentElement;
             let index = [...commentsRow.parentElement.children].indexOf(commentsRow);
             let softwareUsedRow = commentsRow.parentElement.children.item(index - 2);
@@ -866,7 +744,7 @@ export default function main() {
         }
 
         function setSaveAsSticky() {
-            let auditorNotes = document.getElementById(auditorNotesID);
+            let auditorNotes = document.getElementById(ToolboxIDs.AUDITOR_NOTES);
             let dialog = auditorNotes.closest('[role="dialog"]');
             let scrollElement = dialog.querySelector('.modal-main') as HTMLElement;
             scrollElement.style.overflowY = 'scroll';
@@ -879,7 +757,7 @@ export default function main() {
         }
 
         function setUpSaveAs() {
-            let auditorNotes = document.getElementById(auditorNotesID);
+            let auditorNotes = document.getElementById(ToolboxIDs.AUDITOR_NOTES);
             let dialog = auditorNotes.closest('[role="dialog"]');
             let save = [...dialog.querySelectorAll('button')].find(b => b.textContent.trim() === 'Save');
             let saveAsResolved = save.cloneNode() as HTMLButtonElement;
@@ -896,7 +774,7 @@ export default function main() {
 
             save.parentElement.append(saveAsResolved, saveAsPartlyResolved, saveAsRemains);
 
-            let status = document.getElementById(statusId) as HTMLSelectElement;
+            let status = document.getElementById(ToolboxIDs.STATUS) as HTMLSelectElement;
             saveAsResolved.addEventListener('click', (e) => {
                 let option = [...status.options].find(o => o.textContent === 'Resolved');
                 spoofOptionSelected(status, option, true);
