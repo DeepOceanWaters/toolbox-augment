@@ -5,20 +5,25 @@ enum ListType {
     ORDERED = 'ol'
 }
 
-export default class ListCustom extends Component implements HasItems<Component|string> {
-    items: Component[];
+export default class ListCustom extends Component implements HasItems<ListItemCustom> {
+    items: ListItemCustom[];
 
     constructor(type = ListType.UNORDERED) {
         super(type);
         this.items = [];
+        this.update();
     }
 
     update(): void {
-        this.component.innerHTML = '';
         for(let item of this.items) {
-            let li = document.createElement('li');
-            li.appendChild(item.component);
-            this.component.appendChild(li);
+            this.component.prepend(item.component);
         }
+    }
+}
+
+export class ListItemCustom extends Component {
+    constructor(content: Component) {
+        super('li');
+        this.component.appendChild(content.component);
     }
 }
