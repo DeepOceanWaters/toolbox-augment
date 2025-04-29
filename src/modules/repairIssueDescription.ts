@@ -115,12 +115,18 @@ async function parsePreviousAudit(file: File, liveRegion: LiveRegion) {
             }
             page.click();
             let outcome = await waitUntil(
-                () => !visitedUUIDs.map(span => span.textContent).includes(getFirstUUID()), 10
+                () => {
+                    return !visitedUUIDs
+                            .map(span => span.textContent)
+                            .includes(getFirstUUID())
+                }, 
+                10
             );
             visitedUUIDs.push(
                 ...(await setupIssueDescription(previousAudit, visitedUUIDs, liveRegion))
             );
         }
+        liveRegion.queueMessage('Finished repairing issues');
     }
 }
 
