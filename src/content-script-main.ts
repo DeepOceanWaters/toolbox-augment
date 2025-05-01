@@ -775,23 +775,45 @@ export default function main() {
             save.parentElement.append(saveAsResolved, saveAsPartlyResolved, saveAsRemains);
 
             let status = document.getElementById(ToolboxIDs.STATUS) as HTMLSelectElement;
-            saveAsResolved.addEventListener('click', (e) => {
+            saveAsResolved.addEventListener('click', async (e) => {
                 let option = [...status.options].find(o => o.textContent === 'Resolved');
                 spoofOptionSelected(status, option, true);
+                await setLatestRecommendation('Resolved.');
                 save.click();
             });
 
-            saveAsPartlyResolved.addEventListener('click', (e) => {
+            saveAsPartlyResolved.addEventListener('click', async (e) => {
                 let option = [...status.options].find(o => o.textContent === 'Partly Resolved');
                 spoofOptionSelected(status, option, true);
+                await setLatestRecommendation('Partly Resolved.');
                 save.click();
             });
 
-            saveAsRemains.addEventListener('click', (e) => {
+            saveAsRemains.addEventListener('click', async (e) => {
                 let option = [...status.options].find(o => o.textContent === 'Remains');
                 spoofOptionSelected(status, option, true);
+                await setLatestRecommendation('Remains.');
                 save.click();
             });
+        }
+
+        async function setLatestRecommendation(message: string, whenEmpty = true) {
+            let recommendationEditor = document.getElementById(ToolboxIDs.AUDIT_3_COMMENT);
+            recommendationEditor ??= document.getElementById(ToolboxIDs.AUDIT_2_COMMENT);
+            if (recommendationEditor) {
+                if (whenEmpty && !((recommendationEditor as HTMLTextAreaElement).value.trim() === '')) {
+                    return;
+                }
+                spoofUpdateTextareaValue(
+                    recommendationEditor as HTMLTextAreaElement,
+                    message,
+                    false
+                );
+            }
+            else {
+                recommendationEditor = document.getElementById(ToolboxIDs.RECOMMENDATION_EDITOR);
+                await setQuillEditorText(recommendationEditor, [message], false);
+            }
         }
     })();
 }

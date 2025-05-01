@@ -332,6 +332,17 @@ export const tokens: issueTemplateData = {
             issues: "The role of this component is ambiguous.",
             requirement: "Ensure that role of interactive components is unambiguous and appropriate.",
             recommendation: ""
+        },
+        lostOnActivation: {
+            relatedsc: ["2.4.3"],
+            issues: "Focus is lost when this content is activated.",
+            requirement: "Ensure that focus remains on this component when it is activated.",
+            recommendation: "",
+            resources: [""],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
         }
     },
 

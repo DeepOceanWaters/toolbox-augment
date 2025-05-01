@@ -6,6 +6,8 @@ export enum ToolboxIDs {
     ISSUE_DESCRIPTION = 'issue_description',
     SC_DESCRIPTION_EDITOR = 'editor1',
     RECOMMENDATION_EDITOR = 'editor2',
+    AUDIT_2_COMMENT = 'second_audit_comments',
+    AUDIT_3_COMMENT = 'third_audit_comments',
     SOFTWARE_USED = 'software_used',
     ASSISTIVE_TECH = 'assistive_tech',
     AUDITOR_NOTES = 'auditor_notes',
