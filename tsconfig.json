@@ -9,6 +9,14 @@
             "ES2023.Array"
         ],
         "module": "ESNext",
+        "allowJs": true,
+        "rootDir": "src/",
         "outDir": "out/"
     },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "out/**/*"
+    ]
 }

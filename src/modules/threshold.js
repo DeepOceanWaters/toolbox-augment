@@ -1,4 +1,4 @@
-import ZoomCanvas from "./zoomCanvas.js";
+import ZoomCanvas from "./ZoomCanvas.js";
 import ShortcutManager from "./ShortcutManager.js";
 import {
     ratio,
@@ -97,7 +97,7 @@ imgUnprocessed.onload = () => imgLoaded(imgUnprocessed);
 function imgLoaded(img) {
     inputCanv.width = img.width;
     inputCanv.height = img.height;
-    for(const canvas of canvases) {
+    for (const canvas of canvases) {
         canvas.width = img.width;
         canvas.height = img.height;
     }
@@ -106,7 +106,7 @@ function imgLoaded(img) {
     ctx.drawImage(img, 0, 0);
 }
 
-fileIn.addEventListener('change', (e) =>{
+fileIn.addEventListener('change', (e) => {
     const file = e.target.files[0];
 
     let fileReader = new FileReader();
@@ -119,7 +119,7 @@ fileIn.addEventListener('change', (e) =>{
 colorHtml.addEventListener('input', (e) => {
     let colorDesc = document.getElementById('color-desc');
     colorDesc.style.backgroundColor = colorHtml.value;
-    colorDesc.style.color = ratio(hex2rgb(colorHtml.value), [0,0,0]) < 4.5 ? 'white' : 'black';
+    colorDesc.style.color = ratio(hex2rgb(colorHtml.value), [0, 0, 0]) < 4.5 ? 'white' : 'black';
 });
 
 /* mostly taken from stack overflow */
@@ -160,8 +160,8 @@ function processImage(outputCanvas, color, thresholdRatio, shouldCount = false) 
     const shouldRetainColor = !keepColor.checked;
 
     let data = image.data;
-    for(let i = 0; i < outputCanvas.width; i++) {
-        for(let j = 0; j < outputCanvas.height; j++) {
+    for (let i = 0; i < outputCanvas.width; i++) {
+        for (let j = 0; j < outputCanvas.height; j++) {
             let index = 4 * (j * outputCanvas.width + i);
             // unacceptable ratio will be black
             let colorOut = [0, 0, 0, 255];
@@ -214,7 +214,7 @@ function processImage(outputCanvas, color, thresholdRatio, shouldCount = false) 
 
 function sameColor(color1, color2) {
     let isSame = true;
-    for(const [index, val] of color1.entries()) {
+    for (const [index, val] of color1.entries()) {
         if (val !== color2[index]) {
             isSame = false;
             break;
@@ -262,7 +262,7 @@ function createColorTable(colors) {
     // make tbody
     let tbody = document.createElement('tbody');
     let largestFirstSortedEntries = Object.entries(colors).sort((a, b) => b[1] - a[1]);
-    for(const [colorString, count] of largestFirstSortedEntries.slice(0, 16)) {
+    for (const [colorString, count] of largestFirstSortedEntries.slice(0, 16)) {
         let color = colorString.split(',').map(a => Number(a));
         // remove the opacity part of color so we only have rgb
         color.pop();
@@ -286,7 +286,7 @@ function createColorRow(color, count) {
 
     let colorBoxCell = document.createElement('td');
     let colorTextCell = document.createElement('td');
- 
+
     let countTextCell = document.createElement('td');
     let ratioTextCell = document.createElement('td');
 
@@ -294,41 +294,41 @@ function createColorRow(color, count) {
     colorTextCell.classList.add('hex-cell');
     countTextCell.classList.add('count-cell');
     ratioTextCell.classList.add('ratio-cell');
-    
+
     row.append(colorBoxCell, colorTextCell, countTextCell, ratioTextCell);
     colorBoxCell.appendChild(colorBox);
     colorTextCell.appendChild(colorText);
     countTextCell.appendChild(countText);
     ratioTextCell.appendChild(ratioText);
 
+    let hexText = rgb2hex(color);
 
     let colorTextCopyBtn = makeButton('Copy', 'secondary', { extraClasses: ['copy-btn', 'small'] })
     colorTextCell.appendChild(colorTextCopyBtn);
-    colorTextCopyBtn.addEventListener('click', copyHexText);
+    colorTextCopyBtn.addEventListener('click', () => copyHexText(hexText));
+
     
-    let hexText = rgb2hex(color);
-    ratioText.textContent = colorText.textContent = colorTextCopyBtn.dataset.hexCode =  hexText;
- 
+    ratioText.textContent = colorText.textContent = colorTextCopyBtn.dataset.hexCode = hexText;
+
     countText.textContent = count;
     let ratiothe = ratio(color, hex2rgb(colorHtml.value));
     ratioText.textContent = ratiothe.toFixed(2) + ":1";
-    let blackratio = ratio([0,0,0], color);
-    let whiteratio = ratio([255,255,255], color);
+    let blackratio = ratio([0, 0, 0], color);
+    let whiteratio = ratio([255, 255, 255], color);
     colorBoxCell.classList.add(blackratio > whiteratio ? 'black' : 'white');
-    
+
     colorBox.classList.add('color-box');
     colorBox.style.backgroundColor = hexText;
-    
+
     row.classList.add('color-item');
     console.log(color, colorHtml.value);
     if (hexText === colorHtml.value) row.classList.add('same-color');
     return row;
 }
 
-function copyHexText(e) {
-    let btn = e.currentTarget;
-    let hexText = btn.dataset.hexCode;
-    navigator.clipboard.writeText(hexText);
+async function copyHexText(color) {
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    const response = await chrome.tabs.sendMessage(tab.id, { name: "copyToClipboard", text: color });
 }
 
 function arrSame(arr1, arr2) {
@@ -360,7 +360,7 @@ let movingZoom = true;
 function moveZoom(e) {
     if (!movingZoom) return;
     let step = e.getModifierState('Shift') ? 7 : 1;
-    switch(e.key) {
+    switch (e.key) {
         case "ArrowDown":
             canvasltt.moveDown(step);
             e.preventDefault();
@@ -403,20 +403,20 @@ let manager = new ShortcutManager();
 const toggleZoomSC = manager.add(
     ['shift', 'd'],
     toggleZoom,
-    { 
-        name: 'Toggle Zoom on Unprocessed Image', 
+    {
+        name: 'Toggle Zoom on Unprocessed Image',
         description: "Hides the zoom, and prevents keyboard interaction.",
-        throttle: 400 
+        throttle: 400
     }
 );
 
 const toggleZoomControlSC = manager.add(
     ['shift', 'c'],
     toggleZoomControl,
-    { 
-        name: 'Toggle Controlling Zoom With Keyboard', 
+    {
+        name: 'Toggle Controlling Zoom With Keyboard',
         description: "Stops controlling zoom with keyboard. This will prevent keyboard arrows from moving the zoom, and Enter/Space from selecting the current pixel's color.",
-        throttle: 400 
+        throttle: 400
     }
 );
 /*
