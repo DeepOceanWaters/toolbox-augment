@@ -12,6 +12,9 @@ import wait, { waitUntil } from "./modules/wait.js";
 import { count } from "console";
 import { ToolboxIDs } from "./modules/toolboxIds.js";
 import { addPreviousAuditIssueDescription } from "./modules/repairIssueDescription.js";
+import Checkbox from "./modules/components/Checkbox.js";
+import CheckboxGroup from "./modules/components/CheckboxGroup.js";
+import CustomButton from "./modules/components/CustomButton.js";
 
 export enum EditorType {
     ADD,
@@ -21,6 +24,8 @@ export enum EditorType {
 
 export default function main() {
     (async () => {
+
+        const urlRegex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi;
 
         let issueCustomStyle;
         let previousAudit;
@@ -154,7 +159,7 @@ export default function main() {
             return out;
         }
 
-        
+
 
         function repairIssueDescription() {
             let issueDescriptionLabel: HTMLLabelElement =
@@ -189,137 +194,6 @@ export default function main() {
             let filterableMultiselectStyle = injectStyles(chrome.runtime.getURL('../css/filterableMultiselects.css'));
             let floatLabelStyle = injectStyles(chrome.runtime.getURL('../css/floatLabel.css'));
             let srOnly = injectStyles(chrome.runtime.getURL('../css/sr-only.css'));
-        }
-
-        async function messageRouter(request: any, sender: any, sendResponse: Function) {
-            switch (request.name) {
-                case 'pageSearch':
-                    console.log('request: pageSearch');
-                    const psSrc = chrome.runtime.getURL('modules/pageSearch.js');
-                    const pageSearch = await import(psSrc);
-                    pageSearch.main();
-                    break;
-                case 'exposeAltText':
-                    console.log('request: exposeAltText');
-                    const eatSrc = chrome.runtime.getURL('modules/exposeAltText.js');
-                    const exposeAltText = await import(eatSrc);
-                    exposeAltText.main();
-                    break;
-                case 'getElementStyle':
-                    console.log('request: getElementStyle');
-                    const gesSrc = chrome.runtime.getURL('modules/getElementStyle.js');
-                    const getElementStyle = await import(gesSrc);
-                    let element = document.querySelector('[data-get-element-style]') as HTMLElement;
-                    let style = getElementStyle.main(element);
-                    delete element!.dataset.getElementStyle;
-                    sendResponse(style);
-                    break;
-                case 'scrollTo':
-                    console.log('request: getSelectedRow');
-                    const stSrc = chrome.runtime.getURL('modules/scrollTo.js');
-                    const scrollTo = await import(stSrc);
-                    scrollTo.scrollTo(request.index, request.id);
-                    break;
-                case 'getSelectedRow':
-                    console.log('request: getSelectedRow');
-                    const gsrSrc = chrome.runtime.getURL('modules/scrollTo.js');
-                    const getSelectedRow = await import(gsrSrc);
-                    getSelectedRow.getSelectedRow();
-                    break;
-                case 'toggleIssueDialogStylesheet':
-                    console.log('request: toggleIssueDialogStylesheet');
-                    issueCustomStyle.disabled = !issueCustomStyle.disabled;
-                    break;
-                case 'replaceTokens':
-                    console.log('request: replaceTokens');
-                    const rtSrc = chrome.runtime.getURL('modules/replaceTokens.js');
-                    const replaceTokens = await import(rtSrc);
-                    replaceTokens.main();
-                    break;
-                case 'showHeadings':
-                    console.log('request: showHeadings');
-                    const shSrc = chrome.runtime.getURL('modules/showHeadings.js');
-                    const showHeadings = await import(shSrc);
-                    showHeadings.main();
-                    break;
-                case 'copyToClipboard':
-                    console.log('request: copyToClipboard');
-                    copyTextToClipboard(request.text);
-                    break;
-                case 'setTemplateDataToCopy':/*
-                console.log('request: setTemplateDataToCopy');
-                issueToCopy = request.issue as string;
-                recommendationToCopy = request.recommendation as string;
-                let pageSelect = document.getElementById('pages') as HTMLSelectElement;
-                let successCriterionSelect = document.getElementById('success_criteria') as HTMLSelectElement;
-                scrollSelectOptionIntoView(pageSelect, request.pageURL);
-                if (request.relatedsc) {
-                    let sc = request.relatedsc[0];
-                    scrollSelectOptionIntoView(successCriterionSelect, sc);
-                }
-                let resetDescription = ((select: HTMLSelectElement) => {
-                    let form = select.closest('form');
-                    let buttons = form!.querySelectorAll('button');
-                    return [...buttons].find(b => b.textContent!.includes("Reset Descriptions"));
-                })(pageSelect as HTMLSelectElement);
-                // if no success criteria already selected, reset the description
-                // this helps when you select the same SC for two issues  in a row - when doing this
-                // TOOLBOX will not properly fill the SC description textarea
-                if (!successCriterionSelect.querySelectorAll(':checked').length) resetDescription.click();
-                // set*/
-                    break;
-                case 'screenCaptureTest':
-                    console.log('request: screenCaptureTest');
-                    let img: HTMLImageElement = document.getElementById('page-img') as HTMLImageElement;
-                    if (img) {
-                        img.remove();
-                        document.documentElement.style.overflow = '';
-                    }
-                    else {
-                        img = document.createElement('img');
-                        img.id = 'page-img';
-                        img.setAttribute('src', request.imageDataUrl);
-                        document.documentElement.appendChild(img);
-                        img.style.position = 'absolute';
-                        img.style.top = '0';
-                        img.style.left = '0';
-                        img.style.width = img.style.height = '100%';
-                        img.style.zIndex = '10000';
-                        document.documentElement.style.overflow = 'hidden';
-                    }
-                    sendResponse({ imgSize: img.width * img.height * 4 });
-                    break;
-                case 'threshold':
-                    /*
-                    console.log('request: screenCaptureTest');
-                    let img2 = document.getElementById('page-img');
-                    if (img2) {
-                        img2.remove();
-                        document.documentElement.style.overflow = '';
-                    }
-                    else {
-                        img2 = document.createElement('img');
-                        img2.id = 'page-img';
-                        img2.setAttribute('src', request.imageDataUrl);
-                        document.documentElement.appendChild(img);
-                        img2.style.position = 'absolute';
-                        img2.style.top = '0';
-                        img2.style.left = '0';
-                        img2.style.width = img.style.height = '100%';
-                        img2.style.zIndex = '10000';
-                        document.documentElement.style.overflow = 'hidden';
-                    }*/
-                    break;
-                case "colorContrast":
-                    break;
-                case 'chromeVersion':
-                    chrome.storage.session.set({ "chrome-version": request.version });
-                    break;
-                default:
-                    console.log(`unknown request: ${request.name}`);
-                    break;
-            }
-            return;
         }
 
         async function addIssueTemplateSearch(): Promise<void> {
@@ -575,7 +449,12 @@ export default function main() {
                     multiselect
                 );
                 filterableMultiselect.checkboxGroup.component.addEventListener('change', (e) => {
-                    filterableMultiselect.checkboxGroup['lastChecked'] = filterableMultiselect.checkboxGroup.items.find(c => c.input === e.target);
+                    filterableMultiselect
+                        .checkboxGroup['lastChecked'] =
+                        filterableMultiselect
+                            .checkboxGroup
+                            .items
+                            .find(c => c.input === e.target);
                 });
                 return filterableMultiselect;
             }
@@ -594,6 +473,63 @@ export default function main() {
             // insertbefore select
             let pagesPartneredMultiselect = createPartneredMultiselect(ToolboxIDs.PAGES);
             pagesPartneredMultiselect.update();
+
+            for (let item of pagesPartneredMultiselect.checkboxGroup.items) {
+                let match =
+                    item
+                        .textLabel
+                        .textContent
+                        .match(urlRegex);
+                if (!match) {
+                    item.component.dataset.url = '';
+                }
+                else {
+                    item.component.dataset.url = match[0];
+                }
+            }
+
+            pagesPartneredMultiselect
+                .checkboxGroup
+                .component
+                .addEventListener(
+                    'click',
+                    (e) => copyUrlClickHandler(e, pagesPartneredMultiselect.checkboxGroup)
+                );
+
+            pagesPartneredMultiselect
+                .checkboxGroup
+                .component
+                .addEventListener(
+                    'keydown',
+                    (e) => copyUrlKeyboardHandler(e, pagesPartneredMultiselect.checkboxGroup)
+                );
+
+            let replace = new InputLabelPair();
+            replace.label.textContent = 'Replace';
+            replace.component.append(replace.label, replace.input);
+            let replaceWith = new InputLabelPair();
+            replaceWith.label.textContent = 'Replace With';
+            replaceWith.component.append(replaceWith.label, replaceWith.input);
+            let replaceSubmit = new CustomButton('Replace All');
+            replaceSubmit.button.addEventListener('click', (e) => {
+                for (let item of pagesPartneredMultiselect.checkboxGroup.items) {
+                    item.component.dataset.url =
+                        item
+                            .component
+                            .dataset
+                            .url
+                            .replaceAll(
+                                replace.input.value,
+                                replaceWith.input.value
+                            );
+                }
+                e.preventDefault();
+            });
+            pagesPartneredMultiselect.settings.controlled.append(
+                replace.component,
+                replaceWith.component,
+                replaceSubmit.component
+            );
             // replace success criteria multiselect
             let scPartneredMultiselect = createPartneredMultiselect(ToolboxIDs.SUCCESS_CRITERIA);
             scPartneredMultiselect.update();
@@ -614,9 +550,11 @@ export default function main() {
                     return 0;
                 });
             scPartneredMultiselect.update();
+            scPartneredMultiselect.settings.component.style.display = 'none';
             // replace states multiselect
             let statesPartneredMultiselect = createPartneredMultiselect(ToolboxIDs.STATES);
             statesPartneredMultiselect.update();
+            statesPartneredMultiselect.settings.component.style.display = 'none';
             // add success criteria description updater
             // sometimes the sc descriptions does not update properly when selecting an sc. 
             // this makes sure that it updates properly - both when selecting and unselecting.
@@ -684,6 +622,28 @@ export default function main() {
                 scPartneredMultiselect: scPartneredMultiselect,
                 statesPartneredMultiselect: statesPartneredMultiselect
             };
+        }
+
+        function copyUrlKeyboardHandler(e: KeyboardEvent, checkboxGroup) {
+            let checkbox = checkboxGroup.items.find(c => c.component.contains(e.target as HTMLElement));
+            if (!checkbox || !e.getModifierState('Control') || !['Enter', ' '].includes(e.key)) {
+                return;
+            }
+            copyUrl(checkbox);
+            e.preventDefault();
+        }
+
+        function copyUrlClickHandler(e: MouseEvent, checkboxGroup: CheckboxGroup) {
+            let checkbox = checkboxGroup.items.find(c => c.component.contains(e.target as HTMLElement));
+            if (!checkbox || !e.ctrlKey) {
+                return;
+            }
+            copyUrl(checkbox);
+            e.preventDefault();
+        }
+
+        function copyUrl(checkbox: Checkbox) {
+            copyTextToClipboard(checkbox.component.dataset.url);
         }
 
         function copyTextToClipboard(text) {
@@ -768,7 +728,7 @@ export default function main() {
             saveAsPartlyResolved.textContent = 'Save as Partly Resolved';
             saveAsRemains.textContent = 'Save as Remains';
 
-            saveAsResolved.classList.add('resolved','button');
+            saveAsResolved.classList.add('resolved', 'button');
             saveAsPartlyResolved.classList.add('partly-resolved', 'button');
             saveAsRemains.classList.add('remains', 'button');
 

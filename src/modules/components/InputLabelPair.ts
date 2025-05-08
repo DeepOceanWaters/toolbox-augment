@@ -5,7 +5,7 @@ export default class InputLabelPair extends Component {
     input: HTMLInputElement;
     label: HTMLLabelElement;
     
-    constructor() {
+    constructor(label?: string) {
         super('div');
         this.label = document.createElement('label');
         this.input = document.createElement('input');

@@ -1,53 +1,64 @@
 import generateUniqueId from "../idGenerator.js";
 import Component from "./Component.js";
+import CustomButton from "./CustomButton.js";
+import { IconType } from "./Icon.js";
+
+type DisclosureOptions = {
+    controller?: CustomButton,
+    floats?: boolean
+}
 
 export default class Disclosure extends Component {
-    controller: HTMLButtonElement;
+    controller: CustomButton;
     controlled: HTMLDivElement;
-    controllerLabel: HTMLSpanElement;
 
-    constructor(label: string) {
+    constructor(label: string, options: DisclosureOptions) {
         super('div');
-        [this.controller, this.controllerLabel] = this.createController(label);
+        this.controller = options.controller || this.createController(label);
         this.controlled = this.createControlled();
         this.addEventListeners();
+        this.component.append(
+            this.controller.component,
+            this.controlled
+        );
+        if (options.floats) {
+            this.component.classList.add('floating');
+        }
+        this.component.classList.add('disclosure');
+        this.controller.component.classList.add('controller');
+        this.controlled.classList.add('controlled');
     }
 
-    private createController(label: string): [HTMLButtonElement, HTMLSpanElement] {
-        let controller = document.createElement('button');
-        controller.id = generateUniqueId();
-        let labelSpan = document.createElement('span');
-        controller.append(labelSpan);
-        controller.setAttribute('aria-expanded', 'false');
-        labelSpan.textContent = label;
-        return [controller, labelSpan];
+    private createController(label: string): CustomButton {
+        let controller = new CustomButton(label);
+        controller.component.id = generateUniqueId();
+        controller.button.setAttribute('aria-expanded', 'false');
+        return controller;
     }
 
     private createControlled(): HTMLDivElement {
         let section = document.createElement('div');
-        section.setAttribute('aria-labelledby', this.controller.id);
-        section.role = 'group';
         section.hidden = true;
         return section;
     }
 
     private addEventListeners() {
-        this.controller.addEventListener('click', (e) => {
+        this.controller.button.addEventListener('click', (e) => {
             this.controlled.hidden = !this.controlled.hidden;
-            this.controller.setAttribute('aria-expanded', String(!this.controlled.hidden));
+            this.controller.button.setAttribute('aria-expanded', String(!this.controlled.hidden));
             e.preventDefault();
         });
     
         this.controlled.addEventListener('keydown', (e) => {
             if (e.key !== 'Escape') return;
-            this.controller.click();
+            this.controller.button.click();
             this.controller.focus();
         });
     }
 
     render() {
         this.component.append(
-            this.controller,
+            this.controller.component,
             this.controlled
         );
         return this.component;
