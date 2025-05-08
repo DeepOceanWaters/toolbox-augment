@@ -1,6 +1,9 @@
 import includesCaseInsensitive from "../includesCaseInsensitive.js";
 import Checkbox from "./Checkbox.js";
 import Component from "./Component.js";
+import CustomButton from "./CustomButton.js";
+import Disclosure from "./Disclosure.js";
+import { IconType } from "./Icon.js";
 import KeyboardNavigable from "./KeyboardNavigable.js";
 import Mutable, { MutableItems } from "./Mutable.js";
 import PartneredCheckboxGroup from "./PartneredMultiselect.js";
@@ -14,6 +17,7 @@ export default class FilterableMultiselect extends Component {
     heading: HTMLHeadingElement;
     filterer: TextInput;
     showOnlyCheckbox: Checkbox;
+    settings: Disclosure;
     checkboxGroup: KMPCG;
     filterGroup: HTMLDivElement;
     removeCheckboxesFromFocus: boolean;
@@ -33,6 +37,15 @@ export default class FilterableMultiselect extends Component {
 
         this.createShowOnly();
 
+        this.settings = new Disclosure(
+            this.name + ' settings', 
+            {
+                controller: new CustomButton(this.name + ' settings', IconType.SETTINGS, true),
+                floats: true
+            }
+        );
+        this.settings.controller.button.classList.add('medium-icon');
+
         this.filterGroup = document.createElement('div');
         this.filterGroup.classList.add('filtering-group');
         this.filterGroup.append(
@@ -44,8 +57,13 @@ export default class FilterableMultiselect extends Component {
         this.component.append(
             this.heading,
             this.showOnlyCheckbox.component,
+            this.settings.component,
             this.filterGroup
         );
+
+        this.heading.classList.add('group-title');
+        this.showOnlyCheckbox.component.classList.add('show-only');
+        this.settings.component.classList.add('settings');
 
         this.checkboxGroup.component.addEventListener('keyup', (e) => {
             if (e.key !== 'Escape') return;

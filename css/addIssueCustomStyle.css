@@ -58,7 +58,8 @@ tbody tr[data-scrolled-to-row] td {
         background-color: var(--blue-dark);
         color: white;
 
-        label, input {
+        label,
+        input {
             display: none;
         }
 
@@ -68,7 +69,9 @@ tbody tr[data-scrolled-to-row] td {
     }
 
     &.processing {
-        label, input {
+
+        label,
+        input {
             display: none;
         }
 
@@ -79,7 +82,7 @@ tbody tr[data-scrolled-to-row] td {
 }
 
 .bg-white:has(> .file-input) {
-    display:flex;
+    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -90,3 +93,65 @@ tbody tr[data-scrolled-to-row] td {
     }
 }
 
+
+
+/* filter multiselect with settings */
+.toolbox-augmentor {
+    &.multiselect-group {
+        display: grid;
+        grid-template-areas:
+            "title title"
+            "sort settings"
+            "checkbox checkbox";
+
+        .group-title {
+            grid-area: title;
+        }
+
+        .show-only {
+            grid-area: sort;
+        }
+
+        .settings {
+            grid-area: settings;
+            align-self: center;
+            justify-self: flex-end;
+            position: relative;
+        }
+
+        .filtering-group {
+            grid-area: checkbox;
+            align-self: center;
+            justify-self: unset;
+        }
+
+
+    }
+
+    .disclosure.floating  {
+        position: relative;
+
+        .controller {
+            z-index: 11;
+            position: relative;
+        }
+
+        .controlled {
+            position: absolute;
+            z-index: 10;
+            background: white;
+            transform: translate(-95%, 0rem);
+            left: 100%;
+            top: 0;
+            box-shadow: 0px 6px 10px -5px #777;
+            padding: 0.5rem;
+            border: 1px solid black;
+            padding-top: 1.9rem;
+            box-sizing: border-box;
+        }
+    }
+
+    .medium-icon {
+        font-size: 1.4rem;
+    }
+}
