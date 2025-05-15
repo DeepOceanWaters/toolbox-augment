@@ -5,25 +5,35 @@ import { IconType } from "./Icon.js";
 
 type DisclosureOptions = {
     controller?: CustomButton,
-    floats?: boolean
+    floats?: boolean,
+    headingLevel?: (1|2|3|4|5|6),
 }
 
 export default class Disclosure extends Component {
     controller: CustomButton;
     controlled: HTMLDivElement;
 
-    constructor(label: string, options: DisclosureOptions) {
+    constructor(label: string, options?: DisclosureOptions) {
         super('div');
         this.controller = options.controller || this.createController(label);
         this.controlled = this.createControlled();
         this.addEventListeners();
-        this.component.append(
-            this.controller.component,
-            this.controlled
-        );
-        if (options.floats) {
+
+        if (options?.headingLevel) {
+            let heading = document.createElement(`h${options.headingLevel}`);
+            heading.appendChild(this.controller.component);
+            this.component.appendChild(heading);
+        }
+        else {
+            this.component.appendChild(this.controller.component);
+        }
+
+        this.component.append(this.controlled);
+        
+        if (options?.floats) {
             this.component.classList.add('floating');
         }
+        
         this.component.classList.add('disclosure');
         this.controller.component.classList.add('controller');
         this.controlled.classList.add('controlled');
@@ -45,7 +55,10 @@ export default class Disclosure extends Component {
     private addEventListeners() {
         this.controller.button.addEventListener('click', (e) => {
             this.controlled.hidden = !this.controlled.hidden;
-            this.controller.button.setAttribute('aria-expanded', String(!this.controlled.hidden));
+            this.controller.button.setAttribute(
+                'aria-expanded', 
+                String(!this.controlled.hidden)
+            );
             e.preventDefault();
         });
     
@@ -54,13 +67,5 @@ export default class Disclosure extends Component {
             this.controller.button.click();
             this.controller.focus();
         });
-    }
-
-    render() {
-        this.component.append(
-            this.controller.component,
-            this.controlled
-        );
-        return this.component;
     }
 }
