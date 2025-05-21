@@ -662,7 +662,7 @@ export const tokens: issueTemplateData = {
         },
         relationship: {
             relatedsc: ["1.3.1"],
-            issues: "This content presents/acts as a list, but is not one semantically.",
+            issues: "This content presents a relationship visually, but this is not programmatically determinable.",
             requirement: "Ensure that visually related content is also related programmatically.",
             recommendation: "",
             resources: [""],
@@ -967,6 +967,17 @@ export const tokens: issueTemplateData = {
                     "https://webaim.org/techniques/formvalidation/#form"
                 ]
             }
+        },
+        noLabel: {
+            relatedsc: ['3.2.2'],
+            issues: "This form field does not have a visible label.",
+            requirement: "Ensure that all form fields have a persistently visible label.",
+            recommendation: "All form fields that are part of users entering data need to have a visible label at all times. Visible labels should not disappear (e.g. placeholder when textbox value is not empty).",
+            resources: [""],
+            notes: "",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
         }
     },
 
@@ -1120,6 +1131,21 @@ export const tokens: issueTemplateData = {
         states: [states],
         status: [status],
         postProcessing: postProcessing,
+    },
+
+    unsupported: {
+        aria: {
+            relatedsc: [""],
+            issues: "This content has an ARIA attribute that is required to understand the content, but it is misused. As a result, it may not be exposed to AT or AT may not expose it to users.",
+            requirement: "Ensure that ARIA attributes are only used on elements with ",
+            recommendation: "",
+            resources: [""],
+            notes: "ARIA attributes may be exposed by the browser/AT due to heuristics. This does not mean that it is an acceptable use. If the attribute is misused but it is not necessary to understand the page's content, then it can remain (e.g. span elements with ARIA-LABEL that supplements information). When required to understand the content (e.g. i element with ARIA-LABEL that acts as the text alternative) then it becomes an issue because it is not a reliable, accessibilty supported method of exposing this information. Per ARIA spec section 6.2.2 \"Use of a given state or property is not defined when used on roles other than those listed.\"",
+            states: [states],
+            status: [status],
+            postProcessing: postProcessing,
+        }
+
     },
 
     template: {
